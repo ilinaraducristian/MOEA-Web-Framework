@@ -1,0 +1,1 @@
+docker-compose -p moeawebframework up -d
