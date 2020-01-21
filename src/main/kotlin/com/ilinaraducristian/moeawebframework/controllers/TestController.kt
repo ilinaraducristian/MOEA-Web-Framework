@@ -1,55 +1,47 @@
 package com.ilinaraducristian.moeawebframework.controllers
 
+import com.ilinaraducristian.moeawebframework.moea.CustomInstrumenter
+import org.moeaframework.Executor
+import org.moeaframework.util.progress.ProgressListener
+import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
-import org.moeaframework.Executor;
-import org.moeaframework.Instrumenter;
-import org.moeaframework.util.progress.ProgressListener
+
 
 @RestController
 class TestController {
 
+  private val logger = LoggerFactory.getLogger(TestController::class.java)
+
   @GetMapping("testEndpoint")
   fun get(): String {
-    val problemName = "Belegundu"
-    val executor: Executor
-    val instrumenter: Instrumenter
-    val algorithmName = "CMA-ES"
+    val problemName = "DTLZ1_2"
+//    val executor: Executor
+//    val instrumenter: Instrumenter
+    val algorithmName = "NSGAII"
     val numberOfEvaluations = 10000
-    val numberOfSeeds = 1
+    val numberOfSeeds = 10
 
-    instrumenter = Instrumenter()
-        .withFrequency(100)
-        .withProblem(problemName)
-
-    instrumenter.attachHypervolumeCollector()
-    instrumenter.attachGenerationalDistanceCollector()
-    instrumenter.attachInvertedGenerationalDistanceCollector()
-    instrumenter.attachSpacingCollector()
-    instrumenter.attachAdditiveEpsilonIndicatorCollector()
-    instrumenter.attachContributionCollector()
-    instrumenter.attachR1Collector()
-    instrumenter.attachR2Collector()
-    instrumenter.attachR3Collector()
-    instrumenter.attachEpsilonProgressCollector()
-    instrumenter.attachAdaptiveMultimethodVariationCollector()
-    instrumenter.attachAdaptiveTimeContinuationCollector()
-    instrumenter.attachElapsedTimeCollector()
-    instrumenter.attachApproximationSetCollector()
-    instrumenter.attachPopulationSizeCollector()
+    val instrumenter = CustomInstrumenter(problemName)
 
     val listener = ProgressListener{
-      println(it.percentComplete)
+      event ->
+        println(event.percentComplete)
     }
 
-    executor = Executor()
+    val executor = Executor()
         .withProblem(problemName)
         .withInstrumenter(instrumenter)
         .withAlgorithm(algorithmName)
         .withMaxEvaluations(numberOfEvaluations)
         .withProgressListener(listener)
-    executor.runSeeds(numberOfSeeds)
-    return "Endpoint works"
+
+    try {
+      executor.runSeeds(numberOfSeeds)
+    }catch(e: Exception) {
+
+    }
+    return "Problem added!"
   }
 
 }

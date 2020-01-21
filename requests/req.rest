@@ -1,0 +1,17 @@
+@backend = http://localhost:8080/problem
+
+# New Problem
+POST {{backend}} HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Belegundu",
+  "algorithm": "CMA-ES",
+  "numberOfEvaluations": "10000",
+  "numberOfSeeds": "10"
+}
+
+###
+
+# Run Problem
+GET {{backend}}/-9140902214849695924 HTTP/1.1
