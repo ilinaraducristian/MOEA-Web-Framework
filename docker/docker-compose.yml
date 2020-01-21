@@ -1,20 +1,20 @@
 version: "3"
 services:
-  sessions:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
+  # sessions:
+  #   image: redis:alpine
+  #   ports:
+  #     - "6379:6379"
   problems:
     image: redis:alpine
     ports:
-      - "6378:6379"
-  users:
-    image: mysql:latest
-    environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=users
-    ports:
-      - "3306:3306"
+      - "6379:6379"
+  # users:
+  #   image: mysql:latest
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=root
+  #     - MYSQL_DATABASE=users
+  #   ports:
+  #     - "3306:3306"
   ampq:
     image: rabbitmq:management-alpine
     environment:

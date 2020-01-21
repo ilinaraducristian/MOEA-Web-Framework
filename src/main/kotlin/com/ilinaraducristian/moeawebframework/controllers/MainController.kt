@@ -7,13 +7,10 @@ import org.moeaframework.util.progress.ProgressListener
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.http.MediaType
-import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.*
-import java.awt.PageAttributes
 import java.lang.Exception
 import java.util.*
 import javax.validation.Valid
-import kotlin.math.roundToInt
 
 @RestController
 @RequestMapping("problem")
@@ -53,6 +50,7 @@ class MainController(
     Thread{
       try {
         executor.runSeeds(problem.numberOfSeeds)
+        rabbitTemplate.convertAndSend(problem.id.toString(), "Problem solved")
       }catch(e: Exception) {
         rabbitTemplate.convertAndSend(problem.id.toString(), "Error")
       }
