@@ -3,7 +3,9 @@ package com.ilinaraducristian.moeawebframework.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ilinaraducristian.moeawebframework.dto.Problem
 import com.ilinaraducristian.moeawebframework.dto.QualityIndicators
+import com.ilinaraducristian.moeawebframework.exceptions.ProblemIsSolvingException
 import com.ilinaraducristian.moeawebframework.exceptions.ProblemNotFoundException
+import com.ilinaraducristian.moeawebframework.exceptions.ProblemSolvedException
 import com.ilinaraducristian.moeawebframework.moea.ProblemSolver
 import org.moeaframework.core.Solution
 import org.moeaframework.util.progress.ProgressListener
@@ -35,13 +37,23 @@ class QueueController(
     do {
       problem.id = abs(Random().nextLong())
     } while (problemRedisTemplate.opsForValue().get(problem.id) != null)
-    problemRedisTemplate.opsForValue().setIfAbsent(problem.id, problem)
+    problem.status = "waiting"
+    problemRedisTemplate.opsForValue().set(problem.id, problem)
     return """ {"id": "${problem.id}"} """
   }
 
   @GetMapping("solveProblem/{id}")
   fun solveProblem(@PathVariable id: Long) {
     val problem = problemRedisTemplate.opsForValue().get(id) ?: throw ProblemNotFoundException()
+    if (problem.status == "done") {
+      throw ProblemSolvedException()
+    }
+    if(problem.status == "working") {
+      throw ProblemIsSolvingException()
+    }
+    problem.status = "working"
+    problem.results = ArrayList()
+    problemRedisTemplate.opsForValue().set(id, problem)
     threadPoolTaskExecutor.submit {
       var lastSeed = 1
       val listener = ProgressListener { event ->
@@ -50,8 +62,9 @@ class QueueController(
           val accumulator = event.executor.instrumenter.lastAccumulator
 
           try {
-            val size = accumulator.size("NFE")-1
+            val size = accumulator.size("NFE") - 1
             val qualityIndicators = QualityIndicators(accumulator, size, lastSeed - 1)
+            problem.results?.add(qualityIndicators)
             rabbitTemplate.convertAndSend(problem.id.toString(), jsonConverter.writeValueAsString(qualityIndicators))
           } catch (e: IllegalArgumentException) {
           }
@@ -64,10 +77,18 @@ class QueueController(
       }
 
       try {
-        if(problemSolver.solve())
+        if (problemSolver.solve()) {
+          problem.status = "done"
           rabbitTemplate.convertAndSend(problem.id.toString(), """{"status":"done"}""")
+        } else {
+          problem.results = null
+          problem.status = "waiting"
+        }
+        problemRedisTemplate.opsForValue().set(id, problem)
       } catch (e: Exception) {
-        println(e.printStackTrace())
+        problem.results = null
+        problem.status = "waiting"
+        problemRedisTemplate.opsForValue().set(id, problem)
         rabbitTemplate.convertAndSend(problem.id.toString(), """{"error":"${e.message}"}""")
       }
     }

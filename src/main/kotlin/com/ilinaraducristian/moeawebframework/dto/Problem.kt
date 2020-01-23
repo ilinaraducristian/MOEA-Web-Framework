@@ -23,6 +23,13 @@ data class Problem(
     var algorithm: String,
 
     @Column(nullable = false)
+    @NotBlank
+    var status: String,
+
+    @NotBlank
+    var results: ArrayList<QualityIndicators>?,
+
+    @Column(nullable = false)
     var numberOfEvaluations: Int = 10000,
 
     @Column(nullable = false)
