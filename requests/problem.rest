@@ -1,0 +1,5 @@
+@backend = http://localhost:8080/problem
+# Upload new problem
+
+# Download existing problem
+GET {{backend}}/download/CustomProblem HTTP/1.1

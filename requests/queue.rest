@@ -1,0 +1,18 @@
+@backend = http://localhost:8080/queue
+
+POST {{backend}}/addProblem HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Belegundu",
+  "algorithm": "CMA-ES",
+  "numberOfEvaluations": "10000",
+  "numberOfSeeds": "10"
+}
+
+###
+
+GET {{backend}}/solveProblem/5385914761453622690 HTTP/1.1
+
+###
+GET {{backend}}/cancelProblem/5385914761453622690 HTTP/1.1
