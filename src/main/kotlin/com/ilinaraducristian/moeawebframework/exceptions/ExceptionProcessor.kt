@@ -47,4 +47,16 @@ class ExceptionProcessor : ResponseEntityExceptionHandler() {
     return ExceptionResponse(exception)
   }
 
+  @ExceptionHandler(CannotCreateUserException::class)
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  fun handleCannotCreateUserException(exception: RuntimeException): ExceptionResponse {
+    return ExceptionResponse(exception)
+  }
+
+  @ExceptionHandler(UserNotFoundException::class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  fun handleUserNotFoundException(exception: RuntimeException): ExceptionResponse {
+    return ExceptionResponse(exception)
+  }
+
 }

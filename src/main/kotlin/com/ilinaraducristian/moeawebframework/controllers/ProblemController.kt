@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile
 import reactor.core.publisher.Mono
 import java.io.File
 import java.nio.file.Files
+import java.security.Principal
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -15,12 +16,12 @@ import javax.servlet.http.HttpServletResponse
 class ProblemController {
 
   @PutMapping("upload")
-  fun upload(@RequestParam("file") file: MultipartFile, @RequestParam("override") override: Boolean): Mono<Void> {
+  fun upload(@RequestParam("file") file: MultipartFile, @RequestParam("override") override: Boolean, principal: Principal?): Mono<Void> {
     return Mono.create<Void> {
-      val existingFile = File("problems/${file.originalFilename}.class")
+      val existingFile = File("${principal?.name}/problems/${file.originalFilename}.class")
       if (existingFile.exists() && !override)
         it.error(ProblemExistsException())
-      file.transferTo(File("problems/${file.originalFilename}"))
+      file.transferTo(File("${principal?.name}/problems/${file.originalFilename}"))
       it.success()
     }.doOnError { error ->
       throw error
@@ -28,9 +29,9 @@ class ProblemController {
   }
 
   @GetMapping("download/{name}")
-  fun download(request: HttpServletRequest, response: HttpServletResponse, @PathVariable name: String): Mono<Void> {
+  fun download(request: HttpServletRequest, response: HttpServletResponse, @PathVariable name: String, principal: Principal?): Mono<Void> {
     return Mono.create<Void> {
-      val file = File("problems/$name.class")
+      val file = File("${principal?.name}/problems/$name.class")
       if (!file.exists())
         it.error(ProblemNotFoundException())
       response.contentType = "application/octet-stream"

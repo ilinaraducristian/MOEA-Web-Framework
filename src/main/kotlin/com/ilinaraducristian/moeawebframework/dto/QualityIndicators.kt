@@ -1,9 +1,7 @@
 package com.ilinaraducristian.moeawebframework.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonProperty
 import org.moeaframework.analysis.collector.Accumulator
-import java.io.Serializable
 
 // [Approximation Set, R1Indicator, AdditiveEpsilonIndicator, R2Indicator, GenerationalDistance, Hypervolume, Spacing, R3Indicator, InvertedGenerationalDistance, NFE, Elapsed Time, Contribution]
 data class QualityIndicators(

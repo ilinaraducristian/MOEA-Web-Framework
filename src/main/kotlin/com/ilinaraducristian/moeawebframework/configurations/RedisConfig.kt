@@ -24,12 +24,17 @@ class RedisConfig {
   }
 
   @Bean
-  fun problemRedisTemplate(jsonConverter: ObjectMapper, connectionFactory: ReactiveRedisConnectionFactory): ReactiveRedisTemplate<Long, Problem> {
+  fun problemsRedisConnectionFactory(): ReactiveRedisConnectionFactory? {
+    return LettuceConnectionFactory("localhost", 6378)
+  }
+
+  @Bean
+  fun problemRedisTemplate(jsonConverter: ObjectMapper, problemsRedisConnectionFactory: ReactiveRedisConnectionFactory): ReactiveRedisTemplate<Long, Problem> {
     val keySerializer = LongRedisSerializer()
     val valueSerializer = Jackson2JsonRedisSerializer<Problem>(Problem::class.java)
     val builder = RedisSerializationContext.newSerializationContext<Long, Problem>(keySerializer)
     val redisSerializationContext = builder.value(valueSerializer).build()
-    return ReactiveRedisTemplate<Long, Problem>(connectionFactory, redisSerializationContext)
+    return ReactiveRedisTemplate<Long, Problem>(problemsRedisConnectionFactory, redisSerializationContext)
   }
 
   private class LongRedisSerializer : RedisSerializer<Long> {

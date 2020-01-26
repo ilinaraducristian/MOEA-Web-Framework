@@ -1,4 +1,4 @@
-@backend = http://localhost:8080/testEndpoint
+@backend = http://localhost:8080/test
 
 # New Problem
 POST {{backend}} HTTP/1.1
@@ -14,4 +14,7 @@ Content-Type: application/json
 ###
 
 # TestEndpoint
-GET {{backend}} HTTP/1.1
+GET {{backend}}/one HTTP/1.1
+
+###
+GET {{backend}}/two HTTP/1.1
