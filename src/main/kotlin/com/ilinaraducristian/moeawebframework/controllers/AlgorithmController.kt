@@ -2,6 +2,7 @@ package com.ilinaraducristian.moeawebframework.controllers
 
 import com.ilinaraducristian.moeawebframework.exceptions.AlgorithmExistsException
 import com.ilinaraducristian.moeawebframework.exceptions.AlgorithmNotFoundException
+import com.ilinaraducristian.moeawebframework.exceptions.UserNotLoggedInException
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import reactor.core.publisher.Mono
@@ -18,33 +19,32 @@ class AlgorithmController {
   @PutMapping("upload")
   fun upload(@RequestParam("file") file: MultipartFile, @RequestParam("override") override: Boolean, principal: Principal?): Mono<Void> {
     return Mono.create<Void> {
-      val existingFile = File("${principal?.name}/algorithms/${file.originalFilename}.class")
-      if (existingFile.exists() && !override) {
-        it.error(AlgorithmExistsException())
-      } else {
-        file.transferTo(File("${principal?.name}/algorithms/${file.originalFilename}"))
-        it.success()
+      if (principal == null) {
+        return@create it.error(UserNotLoggedInException())
       }
-    }.doOnError { error ->
-      throw error
+      val existingFile = File("${principal.name}/algorithms/${file.originalFilename}.class")
+      if (existingFile.exists() && !override)
+        return@create it.error(AlgorithmExistsException())
+      file.transferTo(File("${principal.name}/algorithms/${file.originalFilename}"))
+      it.success()
+
     }
   }
 
   @GetMapping("download/{name}")
   fun download(request: HttpServletRequest, response: HttpServletResponse, @PathVariable name: String, principal: Principal?): Mono<Void> {
     return Mono.create<Void> {
-      val file = File("${principal?.name}/algorithms/$name.class")
-      if (!file.exists()) {
-        it.error(AlgorithmNotFoundException())
-      } else {
-        response.contentType = "application/octet-stream"
-        response.addHeader("Content-Disposition", "attachment; filename=$name.class")
-        Files.copy(file.toPath(), response.outputStream)
-        response.outputStream.flush()
-        it.success()
-      }
-    }.doOnError { error ->
-      throw error
+      if (principal == null)
+        return@create it.error(UserNotLoggedInException())
+      val file = File("${principal.name}/algorithms/$name.class")
+      if (!file.exists())
+        return@create it.error(AlgorithmNotFoundException())
+      response.contentType = "application/octet-stream"
+      response.addHeader("Content-Disposition", "attachment; filename=$name.class")
+      Files.copy(file.toPath(), response.outputStream)
+      response.outputStream.flush()
+      it.success()
+
     }
   }
 

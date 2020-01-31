@@ -8,13 +8,13 @@ services:
     image: redis:alpine
     ports:
       - "6378:6379"
-  # users:
-  #   image: mysql:latest
-  #   environment:
-  #     - MYSQL_ROOT_PASSWORD=root
-  #     - MYSQL_DATABASE=users
-  #   ports:
-  #     - "3306:3306"
+  users:
+    image: mysql:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=users
+    ports:
+      - "3306:3306"
   ampq:
     image: rabbitmq:management-alpine
     environment:

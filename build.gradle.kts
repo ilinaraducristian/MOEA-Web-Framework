@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.ilinaraducristian"
-version = "0.3"
+version = "0.4"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
 val developmentOnly by configurations.creating
@@ -39,8 +39,11 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	implementation("org.springframework.session:spring-session-data-redis")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
-	runtimeOnly("com.h2database:h2")
-//	runtimeOnly("mysql:mysql-connector-java")
+	runtimeOnly("mysql:mysql-connector-java")
+
+	// Embedded servers
+	implementation("it.ozimov:embedded-redis:0.7.2")
+//	runtimeOnly("com.h2database:h2")
 
 	// Kotlin
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

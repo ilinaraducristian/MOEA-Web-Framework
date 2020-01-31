@@ -10,33 +10,33 @@ import org.moeaframework.util.progress.ProgressListener
 class ProblemSolver(val problem: Problem, listener: ProgressListener) {
 
   private val instrumenter: Instrumenter = Instrumenter()
-    .withProblem(problem.name)
-    .withFrequency(1)
-    .attachHypervolumeCollector()
-    .attachGenerationalDistanceCollector()
-    .attachInvertedGenerationalDistanceCollector()
-    .attachSpacingCollector()
-    .attachAdditiveEpsilonIndicatorCollector()
-    .attachContributionCollector()
-    .attachR1Collector()
-    .attachR2Collector()
-    .attachR3Collector()
-    .attachEpsilonProgressCollector()
-    .attachAdaptiveMultimethodVariationCollector()
-    .attachAdaptiveTimeContinuationCollector()
-    .attachElapsedTimeCollector()
-    .attachApproximationSetCollector()
-    .attachPopulationSizeCollector()
+      .withProblem(problem.name)
+      .withFrequency(1)
+      .attachHypervolumeCollector()
+      .attachGenerationalDistanceCollector()
+      .attachInvertedGenerationalDistanceCollector()
+      .attachSpacingCollector()
+      .attachAdditiveEpsilonIndicatorCollector()
+      .attachContributionCollector()
+      .attachR1Collector()
+      .attachR2Collector()
+      .attachR3Collector()
+      .attachEpsilonProgressCollector()
+      .attachAdaptiveMultimethodVariationCollector()
+      .attachAdaptiveTimeContinuationCollector()
+      .attachElapsedTimeCollector()
+      .attachApproximationSetCollector()
+      .attachPopulationSizeCollector()
   private val executor: Executor
   private var solved: Boolean = false
 
   init {
-    var tmpProblem: org.moeaframework.core.Problem? = null;
+    var tmpProblem: org.moeaframework.core.Problem? = null
     try {
       tmpProblem = ProblemFactory.getInstance().getProblem(
-          problem.name);
+          problem.name)
       instrumenter.withEpsilon(EpsilonHelper.getEpsilon(
-          tmpProblem));
+          tmpProblem))
     } finally {
       tmpProblem?.close()
     }

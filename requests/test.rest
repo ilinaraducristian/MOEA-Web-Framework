@@ -18,3 +18,7 @@ GET {{backend}}/one HTTP/1.1
 
 ###
 GET {{backend}}/two HTTP/1.1
+
+###
+# Add roles
+GET {{backend}}/addRole HTTP/1.1

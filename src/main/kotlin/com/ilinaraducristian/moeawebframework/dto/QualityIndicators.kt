@@ -2,13 +2,12 @@ package com.ilinaraducristian.moeawebframework.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.moeaframework.analysis.collector.Accumulator
+import java.io.Serializable
 
 // [Approximation Set, R1Indicator, AdditiveEpsilonIndicator, R2Indicator, GenerationalDistance, Hypervolume, Spacing, R3Indicator, InvertedGenerationalDistance, NFE, Elapsed Time, Contribution]
 data class QualityIndicators(
     @JsonIgnore
     val accumulator: Accumulator,
-    @JsonIgnore
-    val size: Int,
     val currentSeed: Int,
 //    var ApproximationSet: ArrayList<Double> = ArrayList(),
     val R1Indicator: ArrayList<Double> = ArrayList(),
@@ -22,8 +21,9 @@ data class QualityIndicators(
     val NFE: ArrayList<Int> = ArrayList(),
     val ElapsedTime: ArrayList<Double> = ArrayList(),
     val Contribution: ArrayList<Double> = ArrayList()
-) {
+) : Serializable {
   init {
+    val size = accumulator.size("NFE") - 1
     for (i: Int in 0..size) {
 //      ApproximationSet.add(accumulator.get("Approximation Set", i) as Double)
       R1Indicator.add(accumulator.get("R1Indicator", i) as Double)

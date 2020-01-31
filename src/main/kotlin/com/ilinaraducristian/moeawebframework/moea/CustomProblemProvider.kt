@@ -8,17 +8,17 @@ import java.io.File
 import java.net.MalformedURLException
 import java.net.URLClassLoader
 
-class CustomProblemProvider: ProblemProvider() {
+class CustomProblemProvider : ProblemProvider() {
 
   override fun getProblem(name: String): Problem? {
     val file = File("problems/$name.class")
     var problem: Problem? = null
-    if(file.exists())
+    if (file.exists())
       try {
         problem = URLClassLoader(arrayOf(file.toURI().toURL())).loadClass(name).newInstance() as Problem
-      }catch(e: MalformedURLException){
+      } catch (e: MalformedURLException) {
         println("MalformedURLException")
-      }catch(e: ClassNotFoundException) {
+      } catch (e: ClassNotFoundException) {
         println("ClassNotFoundException")
       }
     return problem;
@@ -26,7 +26,7 @@ class CustomProblemProvider: ProblemProvider() {
 
   override fun getReferenceSet(name: String): NondominatedPopulation? {
     val file = File("references/$name.pf")
-    if(file.exists())
+    if (file.exists())
       return NondominatedPopulation(PopulationIO.readObjectives(file))
     else return null
   }

@@ -2,6 +2,7 @@ package com.ilinaraducristian.moeawebframework.configurations
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ilinaraducristian.moeawebframework.dto.Problem
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
@@ -19,13 +20,19 @@ class RedisConfig {
 
   @Bean
   @Primary
-  fun reactiveRedisConnectionFactory(): ReactiveRedisConnectionFactory? {
-    return LettuceConnectionFactory("localhost", 6379)
+  fun sessionsRedisConnectionFactory(
+      @Value("\${spring.session.host}") host: String,
+      @Value("\${spring.session.port}") port: Int
+  ): ReactiveRedisConnectionFactory? {
+    return LettuceConnectionFactory(host, port)
   }
 
   @Bean
-  fun problemsRedisConnectionFactory(): ReactiveRedisConnectionFactory? {
-    return LettuceConnectionFactory("localhost", 6378)
+  fun problemsRedisConnectionFactory(
+      @Value("\${redis.problems.host}") host: String,
+      @Value("\${redis.problems.port}") port: Int
+  ): ReactiveRedisConnectionFactory? {
+    return LettuceConnectionFactory(host, port)
   }
 
   @Bean

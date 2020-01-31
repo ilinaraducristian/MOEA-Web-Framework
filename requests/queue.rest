@@ -12,7 +12,14 @@ Content-Type: application/json
 
 ###
 
-GET {{backend}}/solveProblem/5945117069072070932 HTTP/1.1
+GET {{backend}}/solveProblem/4583775679180042248 HTTP/1.1
 
 ###
-GET {{backend}}/cancelProblem/5945117069072070932 HTTP/1.1
+GET {{backend}}/cancelProblem/4583775679180042248 HTTP/1.1
+
+###
+# Login
+POST http://localhost:8080/login HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+username=user&password=password

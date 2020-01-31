@@ -2,4 +2,4 @@ package com.ilinaraducristian.moeawebframework.exceptions
 
 import java.lang.RuntimeException
 
-class AlgorithmExistsException : RuntimeException("Algorithm exists, use override")
+class UserNotLoggedInException : RuntimeException("Please log in to use this feature")

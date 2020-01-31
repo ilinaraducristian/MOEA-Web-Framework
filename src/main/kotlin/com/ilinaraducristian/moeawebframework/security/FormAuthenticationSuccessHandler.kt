@@ -9,7 +9,7 @@ import org.springframework.util.StringUtils
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class FormAuthenticationSuccessHandler: SimpleUrlAuthenticationSuccessHandler() {
+class FormAuthenticationSuccessHandler : SimpleUrlAuthenticationSuccessHandler() {
   private var requestCache: RequestCache = HttpSessionRequestCache()
 
   override fun onAuthenticationSuccess(
@@ -21,7 +21,7 @@ class FormAuthenticationSuccessHandler: SimpleUrlAuthenticationSuccessHandler() 
       clearAuthenticationAttributes(request)
       return
     }
-    val targetUrlParam = targetUrlParameter
+    val targetUrlParam: String? = targetUrlParameter
     if (isAlwaysUseDefaultTargetUrl
         || (targetUrlParam != null
             && StringUtils.hasText(request.getParameter(targetUrlParam)))) {
