@@ -41,9 +41,14 @@ dependencies {
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("mysql:mysql-connector-java")
 
+	// JWT
+	implementation("io.jsonwebtoken:jjwt-api:0.10.7")
+	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.10.7")
+	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.10.7")
+
 	// Embedded servers
 	implementation("it.ozimov:embedded-redis:0.7.2")
-//	runtimeOnly("com.h2database:h2")
+	//	runtimeOnly("com.h2database:h2")
 
 	// Kotlin
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

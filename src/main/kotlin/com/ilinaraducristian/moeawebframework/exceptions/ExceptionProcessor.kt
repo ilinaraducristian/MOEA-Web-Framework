@@ -59,4 +59,10 @@ class ExceptionProcessor : ResponseEntityExceptionHandler() {
     return ExceptionResponse(exception)
   }
 
+  @ExceptionHandler(UserNotLoggedInException::class)
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  fun handleUserNotLoggedInException(exception: RuntimeException): ExceptionResponse {
+    return ExceptionResponse(exception)
+  }
+
 }

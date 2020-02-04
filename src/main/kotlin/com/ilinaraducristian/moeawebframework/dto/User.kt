@@ -4,7 +4,6 @@ import org.hibernate.annotations.NaturalId
 import java.io.Serializable
 import javax.persistence.*
 import javax.validation.constraints.NotBlank
-import javax.validation.constraints.Size
 
 @Entity
 @Table(name = "users")

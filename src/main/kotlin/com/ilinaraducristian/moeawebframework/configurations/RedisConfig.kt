@@ -2,12 +2,9 @@ package com.ilinaraducristian.moeawebframework.configurations
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ilinaraducristian.moeawebframework.dto.Problem
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Primary
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializationContext
@@ -19,29 +16,12 @@ import java.nio.ByteBuffer
 class RedisConfig {
 
   @Bean
-  @Primary
-  fun sessionsRedisConnectionFactory(
-      @Value("\${spring.session.host}") host: String,
-      @Value("\${spring.session.port}") port: Int
-  ): ReactiveRedisConnectionFactory? {
-    return LettuceConnectionFactory(host, port)
-  }
-
-  @Bean
-  fun problemsRedisConnectionFactory(
-      @Value("\${redis.problems.host}") host: String,
-      @Value("\${redis.problems.port}") port: Int
-  ): ReactiveRedisConnectionFactory? {
-    return LettuceConnectionFactory(host, port)
-  }
-
-  @Bean
-  fun problemRedisTemplate(jsonConverter: ObjectMapper, problemsRedisConnectionFactory: ReactiveRedisConnectionFactory): ReactiveRedisTemplate<Long, Problem> {
+  fun redisTemplate(jsonConverter: ObjectMapper, redisConnectionFactory: ReactiveRedisConnectionFactory): ReactiveRedisTemplate<Long, Problem> {
     val keySerializer = LongRedisSerializer()
     val valueSerializer = Jackson2JsonRedisSerializer<Problem>(Problem::class.java)
     val builder = RedisSerializationContext.newSerializationContext<Long, Problem>(keySerializer)
     val redisSerializationContext = builder.value(valueSerializer).build()
-    return ReactiveRedisTemplate<Long, Problem>(problemsRedisConnectionFactory, redisSerializationContext)
+    return ReactiveRedisTemplate<Long, Problem>(redisConnectionFactory, redisSerializationContext)
   }
 
   private class LongRedisSerializer : RedisSerializer<Long> {

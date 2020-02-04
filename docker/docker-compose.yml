@@ -1,13 +1,9 @@
 version: "3"
 services:
-  sessions:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
   problems:
     image: redis:alpine
     ports:
-      - "6378:6379"
+      - "6379:6379"
   users:
     image: mysql:latest
     environment:

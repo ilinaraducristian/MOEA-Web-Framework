@@ -21,7 +21,7 @@ import kotlin.math.abs
 @RestController
 @RequestMapping("queue")
 class QueueController(
-    private val problemRedisTemplate: ReactiveRedisTemplate<Long, Problem>,
+    private val redisTemplate: ReactiveRedisTemplate<Long, Problem>,
     private val rabbitTemplate: RabbitTemplate,
     private val jsonConverter: ObjectMapper,
     private val threadPoolTaskExecutor: ThreadPoolTaskExecutor,
@@ -40,13 +40,16 @@ class QueueController(
         // Guest
         do {
           problem.id = abs(ThreadLocalRandom.current().nextLong())
-        } while (problemRedisTemplate.opsForValue().get(problem.id).block() != null)
+        } while (redisTemplate.opsForValue().get(problem.id).block() != null)
         problem.status = "waiting"
-        problemRedisTemplate.opsForValue().set(problem.id, problem).block()
+        redisTemplate.opsForValue().set(problem.id, problem).block()
         it.success(""" {"id": "${problem.id}"} """)
       } else {
         // User
-        val user = userRepo.findByUsername(principal.name) ?: return@create it.error(UserNotFoundException())
+        val foundUser = userRepo.findByUsername(principal.name)
+        if (foundUser.isEmpty)
+          return@create it.error(UserNotFoundException())
+        val user = foundUser.get()
         if (problemRepo.existsByUserAndUserDefinedName(user, problem.userDefinedName))
           return@create it.error(ProblemExistsException())
         problem.status = "waiting"
@@ -62,7 +65,7 @@ class QueueController(
     val findProblem: Mono<Problem>
     if (principal == null) {
       // Guest
-      findProblem = problemRedisTemplate.opsForValue().get(id)
+      findProblem = redisTemplate.opsForValue().get(id)
           .flatMap { problem ->
             Mono.create<Void> {
               if (problem == null)
@@ -73,12 +76,15 @@ class QueueController(
                 return@create it.error(ProblemIsSolvingException())
               problem.status = "working"
               it.success()
-            }.then(problemRedisTemplate.opsForValue().set(id, problem)).thenReturn(problem)
+            }.then(redisTemplate.opsForValue().set(id, problem)).thenReturn(problem)
           }
     } else {
       // User
       findProblem = Mono.create<Problem> {
-        val user = userRepo.findByUsername(principal.name) ?: return@create it.error(UserNotFoundException())
+        val foundUser = userRepo.findByUsername(principal.name)
+        if (foundUser.isEmpty)
+          return@create it.error(UserNotFoundException())
+        val user = foundUser.get()
         val problem = problemRepo.findByUserAndId(user, id) ?: return@create it.error(ProblemNotFoundException())
         if (problem.status == "done") {
           return@create it.error(ProblemSolvedException())
@@ -131,7 +137,7 @@ class QueueController(
                     rabbitTemplate.convertAndSend("""user.${problem.user.username}.${problem.id}""", """{"status":"done"}""")
                 }
               } catch (e: Exception) {
-                problemRedisTemplate.opsForValue().set(id, problem)
+                redisTemplate.opsForValue().set(id, problem)
                 if (principal == null)
                   rabbitTemplate.convertAndSend("""guest.${problem.id}""", """{"error":"${e.message}"}""")
                 else
@@ -142,7 +148,7 @@ class QueueController(
                   problem.status = "waiting"
                 }
                 if (principal == null)
-                  problemRedisTemplate.opsForValue().set(id, problem)
+                  redisTemplate.opsForValue().set(id, problem)
                 else
                   problemRepo.save(problem)
               }
@@ -156,7 +162,7 @@ class QueueController(
   fun cancelProblem(@PathVariable id: Long, principal: Principal?): Mono<Void> {
     val findProblem: Mono<Problem>
     if (principal == null) {
-      findProblem = problemRedisTemplate.opsForValue().get(id).flatMap { problem ->
+      findProblem = redisTemplate.opsForValue().get(id).flatMap { problem ->
         Mono.create<Void> {
           if (problem == null)
             return@create it.error(ProblemNotFoundException())
@@ -164,11 +170,14 @@ class QueueController(
             return@create it.error(ProblemIsNotSolvingException())
           problem.status = "waiting"
           it.success()
-        }.then(problemRedisTemplate.opsForValue().set(id, problem)).thenReturn(problem)
+        }.then(redisTemplate.opsForValue().set(id, problem)).thenReturn(problem)
       }
     } else {
       findProblem = Mono.create<Problem> {
-        val user = userRepo.findByUsername(principal.name) ?: return@create it.error(UserNotFoundException())
+        val foundUser = userRepo.findByUsername(principal.name)
+        if (foundUser.isEmpty)
+          return@create it.error(UserNotFoundException())
+        val user = foundUser.get()
         val problem = problemRepo.findByUserAndId(user, id) ?: return@create it.error(ProblemNotFoundException())
         if (problem.status != "working")
           return@create it.error(ProblemIsNotSolvingException())
