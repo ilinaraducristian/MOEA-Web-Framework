@@ -1,4 +1,4 @@
-package com.ilinaraducristian.moeawebframework.dto
+package com.ilinaraducristian.moeawebframework.entities
 
 import org.hibernate.annotations.NaturalId
 import java.io.Serializable
@@ -27,6 +27,7 @@ data class User(
     var email: String = "",
 
     @Column(nullable = false)
+    @NotBlank
     var firstName: String = "",
 
     var lastName: String? = null,

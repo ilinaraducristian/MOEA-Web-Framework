@@ -28,7 +28,7 @@ class SecurityConfig(
         .and()
         .authorizeRequests()
         .antMatchers("/test").permitAll()
-        .antMatchers("/guestQueue").permitAll()
+        .antMatchers("/queue").permitAll()
         .antMatchers("/user/login").permitAll()
         .antMatchers("/user/register").permitAll()
         .anyRequest().authenticated()

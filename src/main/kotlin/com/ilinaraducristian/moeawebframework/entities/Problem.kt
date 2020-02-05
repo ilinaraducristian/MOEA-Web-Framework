@@ -1,5 +1,6 @@
-package com.ilinaraducristian.moeawebframework.dto
+package com.ilinaraducristian.moeawebframework.entities
 
+import com.ilinaraducristian.moeawebframework.dto.QualityIndicators
 import java.io.Serializable
 import javax.persistence.*
 import javax.validation.constraints.NotBlank
@@ -26,7 +27,7 @@ data class Problem(
 
     @Column(nullable = false)
     @NotBlank
-    var status: String = "",
+    var status: String = "waiting",
 
     var results: ArrayList<QualityIndicators>? = null,
 
@@ -38,8 +39,6 @@ data class Problem(
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    var user: User = User(),
-
-    var enabled: Boolean = true
+    var user: User = User()
 
 ) : Serializable

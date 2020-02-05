@@ -1,7 +1,7 @@
 package com.ilinaraducristian.moeawebframework.configurations
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.ilinaraducristian.moeawebframework.dto.Problem
+import com.ilinaraducristian.moeawebframework.entities.Problem
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
@@ -11,12 +11,11 @@ import org.springframework.data.redis.serializer.RedisSerializationContext
 import org.springframework.data.redis.serializer.RedisSerializer
 import java.nio.ByteBuffer
 
-
 @Configuration
 class RedisConfig {
 
   @Bean
-  fun redisTemplate(jsonConverter: ObjectMapper, redisConnectionFactory: ReactiveRedisConnectionFactory): ReactiveRedisTemplate<Long, Problem> {
+  fun reactiveRedisTemplate(jsonConverter: ObjectMapper, redisConnectionFactory: ReactiveRedisConnectionFactory): ReactiveRedisTemplate<Long, Problem> {
     val keySerializer = LongRedisSerializer()
     val valueSerializer = Jackson2JsonRedisSerializer<Problem>(Problem::class.java)
     val builder = RedisSerializationContext.newSerializationContext<Long, Problem>(keySerializer)

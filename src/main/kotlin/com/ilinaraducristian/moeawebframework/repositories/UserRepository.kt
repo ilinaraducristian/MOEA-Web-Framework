@@ -1,7 +1,8 @@
 package com.ilinaraducristian.moeawebframework.repositories
 
-import com.ilinaraducristian.moeawebframework.dto.User
+import com.ilinaraducristian.moeawebframework.entities.User
 import org.springframework.data.repository.CrudRepository
+import org.springframework.stereotype.Repository
 import java.util.*
 
 interface UserRepository : CrudRepository<User, Long> {

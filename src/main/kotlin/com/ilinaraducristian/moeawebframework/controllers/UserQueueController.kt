@@ -1,8 +1,9 @@
 package com.ilinaraducristian.moeawebframework.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.ilinaraducristian.moeawebframework.dto.Problem
+import com.ilinaraducristian.moeawebframework.dto.ProblemDTO
 import com.ilinaraducristian.moeawebframework.dto.QualityIndicators
+import com.ilinaraducristian.moeawebframework.entities.Problem
 import com.ilinaraducristian.moeawebframework.exceptions.*
 import com.ilinaraducristian.moeawebframework.moea.ProblemSolver
 import com.ilinaraducristian.moeawebframework.repositories.ProblemRepository
@@ -14,14 +15,12 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import java.security.Principal
-import java.util.concurrent.ThreadLocalRandom
 import javax.validation.Valid
-import kotlin.math.abs
 
 @RestController
-@RequestMapping("userQueue")
+@RequestMapping("user/queue")
 class UserQueueController(
-    private val redisTemplate: ReactiveRedisTemplate<Long, Problem>,
+    private val reactiveRedisTemplate: ReactiveRedisTemplate<Long, Problem>,
     private val rabbitTemplate: RabbitTemplate,
     private val jsonConverter: ObjectMapper,
     private val threadPoolTaskExecutor: ThreadPoolTaskExecutor,
@@ -32,19 +31,18 @@ class UserQueueController(
   val solvers = ArrayList<ProblemSolver>()
 
   @PostMapping("addProblem")
-  fun addProblem(@Valid @RequestBody problem: Problem, principal: Principal): Mono<String> {
+  fun addProblem(@Valid @RequestBody problem: ProblemDTO, principal: Principal): Mono<String> {
     return Mono.create<String> {
-      if (problem.numberOfEvaluations < 500) problem.numberOfEvaluations = 500
-      if (problem.numberOfSeeds < 1) problem.numberOfSeeds = 1
       val foundUser = userRepo.findByUsername(principal.name)
       if (foundUser.isEmpty)
         return@create it.error(UserNotFoundException())
       val user = foundUser.get()
       if (problemRepo.existsByUserAndUserDefinedName(user, problem.userDefinedName))
         return@create it.error(ProblemExistsException())
-      problem.status = "waiting"
-      problem.user = user
-      val savedProblem = problemRepo.save(problem)
+      val newProblem = Problem(userDefinedName = problem.userDefinedName, name = problem.name, algorithm = problem.algorithm, numberOfEvaluations = problem.numberOfEvaluations, numberOfSeeds = problem.numberOfSeeds)
+      newProblem.status = "waiting"
+      newProblem.user = user
+      val savedProblem = problemRepo.save(newProblem)
       it.success(""" {"id": "${savedProblem.id}"} """)
     }
   }
@@ -100,7 +98,7 @@ class UserQueueController(
               rabbitTemplate.convertAndSend("""user.${problem.user.username}.${problem.id}""", """{"status":"done"}""")
             }
           } catch (e: Exception) {
-            redisTemplate.opsForValue().set(id, problem)
+            reactiveRedisTemplate.opsForValue().set(id, problem)
             rabbitTemplate.convertAndSend("""user.${problem.user.username}.${problem.id}""", """{"error":"${e.message}"}""")
           } finally {
             if (!solved) {

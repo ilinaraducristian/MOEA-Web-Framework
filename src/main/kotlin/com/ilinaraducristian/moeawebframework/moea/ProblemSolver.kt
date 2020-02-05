@@ -1,6 +1,6 @@
 package com.ilinaraducristian.moeawebframework.moea
 
-import com.ilinaraducristian.moeawebframework.dto.Problem
+import com.ilinaraducristian.moeawebframework.entities.Problem
 import org.moeaframework.Executor
 import org.moeaframework.Instrumenter
 import org.moeaframework.analysis.sensitivity.EpsilonHelper

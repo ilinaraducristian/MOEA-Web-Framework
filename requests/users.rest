@@ -26,18 +26,22 @@ Content-Type: application/json
 
 POST {{backend}}/details HTTP/1.1
 Content-Type: application/json
-# Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNTgwODI1MTkxLCJleHAiOjE1ODA4NjExOTF9.WTh9TGIaRoX5nktMG-dA6qfsf9rJQe8lUR0UXId8hz4
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNTgwOTE1MDg1LCJleHAiOjE1ODA5NTEwODV9.V5a4g3l8Ljpwt2gbF8qCQCbl150yvb3xFJKB18dftRw
 
 {
 
 }
 
-### Admin test
+### Add problem
 
-POST {{backend}}/admin HTTP/1.1
+POST {{backend}}/queue/addProblem HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNTgwODI4MDA3LCJleHAiOjE1ODA4NjQwMDd9.NcczMWExtT9kiTAsuYMLRJn-2_kfqfE21gwr7LjmkL4
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNTgwOTE1MDg1LCJleHAiOjE1ODA5NTEwODV9.V5a4g3l8Ljpwt2gbF8qCQCbl150yvb3xFJKB18dftRw
 
 {
-
+  "userDefinedName": "Problema noua",
+  "name": "Belegundu",
+  "algorithm": "CMA-ES",
+  "numberOfEvaluations": "10000",
+  "numberOfSeeds": "10"
 }

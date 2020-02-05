@@ -1,7 +1,5 @@
 package com.ilinaraducristian.moeawebframework.exceptions
 
-import java.lang.RuntimeException
-
-class ExceptionResponse(exception: RuntimeException) {
+class ExceptionResponse(exception: Exception) {
   val message = exception.message
 }

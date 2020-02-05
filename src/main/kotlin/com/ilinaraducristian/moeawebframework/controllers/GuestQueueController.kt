@@ -1,7 +1,8 @@
 package com.ilinaraducristian.moeawebframework.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.ilinaraducristian.moeawebframework.dto.Problem
+import com.ilinaraducristian.moeawebframework.dto.ProblemDTO
+import com.ilinaraducristian.moeawebframework.entities.Problem
 import com.ilinaraducristian.moeawebframework.dto.QualityIndicators
 import com.ilinaraducristian.moeawebframework.exceptions.ProblemIsNotSolvingException
 import com.ilinaraducristian.moeawebframework.exceptions.ProblemIsSolvingException
@@ -18,9 +19,9 @@ import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.abs
 
 @RestController
-@RequestMapping("guestQueue")
+@RequestMapping("queue")
 class GuestQueueController(
-    private val redisTemplate: ReactiveRedisTemplate<Long, Problem>,
+    private val reactiveRedisTemplate: ReactiveRedisTemplate<Long, Problem>,
     private val rabbitTemplate: RabbitTemplate,
     private val jsonConverter: ObjectMapper,
     private val threadPoolTaskExecutor: ThreadPoolTaskExecutor
@@ -29,22 +30,20 @@ class GuestQueueController(
   val solvers = ArrayList<ProblemSolver>()
 
   @PostMapping("addProblem")
-  fun addProblem(@RequestBody problem: Problem): Mono<String> {
+  fun addProblem(@RequestBody problem: ProblemDTO): Mono<String> {
     return Mono.create<String> {
-      if (problem.numberOfEvaluations < 500) problem.numberOfEvaluations = 500
-      if (problem.numberOfSeeds < 1) problem.numberOfSeeds = 1
+      val savedProblem = Problem(userDefinedName = problem.userDefinedName, name = problem.name, algorithm = problem.algorithm, numberOfSeeds = problem.numberOfSeeds, numberOfEvaluations = problem.numberOfEvaluations)
       do {
-        problem.id = abs(ThreadLocalRandom.current().nextLong())
-      } while (redisTemplate.opsForValue().get(problem.id).block() != null)
-      problem.status = "waiting"
-      redisTemplate.opsForValue().set(problem.id, problem).block()
-      it.success(""" {"id": "${problem.id}"} """)
+        savedProblem.id = abs(ThreadLocalRandom.current().nextLong())
+      } while (reactiveRedisTemplate.opsForValue().get(savedProblem.id).block() != null)
+      reactiveRedisTemplate.opsForValue().set(savedProblem.id, savedProblem).block()
+      it.success(""" {"id": "${savedProblem.id}"} """)
     }
   }
 
   @GetMapping("solveProblem/{id}")
   fun solveProblem(@PathVariable id: Long): Mono<Void> {
-    return redisTemplate.opsForValue().get(id)
+    return reactiveRedisTemplate.opsForValue().get(id)
         .flatMap { problem ->
           Mono.create<Void> {
             if (problem == null)
@@ -55,7 +54,7 @@ class GuestQueueController(
               return@create it.error(ProblemIsSolvingException())
             problem.status = "working"
             it.success()
-          }.then(redisTemplate.opsForValue().set(id, problem)).thenReturn(problem)
+          }.then(reactiveRedisTemplate.opsForValue().set(id, problem)).thenReturn(problem)
         }.flatMap { problem ->
           Mono.create<Void> {
             threadPoolTaskExecutor.submit {
@@ -87,14 +86,14 @@ class GuestQueueController(
                   rabbitTemplate.convertAndSend("""guest.${problem.id}""", """{"status":"done"}""")
                 }
               } catch (e: Exception) {
-                redisTemplate.opsForValue().set(id, problem)
+                reactiveRedisTemplate.opsForValue().set(id, problem)
                 rabbitTemplate.convertAndSend("""guest.${problem.id}""", """{"error":"${e.message}"}""")
               } finally {
                 if (!solved) {
                   problem.results = null
                   problem.status = "waiting"
                 }
-                redisTemplate.opsForValue().set(id, problem)
+                reactiveRedisTemplate.opsForValue().set(id, problem)
               }
             }
             it.success()
@@ -104,7 +103,7 @@ class GuestQueueController(
 
   @GetMapping("cancelProblem/{id}")
   fun cancelProblem(@PathVariable id: Long): Mono<Void> {
-    return redisTemplate.opsForValue().get(id).flatMap { problem ->
+    return reactiveRedisTemplate.opsForValue().get(id).flatMap { problem ->
       Mono.create<Void> {
         if (problem == null)
           return@create it.error(ProblemNotFoundException())
@@ -112,7 +111,7 @@ class GuestQueueController(
           return@create it.error(ProblemIsNotSolvingException())
         problem.status = "waiting"
         it.success()
-      }.then(redisTemplate.opsForValue().set(id, problem)).thenReturn(problem)
+      }.then(reactiveRedisTemplate.opsForValue().set(id, problem)).thenReturn(problem)
     }.flatMap { problem ->
       // TODO Conflict problem, need multiple solvers arrays to isolate problem based on user
       Mono.create<Void> {

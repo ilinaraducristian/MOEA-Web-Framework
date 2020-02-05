@@ -1,8 +1,8 @@
 package com.ilinaraducristian.moeawebframework.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.ilinaraducristian.moeawebframework.dto.Problem
-import com.ilinaraducristian.moeawebframework.dto.User
+import com.ilinaraducristian.moeawebframework.entities.Problem
+import com.ilinaraducristian.moeawebframework.entities.User
 import com.ilinaraducristian.moeawebframework.repositories.ProblemRepository
 import com.ilinaraducristian.moeawebframework.repositories.UserRepository
 import org.slf4j.LoggerFactory

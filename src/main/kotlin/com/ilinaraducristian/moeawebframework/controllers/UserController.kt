@@ -1,7 +1,9 @@
 package com.ilinaraducristian.moeawebframework.controllers
 
 import com.ilinaraducristian.moeawebframework.JwtUtil
-import com.ilinaraducristian.moeawebframework.dto.User
+import com.ilinaraducristian.moeawebframework.dto.UserDTO
+import com.ilinaraducristian.moeawebframework.entities.Authority
+import com.ilinaraducristian.moeawebframework.entities.User
 import com.ilinaraducristian.moeawebframework.exceptions.BadCredentialsException
 import com.ilinaraducristian.moeawebframework.exceptions.CannotCreateUserException
 import com.ilinaraducristian.moeawebframework.exceptions.UserNotFoundException
@@ -33,11 +35,13 @@ class UserController(
 ) {
 
   @PostMapping("register")
-  fun register(@Valid @RequestBody user: User): Mono<Void> {
+  fun register(@Valid @RequestBody user: UserDTO): Mono<Void> {
     return Mono.create<Void> {
       user.password = encoder.encode(user.password)
       try {
-        userRepo.save(user)
+        val savedUser = userRepo.save(User(username = user.username, password = user.password, email = user.email, firstName = user.firstName, lastName = user.lastName))
+        val authority = Authority(user = savedUser)
+        authorityRepo.save(authority)
         it.success()
       } catch (e: Exception) {
         it.error(CannotCreateUserException())
@@ -46,7 +50,7 @@ class UserController(
   }
 
   @PostMapping("login")
-  fun login(@RequestBody authenticationRequest: AuthenticationRequest): Mono<AuthenticationResponse> {
+  fun login(@Valid @RequestBody authenticationRequest: AuthenticationRequest): Mono<AuthenticationResponse> {
     return Mono.create<AuthenticationResponse> {
       try {
         authenticationManager.authenticate(UsernamePasswordAuthenticationToken(authenticationRequest.username, authenticationRequest.password))
@@ -55,6 +59,7 @@ class UserController(
       }
       val userDetails = userDetailsService.loadUserByUsername(authenticationRequest.username)
           ?: return@create it.error(UserNotFoundException())
+      println(userDetails.username)
       it.success(AuthenticationResponse(jwtUtil.generateToken(userDetails)))
     }
   }
@@ -63,7 +68,6 @@ class UserController(
   fun details(principal: Principal): Mono<String> {
     return Mono.create<String> {
       val foundUser = userRepo.findByUsername(principal.name)
-      println(foundUser.get())
       if (!foundUser.isPresent) {
         return@create it.error(UserNotFoundException())
       }
