@@ -1,5 +1,6 @@
 package com.ilinaraducristian.moeawebframework.services
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.ilinaraducristian.moeawebframework.dto.QualityIndicators
 import com.ilinaraducristian.moeawebframework.entities.Problem
 import com.ilinaraducristian.moeawebframework.moea.ProblemSolver
@@ -16,6 +17,7 @@ import kotlin.collections.HashMap
 class ProblemSolverService(
     private val threadPoolTaskExecutor: ThreadPoolTaskExecutor,
     private val rabbitTemplate: RabbitTemplate,
+    private val jsonConverter: ObjectMapper,
     private val reactiveRedisTemplate: ReactiveRedisTemplate<Long, Problem>,
     private val problemRepo: ProblemRepository
 ) {
@@ -34,9 +36,9 @@ class ProblemSolverService(
         val qualityIndicators = QualityIndicators(event.executor.instrumenter.lastAccumulator, event.currentSeed - 1)
         problem.results?.add(qualityIndicators)
         if (isUser) {
-          rabbitTemplate.convertAndSend("user.${problem.user.username}.${problem.id}", qualityIndicators)
+          rabbitTemplate.convertAndSend("user.${problem.user.username}.${problem.id}", jsonConverter.writeValueAsString(qualityIndicators))
         } else {
-          rabbitTemplate.convertAndSend("guest.${problem.id}", qualityIndicators)
+          rabbitTemplate.convertAndSend("guest.${problem.id}", jsonConverter.writeValueAsString(qualityIndicators))
         }
       } catch (e: IllegalArgumentException) {
         // executor was canceled

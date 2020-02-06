@@ -1,0 +1,4 @@
+FROM rabbitmq:management-alpine
+ENV RABBITMQ_DEFAULT_USER=root
+ENV RABBITMQ_DEFAULT_PASS=root
+RUN rabbitmq-plugins enable rabbitmq_web_stomp

@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
+
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
@@ -24,11 +25,9 @@ class SecurityConfig(
   override fun configure(http: HttpSecurity) {
     http
         .csrf().disable()
-        .exceptionHandling()
-        .and()
         .authorizeRequests()
-        .antMatchers("/test").permitAll()
-        .antMatchers("/queue").permitAll()
+        .antMatchers("/test/**").permitAll()
+        .antMatchers("/queue/**").permitAll()
         .antMatchers("/user/login").permitAll()
         .antMatchers("/user/register").permitAll()
         .anyRequest().authenticated()

@@ -7,6 +7,7 @@ import com.ilinaraducristian.moeawebframework.exceptions.ProblemNotFoundExceptio
 import com.ilinaraducristian.moeawebframework.exceptions.ProblemSolvedException
 import com.ilinaraducristian.moeawebframework.services.ProblemSolverService
 import org.springframework.data.redis.core.ReactiveRedisTemplate
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import java.util.*
@@ -14,6 +15,7 @@ import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.abs
 
 @RestController
+@CrossOrigin
 @RequestMapping("queue")
 class GuestQueueController(
     private val reactiveRedisTemplate: ReactiveRedisTemplate<Long, Problem>,
@@ -47,7 +49,8 @@ class GuestQueueController(
             it.success()
           }.then(reactiveRedisTemplate.opsForValue().set(id, problem)).thenReturn(problem)
         }.map { problem ->
-          problemSolverService.solveProblem(problem, false)
+          val solverId = problemSolverService.solveProblem(problem, false)
+          """{"solverId": "$solverId"}"""
         }
   }
 

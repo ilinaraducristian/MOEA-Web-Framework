@@ -1,0 +1,28 @@
+@backend = http://localhost:8080/queue
+
+### Add problem
+
+POST {{backend}}/addProblem HTTP/1.1
+Content-Type: application/json
+
+{
+  "userDefinedName": "Problema noua",
+  "name": "Belegundu",
+  "algorithm": "CMA-ES",
+  "numberOfEvaluations": "10000",
+  "numberOfSeeds": "10"
+}
+
+@problemId = 2324
+
+### Solve problem
+
+POST {{backend}}/solveProblem/{{problemId}} HTTP/1.1
+Content-Type: application/json
+
+@solverId = 2132131
+
+### Cancel problem
+
+POST {{backend}}/cancelProblem/{{solverId}} HTTP/1.1
+Content-Type: application/json

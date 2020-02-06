@@ -11,15 +11,13 @@ services:
       - MYSQL_DATABASE=users
     ports:
       - "3306:3306"
-  ampq:
-    image: rabbitmq:management-alpine
-    environment:
-      - RABBITMQ_DEFAULT_USER=root
-      - RABBITMQ_DEFAULT_PASS=root
-    hostname: my-rabbit
+  results:
+    build: ./results/
+    hostname: moeawebframework
     ports:
       - "4369:4369"
       - "5671:5671"
       - "5672:5672"
       - "25672:25672"
       - "15672:15672"
+      - "15674:15674"
