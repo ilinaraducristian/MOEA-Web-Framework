@@ -1,16 +1,16 @@
 package com.ilinaraducristian.moeawebframework.moea
 
-import com.ilinaraducristian.moeawebframework.entities.Problem
+import com.ilinaraducristian.moeawebframework.entities.QueueItem
 import org.moeaframework.Executor
 import org.moeaframework.Instrumenter
 import org.moeaframework.analysis.sensitivity.EpsilonHelper
 import org.moeaframework.core.spi.ProblemFactory
 import org.moeaframework.util.progress.ProgressListener
 
-class ProblemSolver(val problem: Problem, listener: ProgressListener) {
+class QueueItemSolver(val queueItem: QueueItem, listener: ProgressListener) {
 
   private val instrumenter: Instrumenter = Instrumenter()
-      .withProblem(problem.name)
+      .withProblem(queueItem.name)
       .withFrequency(1)
       .attachHypervolumeCollector()
       .attachGenerationalDistanceCollector()
@@ -34,23 +34,23 @@ class ProblemSolver(val problem: Problem, listener: ProgressListener) {
     var tmpProblem: org.moeaframework.core.Problem? = null
     try {
       tmpProblem = ProblemFactory.getInstance().getProblem(
-          problem.name)
+          queueItem.name)
       instrumenter.withEpsilon(EpsilonHelper.getEpsilon(
           tmpProblem))
     } finally {
       tmpProblem?.close()
     }
     executor = Executor()
-        .withProblem(problem.name)
+        .withProblem(queueItem.name)
         .withInstrumenter(instrumenter)
-        .withAlgorithm(problem.algorithm)
-        .withMaxEvaluations(problem.numberOfEvaluations)
+        .withAlgorithm(queueItem.algorithm.name)
+        .withMaxEvaluations(queueItem.numberOfEvaluations)
         .withProgressListener(listener)
   }
 
   fun solve(): Boolean {
     solved = true
-    executor.runSeeds(problem.numberOfSeeds)
+    executor.runSeeds(queueItem.numberOfSeeds)
     return solved
   }
 

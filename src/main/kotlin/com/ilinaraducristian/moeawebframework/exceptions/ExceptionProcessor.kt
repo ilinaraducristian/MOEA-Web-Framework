@@ -43,13 +43,13 @@ class ExceptionProcessor : ResponseEntityExceptionHandler() {
     return ExceptionResponse(exception)
   }
 
-  @ExceptionHandler(value = [ProblemSolvedException::class, ProblemIsSolvingException::class, ProblemIsNotSolvingException::class])
+  @ExceptionHandler(value = [QueueItemSolvedException::class, QueueItemIsSolvingException::class, ProblemIsNotSolvingException::class])
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   fun handleBadRequestExceptions(exception: RuntimeException): ExceptionResponse {
     return ExceptionResponse(exception)
   }
 
-  @ExceptionHandler(CannotCreateUserException::class)
+  @ExceptionHandler(value = [CannotCreateUserException::class, InternalErrorException::class])
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   fun handleInternalServerExceptions(exception: RuntimeException): ExceptionResponse {
     return ExceptionResponse(exception)

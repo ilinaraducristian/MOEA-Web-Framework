@@ -6,8 +6,11 @@ import com.ilinaraducristian.moeawebframework.entities.Authority
 import com.ilinaraducristian.moeawebframework.entities.User
 import com.ilinaraducristian.moeawebframework.exceptions.BadCredentialsException
 import com.ilinaraducristian.moeawebframework.exceptions.CannotCreateUserException
+import com.ilinaraducristian.moeawebframework.exceptions.InternalErrorException
 import com.ilinaraducristian.moeawebframework.exceptions.UserNotFoundException
+import com.ilinaraducristian.moeawebframework.repositories.AlgorithmRepository
 import com.ilinaraducristian.moeawebframework.repositories.AuthorityRepository
+import com.ilinaraducristian.moeawebframework.repositories.ProblemRepository
 import com.ilinaraducristian.moeawebframework.repositories.UserRepository
 import com.ilinaraducristian.moeawebframework.security.AuthenticationRequest
 import com.ilinaraducristian.moeawebframework.security.AuthenticationResponse
@@ -27,6 +30,8 @@ import javax.validation.Valid
 @RequestMapping("user")
 class UserController(
     private val userRepo: UserRepository,
+    private val problemRepo: ProblemRepository,
+    private val algorithmRepo: AlgorithmRepository,
     private val authorityRepo: AuthorityRepository,
     private val encoder: BCryptPasswordEncoder,
     private val authenticationManager: AuthenticationManager,
@@ -35,13 +40,32 @@ class UserController(
 ) {
 
   @PostMapping("register")
-  fun register(@Valid @RequestBody user: UserDTO): Mono<Void> {
+  fun register(@Valid @RequestBody userDTO: UserDTO): Mono<Void> {
     return Mono.create<Void> {
-      user.password = encoder.encode(user.password)
+      val foundUser = userRepo.findByUsername("admin")
+      if(foundUser.isEmpty) {
+        return@create it.error(InternalErrorException())
+      }
+      val admin = foundUser.get()
+      val user = User()
+      user.username = userDTO.username
+      user.password = encoder.encode(userDTO.password)
+      user.email = userDTO.email
+      user.firstName = userDTO.firstName
+      user.lastName = userDTO.lastName
+      problemRepo.findByUser(admin).forEach { problem ->
+        user.problems.add(problem)
+        problem.users.add(user)
+      }
+      algorithmRepo.findByUser(admin).forEach { algorithm ->
+        user.algorithms.add(algorithm)
+        algorithm.users.add(user)
+      }
       try {
-        val savedUser = userRepo.save(User(username = user.username, password = user.password, email = user.email, firstName = user.firstName, lastName = user.lastName))
-        val authority = Authority(user = savedUser)
-        authorityRepo.save(authority)
+        val authority = Authority()
+        user.authorities.add(authority)
+        authority.user = user
+        userRepo.save(user)
         it.success()
       } catch (e: Exception) {
         it.error(CannotCreateUserException())
@@ -59,7 +83,6 @@ class UserController(
       }
       val userDetails = userDetailsService.loadUserByUsername(authenticationRequest.username)
           ?: return@create it.error(UserNotFoundException())
-      println(userDetails.username)
       it.success(AuthenticationResponse(jwtUtil.generateToken(userDetails)))
     }
   }
@@ -67,12 +90,11 @@ class UserController(
   @PostMapping("details")
   fun details(principal: Principal): Mono<String> {
     return Mono.create<String> {
-      val foundUser = userRepo.findByUsername(principal.name)
-      if (!foundUser.isPresent) {
-        return@create it.error(UserNotFoundException())
-      }
-      val user = foundUser.get()
-      it.success("""{"username": "${user.username}", "email": "${user.email}", "firstName": "${user.firstName}", "lastName": "${user.lastName}"}""")
+      userRepo.findByUsername(principal.name).ifPresentOrElse({ user ->
+        it.success("""{"username": "${user.username}", "email": "${user.email}", "firstName": "${user.firstName}", "lastName": "${user.lastName}"}""")
+      }, {
+        it.error(UserNotFoundException())
+      })
     }
   }
 

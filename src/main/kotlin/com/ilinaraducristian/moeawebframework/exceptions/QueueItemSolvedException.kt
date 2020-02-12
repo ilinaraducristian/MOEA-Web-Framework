@@ -2,4 +2,4 @@ package com.ilinaraducristian.moeawebframework.exceptions
 
 import java.lang.RuntimeException
 
-class ProblemSolvedException : RuntimeException("Problem is solved")
+class QueueItemSolvedException : RuntimeException("Queue item is solved")

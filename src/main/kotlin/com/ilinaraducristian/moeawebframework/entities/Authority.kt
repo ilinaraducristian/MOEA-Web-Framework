@@ -1,6 +1,5 @@
 package com.ilinaraducristian.moeawebframework.entities
 
-import com.ilinaraducristian.moeawebframework.entities.User
 import java.io.Serializable
 import javax.persistence.*
 

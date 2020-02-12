@@ -2,8 +2,10 @@ package com.ilinaraducristian.moeawebframework.entities
 
 import org.hibernate.annotations.NaturalId
 import java.io.Serializable
+import java.util.*
 import javax.persistence.*
 import javax.validation.constraints.NotBlank
+import kotlin.collections.ArrayList
 
 @Entity
 @Table(name = "users")
@@ -30,14 +32,28 @@ data class User(
     @NotBlank
     var firstName: String = "",
 
-    var lastName: String? = null,
+    var lastName: Optional<String> = Optional.empty(),
 
     var enabled: Boolean = true,
 
-    @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL])
-    var problems: List<Problem>? = null,
+    @ManyToMany(cascade = [CascadeType.ALL])
+    @JoinTable(name = "problem_user",
+        joinColumns = [JoinColumn(name = "problem_id", referencedColumnName = "id")],
+        inverseJoinColumns = [JoinColumn(name = "user_id",
+            referencedColumnName = "id")])
+    var problems: MutableList<Problem> = ArrayList(),
+
+    @ManyToMany(cascade = [CascadeType.ALL])
+    @JoinTable(name = "algorithm_user",
+        joinColumns = [JoinColumn(name = "algorithm_id", referencedColumnName = "id")],
+        inverseJoinColumns = [JoinColumn(name = "user_id",
+            referencedColumnName = "id")])
+    var algorithms: MutableList<Algorithm> = ArrayList(),
+
+    @OneToMany(mappedBy = "users")
+    var queue: MutableList<QueueItem> = ArrayList(),
 
     @OneToMany(mappedBy = "user")
-    var authorities: Set<Authority>? = null
+    var authorities: MutableList<Authority> = ArrayList()
 
 ) : Serializable

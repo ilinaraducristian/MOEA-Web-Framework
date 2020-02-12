@@ -4,7 +4,7 @@ import javax.persistence.*
 import javax.validation.constraints.NotBlank
 
 @Entity
-data class Problem(
+data class Algorithm(
 
     @Id
     @GeneratedValue
@@ -18,10 +18,10 @@ data class Problem(
     @NotBlank
     var filePath: String = "",
 
-    @ManyToMany(mappedBy = "problems")
+    @ManyToMany(mappedBy = "algorithms")
     var users: MutableList<User> = ArrayList(),
 
-    @OneToMany(mappedBy = "problems")
+    @OneToMany(mappedBy = "algorithms")
     var queue: MutableList<QueueItem> = ArrayList()
 
 )

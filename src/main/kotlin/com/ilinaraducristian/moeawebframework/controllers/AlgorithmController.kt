@@ -1,6 +1,12 @@
 package com.ilinaraducristian.moeawebframework.controllers
 
+import com.ilinaraducristian.moeawebframework.entities.Algorithm
 import com.ilinaraducristian.moeawebframework.exceptions.AlgorithmExistsOnServerException
+import com.ilinaraducristian.moeawebframework.exceptions.AlgorithmNotFoundException
+import com.ilinaraducristian.moeawebframework.exceptions.AlgorithmNotFoundOnServerException
+import com.ilinaraducristian.moeawebframework.exceptions.UserNotFoundException
+import com.ilinaraducristian.moeawebframework.repositories.AlgorithmRepository
+import com.ilinaraducristian.moeawebframework.repositories.UserRepository
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import reactor.core.publisher.Mono
@@ -12,15 +18,52 @@ import javax.servlet.http.HttpServletResponse
 
 @RestController
 @RequestMapping("algorithm")
-class AlgorithmController {
+class AlgorithmController(
+    private val userRepo: UserRepository,
+    private val algorithmRepo: AlgorithmRepository
+) {
 
   @PutMapping("upload")
-  fun upload(@RequestParam("file") file: MultipartFile, @RequestParam("override") override: Boolean, principal: Principal): Mono<Void> {
+  fun upload(@RequestParam("file") file: MultipartFile, @RequestParam("override") override: Boolean, @RequestParam("name") name: String, principal: Principal): Mono<Void> {
     return Mono.create<Void> {
-      val existingFile = File("${principal.name}/algorithms/${file.originalFilename}.class")
-      if (existingFile.exists() && !override)
+      val foundUser = userRepo.findByUsername(principal.name)
+      if (foundUser.isEmpty) {
+        return@create it.error(UserNotFoundException())
+      }
+      val user = foundUser.get()
+      val algorithm = Algorithm()
+      algorithm.filePath = "moeaData/users/${principal.name}/algorithms/${file.originalFilename}.class"
+      algorithm.name = name
+      user.algorithms.add(algorithm)
+      algorithm.users.add(user)
+      userRepo.save(user)
+      val existingFile = File(algorithm.filePath)
+      if (existingFile.exists() && !override) {
         return@create it.error(AlgorithmExistsOnServerException())
-      file.transferTo(File("${principal.name}/algorithms/${file.originalFilename}"))
+      }
+      file.transferTo(File(algorithm.filePath))
+      it.success()
+    }
+  }
+
+  @DeleteMapping("delete/{name}")
+  fun delete(@PathVariable name: String, principal: Principal): Mono<Void> {
+    return Mono.create<Void> {
+      val foundUser = userRepo.findByUsername(principal.name)
+      if (foundUser.isEmpty) {
+        return@create it.error(UserNotFoundException())
+      }
+      val user = foundUser.get()
+      val foundAlgorithm = algorithmRepo.findByUserAndName(user, name)
+      if(foundAlgorithm.isEmpty) {
+        return@create it.error(AlgorithmNotFoundException())
+      }
+      val file = File("moeaData/users/${principal.name}/algorithms/$name.class")
+      if (!file.exists()) {
+        return@create it.error(AlgorithmNotFoundOnServerException())
+      }
+      algorithmRepo.delete(foundAlgorithm.get())
+      file.delete()
       it.success()
     }
   }
@@ -28,9 +71,14 @@ class AlgorithmController {
   @GetMapping("download/{name}")
   fun download(request: HttpServletRequest, response: HttpServletResponse, @PathVariable name: String, principal: Principal): Mono<Void> {
     return Mono.create<Void> {
-      val file = File("${principal.name}/algorithms/$name.class")
-      if (!file.exists())
+      val foundUser = userRepo.findByUsername(principal.name)
+      if (foundUser.isEmpty) {
+        return@create it.error(UserNotFoundException())
+      }
+      val file = File("moeaData/users/${principal.name}/algorithms/$name.class")
+      if (!file.exists()) {
         return@create it.error(AlgorithmExistsOnServerException())
+      }
       response.contentType = "application/octet-stream"
       response.addHeader("Content-Disposition", "attachment; filename=$name.class")
       Files.copy(file.toPath(), response.outputStream)

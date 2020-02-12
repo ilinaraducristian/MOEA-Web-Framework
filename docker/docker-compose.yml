@@ -4,13 +4,13 @@ services:
     image: redis:alpine
     ports:
       - "6379:6379"
-  users:
-    image: mysql:latest
-    environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=users
-    ports:
-      - "3306:3306"
+  # users:
+  #   image: mysql:latest
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=root
+  #     - MYSQL_DATABASE=users
+  #   ports:
+  #     - "3306:3306"
   results:
     build: ./results/
     hostname: moeawebframework
