@@ -31,8 +31,8 @@ class GuestQueueController(
         return@create it.error(InternalErrorException())
       }
       val admin = foundUser.get()
-      val problem = problemRepo.findByUserAndName(admin, queueItemDTO.problem)
-      val algorithm = algorithmRepo.findByUserAndName(admin, queueItemDTO.algorithm)
+      val problem = problemRepo.findByUsersAndName(admin, queueItemDTO.problem)
+      val algorithm = algorithmRepo.findByUsersAndName(admin, queueItemDTO.algorithm)
       if (problem.isEmpty)
         return@create it.error(ProblemNotFoundException())
       if (algorithm.isEmpty)
@@ -67,7 +67,7 @@ class GuestQueueController(
               return@create it.error(QueueItemIsSolvingException())
             queueItem.status = "working"
             val solverId = queueItemSolverService.solveQueueItem(queueItem, false)
-            queueItem.solverId = Optional.of(solverId)
+            queueItem.solverId = solverId
             it.success()
           }.then(reactiveRedisTemplate.opsForValue().set(rabbitId, queueItem)).thenReturn(queueItem)
         }.map { queueItem ->

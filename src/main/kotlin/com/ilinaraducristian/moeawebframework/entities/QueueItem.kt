@@ -31,7 +31,7 @@ data class QueueItem(
     var rabbitId: String = "",
 
     @Column(nullable = true)
-    var solverId: Optional<String> = Optional.empty(),
+    var solverId: String? = null,
 
     @ManyToOne
     @JoinColumn(name = "problem_id")

@@ -19,9 +19,9 @@ data class Algorithm(
     var filePath: String = "",
 
     @ManyToMany(mappedBy = "algorithms")
-    var users: MutableList<User> = ArrayList(),
+    var users: MutableSet<User> = HashSet(),
 
-    @OneToMany(mappedBy = "algorithms")
+    @OneToMany(mappedBy = "algorithm")
     var queue: MutableList<QueueItem> = ArrayList()
 
 )

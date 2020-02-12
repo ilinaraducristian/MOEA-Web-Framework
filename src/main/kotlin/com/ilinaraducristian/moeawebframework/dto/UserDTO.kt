@@ -22,5 +22,5 @@ class UserDTO {
   @NotBlank
   var firstName: String = ""
 
-  var lastName: Optional<String> = Optional.empty()
+  var lastName: String? = null
 }

@@ -11,7 +11,6 @@ import org.springframework.web.multipart.MultipartFile
 import reactor.core.publisher.Mono
 import java.io.File
 import java.nio.file.Files
-import java.security.Principal
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -31,7 +30,7 @@ class PublicController(
         return@create it.error(InternalErrorException())
       }
       val admin = foundUser.get()
-      it.success(problemRepo.findByUser(admin).toTypedArray())
+      it.success(problemRepo.findByUsers(admin).toTypedArray())
     }
   }
 
@@ -43,7 +42,7 @@ class PublicController(
         return@create it.error(InternalErrorException())
       }
       val admin = foundUser.get()
-      it.success(algorithmRepo.findByUser(admin).toTypedArray())
+      it.success(algorithmRepo.findByUsers(admin).toTypedArray())
     }
   }
 

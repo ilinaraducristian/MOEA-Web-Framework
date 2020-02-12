@@ -6,6 +6,7 @@ import java.util.*
 import javax.persistence.*
 import javax.validation.constraints.NotBlank
 import kotlin.collections.ArrayList
+import kotlin.collections.HashSet
 
 @Entity
 @Table(name = "users")
@@ -32,25 +33,25 @@ data class User(
     @NotBlank
     var firstName: String = "",
 
-    var lastName: Optional<String> = Optional.empty(),
+    var lastName: String? = null,
 
     var enabled: Boolean = true,
 
-    @ManyToMany(cascade = [CascadeType.ALL])
+    @ManyToMany
     @JoinTable(name = "problem_user",
         joinColumns = [JoinColumn(name = "problem_id", referencedColumnName = "id")],
         inverseJoinColumns = [JoinColumn(name = "user_id",
             referencedColumnName = "id")])
-    var problems: MutableList<Problem> = ArrayList(),
+    var problems: MutableSet<Problem> = HashSet(),
 
-    @ManyToMany(cascade = [CascadeType.ALL])
+    @ManyToMany
     @JoinTable(name = "algorithm_user",
         joinColumns = [JoinColumn(name = "algorithm_id", referencedColumnName = "id")],
         inverseJoinColumns = [JoinColumn(name = "user_id",
             referencedColumnName = "id")])
-    var algorithms: MutableList<Algorithm> = ArrayList(),
+    var algorithms: MutableSet<Algorithm> = HashSet(),
 
-    @OneToMany(mappedBy = "users")
+    @OneToMany(mappedBy = "user")
     var queue: MutableList<QueueItem> = ArrayList(),
 
     @OneToMany(mappedBy = "user")

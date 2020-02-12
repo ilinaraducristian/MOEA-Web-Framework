@@ -32,8 +32,8 @@ class UserQueueController(
         return@create it.error(UserNotFoundException())
       }
       val user = foundUser.get()
-      val problem = problemRepo.findByUserAndName(user, queueItemDTO.problem)
-      val algorithm = algorithmRepo.findByUserAndName(user, queueItemDTO.algorithm)
+      val problem = problemRepo.findByUsersAndName(user, queueItemDTO.problem)
+      val algorithm = algorithmRepo.findByUsersAndName(user, queueItemDTO.algorithm)
       if (problem.isEmpty) {
         return@create it.error(ProblemNotFoundException())
       }
@@ -78,7 +78,7 @@ class UserQueueController(
         return@create it.error(QueueItemIsSolvingException())
       }
       queueItem.status = "working"
-      queueItem.solverId = Optional.of(queueItemSolverService.solveQueueItem(queueItem))
+      queueItem.solverId = queueItemSolverService.solveQueueItem(queueItem)
       queueItemRepo.save(queueItem)
       it.success("""{"solverId": "${queueItem.solverId}"}""")
     }

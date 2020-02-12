@@ -39,7 +39,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	implementation("org.springframework.session:spring-session-data-redis")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
-//	runtimeOnly("mysql:mysql-connector-java")
+	runtimeOnly("mysql:mysql-connector-java")
 
 	// JWT
 	implementation("io.jsonwebtoken:jjwt-api:0.10.7")

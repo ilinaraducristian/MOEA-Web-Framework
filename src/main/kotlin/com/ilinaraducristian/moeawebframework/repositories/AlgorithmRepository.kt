@@ -8,6 +8,6 @@ import java.util.*
 
 interface AlgorithmRepository : CrudRepository<Algorithm, String> {
   fun findByName(name: String): Optional<Algorithm>
-  fun findByUserAndName(user: User, name: String): Optional<Algorithm>
-  fun findByUser(user: User): List<Algorithm>
+  fun findByUsersAndName(user: User, name: String): Optional<Algorithm>
+  fun findByUsers(user: User): List<Algorithm>
 }

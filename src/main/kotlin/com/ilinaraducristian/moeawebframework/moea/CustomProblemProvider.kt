@@ -10,6 +10,7 @@ import java.net.URLClassLoader
 
 class CustomProblemProvider : ProblemProvider() {
 
+  @Suppress("DEPRECATION")
   override fun getProblem(name: String): Problem? {
     val file = File("problems/$name.class")
     var problem: Problem? = null

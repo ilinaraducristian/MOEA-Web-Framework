@@ -18,7 +18,7 @@ class QueueItemSolverService(
     private val threadPoolTaskExecutor: ThreadPoolTaskExecutor,
     private val rabbitTemplate: RabbitTemplate,
     private val jsonConverter: ObjectMapper,
-    private val reactiveRedisTemplate: ReactiveRedisTemplate<Long, QueueItem>,
+    private val reactiveRedisTemplate: ReactiveRedisTemplate<String, QueueItem>,
     private val queueItemRepo: QueueItemRepository
 ) {
 
@@ -56,7 +56,7 @@ class QueueItemSolverService(
             queueItemRepo.save(queueItem)
             rabbitTemplate.convertAndSend("user.${queueItem.user.username}.${queueItem.id}", """{"status":"done"}""")
           } else {
-            reactiveRedisTemplate.opsForValue().set(queueItem.id, queueItem).block()
+            reactiveRedisTemplate.opsForValue().set(queueItem.rabbitId, queueItem).block()
             rabbitTemplate.convertAndSend("guest.${queueItem.id}", """{"status":"done"}""")
           }
         }
@@ -74,7 +74,7 @@ class QueueItemSolverService(
         if (isUser) {
           queueItemRepo.save(queueItem)
         } else {
-          reactiveRedisTemplate.opsForValue().set(queueItem.id, queueItem)
+          reactiveRedisTemplate.opsForValue().set(queueItem.rabbitId, queueItem)
         }
       }
     }

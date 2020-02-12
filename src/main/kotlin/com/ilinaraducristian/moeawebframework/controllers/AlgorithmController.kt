@@ -54,7 +54,7 @@ class AlgorithmController(
         return@create it.error(UserNotFoundException())
       }
       val user = foundUser.get()
-      val foundAlgorithm = algorithmRepo.findByUserAndName(user, name)
+      val foundAlgorithm = algorithmRepo.findByUsersAndName(user, name)
       if(foundAlgorithm.isEmpty) {
         return@create it.error(AlgorithmNotFoundException())
       }

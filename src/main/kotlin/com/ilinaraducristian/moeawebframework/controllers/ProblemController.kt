@@ -51,7 +51,7 @@ class ProblemController(
         return@create it.error(UserNotFoundException())
       }
       val user = foundUser.get()
-      val foundProblem = problemRepo.findByUserAndName(user, name)
+      val foundProblem = problemRepo.findByUsersAndName(user, name)
       if(foundProblem.isEmpty) {
         return@create it.error(ProblemNotFoundException())
       }

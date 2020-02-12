@@ -7,6 +7,6 @@ import java.util.*
 
 interface ProblemRepository : CrudRepository<Problem, Long> {
   fun findByName(name: String): Optional<Problem>
-  fun findByUserAndName(user: User, name: String): Optional<Problem>
-  fun findByUser(user: User): List<Problem>
+  fun findByUsersAndName(user: User, name: String): Optional<Problem>
+  fun findByUsers(user: User): List<Problem>
 }

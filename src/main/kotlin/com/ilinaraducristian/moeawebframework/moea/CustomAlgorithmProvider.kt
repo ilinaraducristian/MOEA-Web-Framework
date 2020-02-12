@@ -10,6 +10,7 @@ import java.util.*
 
 class CustomAlgorithmProvider : AlgorithmProvider() {
 
+  @Suppress("DEPRECATION")
   override fun getAlgorithm(name: String?, properties: Properties?, problem: Problem?): Algorithm? {
     val file = File("algorithms/$name.class")
     var algorithm: Algorithm? = null

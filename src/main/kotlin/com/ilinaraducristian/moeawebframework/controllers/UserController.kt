@@ -53,11 +53,11 @@ class UserController(
       user.email = userDTO.email
       user.firstName = userDTO.firstName
       user.lastName = userDTO.lastName
-      problemRepo.findByUser(admin).forEach { problem ->
+      problemRepo.findByUsers(admin).forEach { problem ->
         user.problems.add(problem)
         problem.users.add(user)
       }
-      algorithmRepo.findByUser(admin).forEach { algorithm ->
+      algorithmRepo.findByUsers(admin).forEach { algorithm ->
         user.algorithms.add(algorithm)
         algorithm.users.add(user)
       }

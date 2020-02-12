@@ -19,9 +19,9 @@ data class Problem(
     var filePath: String = "",
 
     @ManyToMany(mappedBy = "problems")
-    var users: MutableList<User> = ArrayList(),
+    var users: MutableSet<User> = HashSet(),
 
-    @OneToMany(mappedBy = "problems")
+    @OneToMany(mappedBy = "problem")
     var queue: MutableList<QueueItem> = ArrayList()
 
 )
