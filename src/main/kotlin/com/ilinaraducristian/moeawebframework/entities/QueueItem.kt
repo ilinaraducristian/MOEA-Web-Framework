@@ -1,6 +1,9 @@
 package com.ilinaraducristian.moeawebframework.entities
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.ilinaraducristian.moeawebframework.dto.QualityIndicators
+import org.hibernate.annotations.Type
+import java.io.Serializable
 import java.util.*
 import javax.persistence.*
 import javax.validation.constraints.NotBlank
@@ -33,18 +36,25 @@ data class QueueItem(
     @Column(nullable = true)
     var solverId: String? = null,
 
+    @Column(nullable = false, columnDefinition = "MEDIUMBLOB")
+    var results: ArrayList<QualityIndicators> = ArrayList(),
+
     @ManyToOne
     @JoinColumn(name = "problem_id")
+//    @JsonIgnore
     var problem: Problem = Problem(),
 
     @ManyToOne
     @JoinColumn(name = "algorithm_id")
+//    @JsonIgnore
     var algorithm: Algorithm = Algorithm(),
-
-    @Column(nullable = false)
-    var results: ArrayList<QualityIndicators> = ArrayList(),
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+//    @JsonIgnore
     var user: User = User()
-)
+): Serializable {
+    override fun toString(): String {
+        return "QueueItem(id=$id, name='$name', numberOfEvaluations=$numberOfEvaluations, numberOfSeeds=$numberOfSeeds, status='$status', rabbitId='$rabbitId', solverId=$solverId, results=$results, problem=$problem, algorithm=$algorithm, user=$user)"
+    }
+}

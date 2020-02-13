@@ -1,34 +1,71 @@
 package com.ilinaraducristian.moeawebframework.moea
 
+import com.ilinaraducristian.moeawebframework.security.UserPrincipal
 import org.moeaframework.core.NondominatedPopulation
 import org.moeaframework.core.PopulationIO
 import org.moeaframework.core.Problem
 import org.moeaframework.core.spi.ProblemProvider
+import org.springframework.security.core.context.SecurityContextHolder
 import java.io.File
 import java.net.MalformedURLException
 import java.net.URLClassLoader
+import java.security.Principal
 
 class CustomProblemProvider : ProblemProvider() {
 
   @Suppress("DEPRECATION")
   override fun getProblem(name: String): Problem? {
-    val file = File("problems/$name.class")
     var problem: Problem? = null
-    if (file.exists())
-      try {
-        problem = URLClassLoader(arrayOf(file.toURI().toURL())).loadClass(name).newInstance() as Problem
-      } catch (e: MalformedURLException) {
-        println("MalformedURLException")
-      } catch (e: ClassNotFoundException) {
-        println("ClassNotFoundException")
-      }
-    return problem;
+    var foundProblem = File("moeaData/public/problems").list()?.find { problem ->
+      problem == "$name.class"
+    }
+    if (foundProblem != null) {
+      val file = File("moeaData/public/problems/$name.class")
+      if (file.exists())
+        try {
+          problem = URLClassLoader(arrayOf(file.toURI().toURL())).loadClass(name).newInstance() as Problem
+        } catch (e: MalformedURLException) {
+          println("MalformedURLException")
+        } catch (e: ClassNotFoundException) {
+          println("ClassNotFoundException")
+        }
+      return problem
+
+    }
+    val userName = (SecurityContextHolder.getContext().authentication.principal as UserPrincipal).username
+    foundProblem = File("moeaData/users/$userName/problems").list()?.find { problem ->
+      problem == "$name.class"
+    }
+    if (foundProblem != null) {
+      val file = File("moeaData/users/$userName/problems/$name.class")
+      if (file.exists())
+        try {
+          problem = URLClassLoader(arrayOf(file.toURI().toURL())).loadClass(name).newInstance() as Problem
+        } catch (e: MalformedURLException) {
+          println("MalformedURLException")
+        } catch (e: ClassNotFoundException) {
+          println("ClassNotFoundException")
+        }
+    }
+    return problem
   }
 
   override fun getReferenceSet(name: String): NondominatedPopulation? {
-    val file = File("references/$name.pf")
-    if (file.exists())
-      return NondominatedPopulation(PopulationIO.readObjectives(file))
-    else return null
+    var referenceSet: NondominatedPopulation? = null
+    var foundReferenceSet = File("moeaData/public/problems/references").list()?.find { referenceSet ->
+      referenceSet == "$name.pf"
+    }
+    if (foundReferenceSet != null) {
+      referenceSet = NondominatedPopulation(PopulationIO.readObjectives(File("moeaData/public/problems/references/$name.pf")))
+      return referenceSet
+    }
+    val userName = (SecurityContextHolder.getContext().authentication.principal as UserPrincipal).username
+    foundReferenceSet = File("moeaData/users/$userName/problems").list()?.find { problem ->
+      problem == "$name.class"
+    }
+    if (foundReferenceSet != null) {
+      referenceSet = NondominatedPopulation(PopulationIO.readObjectives(File("moeaData/users/$userName/problems/references/$name.pf")))
+    }
+    return referenceSet
   }
 }

@@ -1,10 +1,11 @@
 package com.ilinaraducristian.moeawebframework.entities
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import java.io.Serializable
 import javax.persistence.*
 
 @Entity
-@Table(name = "authorities")
+@Table
 data class Authority(
 
     @Id

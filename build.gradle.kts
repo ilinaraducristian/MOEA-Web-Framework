@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.ilinaraducristian"
-version = "0.4"
+version = "0.5"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
 val developmentOnly by configurations.creating

@@ -1,11 +1,17 @@
 package com.ilinaraducristian.moeawebframework.dto
 
-data class QueueItemDTO(
+import javax.validation.constraints.NotBlank
+import javax.validation.constraints.NotNull
 
-    var name: String,
-    var numberOfEvaluations: Int,
-    var numberOfSeeds: Int,
-    var problem: String,
-    var algorithm: String
+class QueueItemDTO{
 
-)
+  @NotNull
+  @NotBlank
+  var name: String = ""
+
+  @NotNull
+  var numberOfEvaluations: Int = 10000
+  var numberOfSeeds: Int = 10
+  var problem: String = ""
+  var algorithm: String = ""
+}

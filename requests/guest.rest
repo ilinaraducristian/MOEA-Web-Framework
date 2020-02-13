@@ -2,27 +2,27 @@
 
 ### Add problem
 
-POST {{backend}}/addProblem HTTP/1.1
+POST {{backend}}/addQueueItem HTTP/1.1
 Content-Type: application/json
 
 {
-  "userDefinedName": "Problema noua",
-  "name": "Belegundu",
+  "name": "Problema nouha",
+  "problem": "Belegundu",
   "algorithm": "CMA-ES",
   "numberOfEvaluations": "10000",
   "numberOfSeeds": "10"
 }
 
-@problemId = 2324
+@rabbitId = 8a385b52-72ae-4619-b0b8-81cb9af72117
 
 ### Solve problem
 
-POST {{backend}}/solveProblem/{{problemId}} HTTP/1.1
+GET {{backend}}/solveQueueItem/{{rabbitId}} HTTP/1.1
 Content-Type: application/json
 
-@solverId = 2132131
+@solverId = 91d3b9f1-5426-4c27-9e2e-d84289b0c6cf
 
 ### Cancel problem
 
-POST {{backend}}/cancelProblem/{{solverId}} HTTP/1.1
+GET {{backend}}/cancelQueueItem/{{solverId}} HTTP/1.1
 Content-Type: application/json

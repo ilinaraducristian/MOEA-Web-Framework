@@ -32,29 +32,24 @@ class UserQueueController(
         return@create it.error(UserNotFoundException())
       }
       val user = foundUser.get()
-      val problem = problemRepo.findByUsersAndName(user, queueItemDTO.problem)
-      val algorithm = algorithmRepo.findByUsersAndName(user, queueItemDTO.algorithm)
-      if (problem.isEmpty) {
-        return@create it.error(ProblemNotFoundException())
-      }
-      if (algorithm.isEmpty) {
-        return@create it.error(AlgorithmNotFoundException())
-      }
+      val problem = user.problems.find { problem -> problem.name == queueItemDTO.problem}
+          ?: return@create it.error(ProblemNotFoundException())
+      val algorithm = user.algorithms.find { algorithm -> algorithm.name == queueItemDTO.algorithm}
+          ?: return@create it.error(AlgorithmNotFoundException())
       val queueItem = QueueItem()
       queueItem.name = queueItemDTO.name
-      queueItem.problem = problem.get()
-      queueItem.algorithm = algorithm.get()
+      queueItem.problem = problem
+      queueItem.algorithm = algorithm
       queueItem.numberOfSeeds = queueItemDTO.numberOfSeeds
       queueItem.numberOfEvaluations = queueItemDTO.numberOfEvaluations
+      queueItem.user = user
       var rabbitId: UUID
       do {
         rabbitId = UUID.randomUUID()
       } while (queueItemRepo.existsByUserAndRabbitId(user, rabbitId.toString()))
       queueItem.rabbitId = rabbitId.toString()
-      user.queue.add(queueItem)
-      queueItem.user = user
-      userRepo.save(user)
-      it.success(""" {"id": "${queueItem.rabbitId}"} """)
+      queueItemRepo.save(queueItem)
+      it.success(""" {"rabbitId": "${queueItem.rabbitId}"} """)
     }
   }
 
@@ -66,11 +61,7 @@ class UserQueueController(
         return@create it.error(UserNotFoundException())
       }
       val user = foundUser.get()
-      val foundQueueItem = queueItemRepo.findByUserAndRabbitId(user, rabbitId)
-      if (foundQueueItem.isEmpty) {
-        return@create it.error(QueueItemNotFoundException())
-      }
-      val queueItem = foundQueueItem.get()
+      val queueItem = user.queue.find {queueItem -> queueItem.rabbitId == rabbitId}?:return@create it.error(QueueItemNotFoundException())
       if (queueItem.status == "done") {
         return@create it.error(QueueItemSolvedException())
       }

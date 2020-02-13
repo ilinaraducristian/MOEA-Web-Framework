@@ -31,16 +31,14 @@ class GuestQueueController(
         return@create it.error(InternalErrorException())
       }
       val admin = foundUser.get()
-      val problem = problemRepo.findByUsersAndName(admin, queueItemDTO.problem)
-      val algorithm = algorithmRepo.findByUsersAndName(admin, queueItemDTO.algorithm)
-      if (problem.isEmpty)
-        return@create it.error(ProblemNotFoundException())
-      if (algorithm.isEmpty)
-        return@create it.error(AlgorithmNotFoundException())
+      val problem = problemRepo.findByUsers(admin).find { problem -> problem.name == queueItemDTO.problem}
+          ?: return@create it.error(ProblemNotFoundException())
+      val algorithm = algorithmRepo.findByUsers(admin).find { algorithm -> algorithm.name == queueItemDTO.algorithm}
+          ?: return@create it.error(AlgorithmNotFoundException())
       val queueItem = QueueItem()
       queueItem.name = queueItemDTO.name
-      queueItem.problem = problem.get()
-      queueItem.algorithm = algorithm.get()
+      queueItem.problem = problem
+      queueItem.algorithm = algorithm
       queueItem.numberOfSeeds = queueItemDTO.numberOfSeeds
       queueItem.numberOfEvaluations = queueItemDTO.numberOfEvaluations
       var queueItemUUID: UUID
@@ -49,7 +47,7 @@ class GuestQueueController(
       } while (reactiveRedisTemplate.opsForValue().get(queueItemUUID.toString()).block() != null)
       queueItem.rabbitId = queueItemUUID.toString()
       reactiveRedisTemplate.opsForValue().set(queueItem.rabbitId, queueItem).block()
-      it.success(""" {"id": "${queueItem.rabbitId}"} """)
+      it.success(""" {"rabbitId": "${queueItem.rabbitId}"} """)
 
     }
   }

@@ -32,16 +32,15 @@ class AlgorithmController(
       }
       val user = foundUser.get()
       val algorithm = Algorithm()
-      algorithm.filePath = "moeaData/users/${principal.name}/algorithms/${file.originalFilename}.class"
       algorithm.name = name
       user.algorithms.add(algorithm)
       algorithm.users.add(user)
       userRepo.save(user)
-      val existingFile = File(algorithm.filePath)
+      val existingFile = File("${principal.name}/algorithms/${file.originalFilename}.class")
       if (existingFile.exists() && !override) {
         return@create it.error(AlgorithmExistsOnServerException())
       }
-      file.transferTo(File(algorithm.filePath))
+      file.transferTo(File("${principal.name}/algorithms/${file.originalFilename}.class"))
       it.success()
     }
   }

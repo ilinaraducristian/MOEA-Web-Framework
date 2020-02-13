@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component
 class StartupApplicationListener : ApplicationListener<ContextRefreshedEvent> {
 
   override fun onApplicationEvent(event: ContextRefreshedEvent) {
-    ProblemFactory.getInstance().addProvider(CustomProblemProvider())
-    AlgorithmFactory.getInstance().addProvider(CustomAlgorithmProvider())
+//    ProblemFactory.getInstance().addProvider(CustomProblemProvider())
+//    AlgorithmFactory.getInstance().addProvider(CustomAlgorithmProvider())
   }
 
 }

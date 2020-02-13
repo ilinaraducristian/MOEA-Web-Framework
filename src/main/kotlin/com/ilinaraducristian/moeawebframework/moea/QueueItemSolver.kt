@@ -1,16 +1,20 @@
 package com.ilinaraducristian.moeawebframework.moea
 
+import com.ilinaraducristian.moeawebframework.controllers.TestController
 import com.ilinaraducristian.moeawebframework.entities.QueueItem
 import org.moeaframework.Executor
 import org.moeaframework.Instrumenter
 import org.moeaframework.analysis.sensitivity.EpsilonHelper
 import org.moeaframework.core.spi.ProblemFactory
 import org.moeaframework.util.progress.ProgressListener
+import org.slf4j.LoggerFactory
 
 class QueueItemSolver(val queueItem: QueueItem, listener: ProgressListener) {
 
+  private val logger = LoggerFactory.getLogger(QueueItemSolver::class.java)
+
   private val instrumenter: Instrumenter = Instrumenter()
-      .withProblem(queueItem.name)
+      .withProblem(queueItem.problem.name)
       .withFrequency(1)
       .attachHypervolumeCollector()
       .attachGenerationalDistanceCollector()
@@ -31,17 +35,18 @@ class QueueItemSolver(val queueItem: QueueItem, listener: ProgressListener) {
   private var solved: Boolean = false
 
   init {
+    logger.info("QUEUE ITEM PROBLEM NAME " + queueItem.problem.name)
     var tmpProblem: org.moeaframework.core.Problem? = null
     try {
       tmpProblem = ProblemFactory.getInstance().getProblem(
-          queueItem.name)
+          queueItem.problem.name)
       instrumenter.withEpsilon(EpsilonHelper.getEpsilon(
           tmpProblem))
     } finally {
       tmpProblem?.close()
     }
     executor = Executor()
-        .withProblem(queueItem.name)
+        .withProblem(queueItem.problem.name)
         .withInstrumenter(instrumenter)
         .withAlgorithm(queueItem.algorithm.name)
         .withMaxEvaluations(queueItem.numberOfEvaluations)

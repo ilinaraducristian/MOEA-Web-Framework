@@ -1,3 +1,3 @@
 package com.ilinaraducristian.moeawebframework.exceptions
 
-class QueueItemIsSolvingException : RuntimeException("Queue item is solving, wait for it to be finished")
+class QueueItemIsSolvingException : RuntimeException("Queue item is solving, wait for it to finish")

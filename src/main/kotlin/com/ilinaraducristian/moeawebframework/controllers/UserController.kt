@@ -62,10 +62,7 @@ class UserController(
         algorithm.users.add(user)
       }
       try {
-        val authority = Authority()
-        user.authorities.add(authority)
-        authority.user = user
-        userRepo.save(user)
+        authorityRepo.save(Authority(user = userRepo.save(user)))
         it.success()
       } catch (e: Exception) {
         it.error(CannotCreateUserException())

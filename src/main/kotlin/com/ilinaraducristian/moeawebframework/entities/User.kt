@@ -1,15 +1,17 @@
 package com.ilinaraducristian.moeawebframework.entities
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.hibernate.annotations.NaturalId
 import java.io.Serializable
 import java.util.*
 import javax.persistence.*
 import javax.validation.constraints.NotBlank
 import kotlin.collections.ArrayList
-import kotlin.collections.HashSet
+import kotlin.collections.MutableList
+import kotlin.collections.MutableSet
 
 @Entity
-@Table(name = "users")
+@Table
 data class User(
 
     @Id
@@ -37,24 +39,42 @@ data class User(
 
     var enabled: Boolean = true,
 
-    @ManyToMany
-    @JoinTable(name = "problem_user",
-        joinColumns = [JoinColumn(name = "problem_id", referencedColumnName = "id")],
-        inverseJoinColumns = [JoinColumn(name = "user_id",
+    @ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
+    @JoinTable(name = "user_problem",
+        joinColumns = [JoinColumn(name = "user_id", referencedColumnName = "id")],
+        inverseJoinColumns = [JoinColumn(name = "problem_id",
             referencedColumnName = "id")])
-    var problems: MutableSet<Problem> = HashSet(),
+    @JsonIgnore
+    var problems: MutableSet<Problem> = mutableSetOf(),
 
-    @ManyToMany
-    @JoinTable(name = "algorithm_user",
-        joinColumns = [JoinColumn(name = "algorithm_id", referencedColumnName = "id")],
-        inverseJoinColumns = [JoinColumn(name = "user_id",
+    @ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
+    @JoinTable(name = "user_algorithm",
+        joinColumns = [JoinColumn(name = "user_id", referencedColumnName = "id")],
+        inverseJoinColumns = [JoinColumn(name = "algorithm_id",
             referencedColumnName = "id")])
-    var algorithms: MutableSet<Algorithm> = HashSet(),
+    @JsonIgnore
+    var algorithms: MutableSet<Algorithm> = mutableSetOf(),
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     var queue: MutableList<QueueItem> = ArrayList(),
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     var authorities: MutableList<Authority> = ArrayList()
 
-) : Serializable
+) : Serializable {
+  fun addProblem(problem: Problem) {
+    this.problems.add(problem)
+    problem.users.add(this)
+  }
+
+  fun addAlgorithm(algorithm: Algorithm) {
+    algorithm.users.add(this)
+    this.algorithms.add(algorithm)
+  }
+
+  override fun hashCode(): Int {
+    return Objects.hash(id)
+  }
+}

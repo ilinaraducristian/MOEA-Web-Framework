@@ -53,7 +53,6 @@ class PublicController(
       if (foundUser.isPresent) {
         val user = foundUser.get()
         val problem = Problem()
-        problem.filePath = "moeaData/public/problems/${file.originalFilename}.class"
         problem.name = file.originalFilename.toString()
         user.problems.add(problem)
         problem.users.add(user)
@@ -108,7 +107,6 @@ class PublicController(
       if (foundUser.isPresent) {
         val user = foundUser.get()
         val algorithm = Algorithm()
-        algorithm.filePath = "moeaData/public/algorithms/${file.originalFilename}.class"
         algorithm.name = file.originalFilename.toString()
         user.algorithms.add(algorithm)
         algorithm.users.add(user)

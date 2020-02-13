@@ -36,9 +36,9 @@ class QueueItemSolverService(
         val qualityIndicators = QualityIndicators(event.executor.instrumenter.lastAccumulator, event.currentSeed - 1)
         queueItem.results.add(qualityIndicators)
         if (isUser) {
-          rabbitTemplate.convertAndSend("user.${queueItem.user.username}.${queueItem.id}", jsonConverter.writeValueAsString(qualityIndicators))
+          rabbitTemplate.convertAndSend("user.${queueItem.user.username}.${queueItem.rabbitId}", jsonConverter.writeValueAsString(qualityIndicators))
         } else {
-          rabbitTemplate.convertAndSend("guest.${queueItem.id}", jsonConverter.writeValueAsString(qualityIndicators))
+          rabbitTemplate.convertAndSend("guest.${queueItem.rabbitId}", jsonConverter.writeValueAsString(qualityIndicators))
         }
       } catch (e: IllegalArgumentException) {
         // executor was canceled
@@ -47,6 +47,7 @@ class QueueItemSolverService(
     val queueItemSolver = QueueItemSolver(queueItem, progressListener)
     solvers[solverId] = queueItemSolver
     var solved = false
+
     threadPoolTaskExecutor.submit {
       try {
         solved = queueItemSolver.solve()
@@ -54,17 +55,17 @@ class QueueItemSolverService(
           queueItem.status = "done"
           if (isUser) {
             queueItemRepo.save(queueItem)
-            rabbitTemplate.convertAndSend("user.${queueItem.user.username}.${queueItem.id}", """{"status":"done"}""")
+            rabbitTemplate.convertAndSend("user.${queueItem.user.username}.${queueItem.rabbitId}", """{"status":"done"}""")
           } else {
             reactiveRedisTemplate.opsForValue().set(queueItem.rabbitId, queueItem).block()
-            rabbitTemplate.convertAndSend("guest.${queueItem.id}", """{"status":"done"}""")
+            rabbitTemplate.convertAndSend("guest.${queueItem.rabbitId}", """{"status":"done"}""")
           }
         }
       } catch (e: Exception) {
         if (isUser) {
-          rabbitTemplate.convertAndSend("user.${queueItem.user.username}.${queueItem.id}", """{"error":"${e.message}"}""")
+          rabbitTemplate.convertAndSend("user.${queueItem.user.username}.${queueItem.rabbitId}", """{"error":"${e.message}"}""")
         } else {
-          rabbitTemplate.convertAndSend("guest.${queueItem.id}", """{"error":"${e.message}"}""")
+          rabbitTemplate.convertAndSend("guest.${queueItem.rabbitId}", """{"error":"${e.message}"}""")
         }
       } finally {
         if (!solved) {

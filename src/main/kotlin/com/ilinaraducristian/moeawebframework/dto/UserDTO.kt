@@ -6,6 +6,7 @@ import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 
 class UserDTO {
+
   @NotNull
   @NotBlank
   var username: String = ""

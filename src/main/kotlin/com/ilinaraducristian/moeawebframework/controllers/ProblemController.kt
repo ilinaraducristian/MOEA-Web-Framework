@@ -27,15 +27,14 @@ class ProblemController(
       if (foundUser.isPresent) {
         val user = foundUser.get()
         val problem = Problem()
-        problem.filePath = "moeaData/users/${principal.name}/problems/${file.originalFilename}.class"
         problem.name = file.originalFilename.toString()
         user.problems.add(problem)
         problem.users.add(user)
         userRepo.save(user)
-        val existingFile = File("${principal.name}/problems/${file.originalFilename}.class")
+        val existingFile = File("moeaData/users/${principal.name}/problems/${file.originalFilename}.class")
         if (existingFile.exists() && !override)
           return@create it.error(ProblemExistsOnServerException())
-        file.transferTo(File("${principal.name}/problems/${file.originalFilename}"))
+        file.transferTo(File("moeaData/users/${principal.name}/problems/${file.originalFilename}"))
         it.success()
       } else {
         it.error(UserNotFoundException())
