@@ -8,10 +8,8 @@ class QueueItemDTO{
   @NotNull
   @NotBlank
   var name: String = ""
-
-  @NotNull
-  var numberOfEvaluations: Int = 10000
-  var numberOfSeeds: Int = 10
   var problem: String = ""
   var algorithm: String = ""
+  var numberOfEvaluations: Int = 10000
+  var numberOfSeeds: Int = 10
 }

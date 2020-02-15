@@ -13,8 +13,8 @@ import reactor.core.publisher.Mono
 import java.util.*
 
 @RestController
-@CrossOrigin
 @RequestMapping("queue")
+@CrossOrigin
 class GuestQueueController(
     private val reactiveRedisTemplate: ReactiveRedisTemplate<String, QueueItem>,
     private val queueItemSolverService: QueueItemSolverService,

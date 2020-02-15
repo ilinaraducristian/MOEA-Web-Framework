@@ -32,9 +32,9 @@ class UserQueueController(
         return@create it.error(UserNotFoundException())
       }
       val user = foundUser.get()
-      val problem = user.problems.find { problem -> problem.name == queueItemDTO.problem}
+      val problem = problemRepo.findByUsersAndName(user, queueItemDTO.problem).orElse(null)
           ?: return@create it.error(ProblemNotFoundException())
-      val algorithm = user.algorithms.find { algorithm -> algorithm.name == queueItemDTO.algorithm}
+      val algorithm = algorithmRepo.findByUsersAndName(user, queueItemDTO.algorithm).orElse(null)
           ?: return@create it.error(AlgorithmNotFoundException())
       val queueItem = QueueItem()
       queueItem.name = queueItemDTO.name

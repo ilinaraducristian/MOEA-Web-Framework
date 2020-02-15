@@ -11,6 +11,7 @@ data class Problem(
 
     @Id
     @GeneratedValue
+    @JsonIgnore
     var id: Long = 0,
 
     @Column(nullable = false, unique = true)
@@ -27,6 +28,6 @@ data class Problem(
 
 ): Serializable {
     override fun toString(): String {
-        return "Problem(id=$id, name='$name')"
+        return """{"name"="$name"}"""
     }
 }

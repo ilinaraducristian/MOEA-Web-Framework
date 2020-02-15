@@ -25,13 +25,17 @@ class SecurityConfig(
   override fun configure(http: HttpSecurity) {
     http
         .csrf().disable()
+        .cors().and()
         .authorizeRequests()
         .antMatchers("/test/**").permitAll()
         .antMatchers("/queue/**").permitAll()
         .antMatchers("/user/login").permitAll()
         .antMatchers("/user/register").permitAll()
+        .antMatchers("/public/getProblems").permitAll()
+        .antMatchers("/public/getAlgorithms").permitAll()
         .antMatchers("/public/downloadProblem").permitAll()
         .antMatchers("/public/downloadAlgorithm").permitAll()
+        .antMatchers("/public/getProblemsAndAlgorithms").permitAll()
         .antMatchers("/public/uploadProblem").hasRole("ADMIN")
         .antMatchers("/public/uploadAlgorithm").hasRole("ADMIN")
         .anyRequest().authenticated()

@@ -57,11 +57,11 @@ data class User(
 
     @OneToMany(mappedBy = "user")
     @JsonIgnore
-    var queue: MutableList<QueueItem> = ArrayList(),
+    var queue: MutableList<QueueItem> = mutableListOf(),
 
     @OneToMany(mappedBy = "user")
     @JsonIgnore
-    var authorities: MutableList<Authority> = ArrayList()
+    var authorities: MutableList<Authority> = mutableListOf()
 
 ) : Serializable {
   fun addProblem(problem: Problem) {

@@ -1,29 +1,24 @@
 package com.ilinaraducristian.moeawebframework.controllers
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.ilinaraducristian.moeawebframework.JwtUtil
+import com.ilinaraducristian.moeawebframework.dto.QueueItemDTO
 import com.ilinaraducristian.moeawebframework.dto.UserDTO
 import com.ilinaraducristian.moeawebframework.entities.Authority
+import com.ilinaraducristian.moeawebframework.entities.QueueItem
 import com.ilinaraducristian.moeawebframework.entities.User
-import com.ilinaraducristian.moeawebframework.exceptions.BadCredentialsException
-import com.ilinaraducristian.moeawebframework.exceptions.CannotCreateUserException
-import com.ilinaraducristian.moeawebframework.exceptions.InternalErrorException
-import com.ilinaraducristian.moeawebframework.exceptions.UserNotFoundException
-import com.ilinaraducristian.moeawebframework.repositories.AlgorithmRepository
-import com.ilinaraducristian.moeawebframework.repositories.AuthorityRepository
-import com.ilinaraducristian.moeawebframework.repositories.ProblemRepository
-import com.ilinaraducristian.moeawebframework.repositories.UserRepository
+import com.ilinaraducristian.moeawebframework.exceptions.*
+import com.ilinaraducristian.moeawebframework.repositories.*
 import com.ilinaraducristian.moeawebframework.security.AuthenticationRequest
 import com.ilinaraducristian.moeawebframework.security.AuthenticationResponse
 import com.ilinaraducristian.moeawebframework.security.SecurityUserDetailsService
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import java.security.Principal
+import java.util.*
 import javax.validation.Valid
 
 @RestController
@@ -34,6 +29,7 @@ class UserController(
     private val algorithmRepo: AlgorithmRepository,
     private val authorityRepo: AuthorityRepository,
     private val encoder: BCryptPasswordEncoder,
+    private val jsonConverter: ObjectMapper,
     private val authenticationManager: AuthenticationManager,
     private val userDetailsService: SecurityUserDetailsService,
     private val jwtUtil: JwtUtil
@@ -53,11 +49,13 @@ class UserController(
       user.email = userDTO.email
       user.firstName = userDTO.firstName
       user.lastName = userDTO.lastName
-      problemRepo.findByUsers(admin).forEach { problem ->
+      val problems = problemRepo.findByUsers(admin)
+      problems.forEach { problem ->
         user.problems.add(problem)
         problem.users.add(user)
       }
-      algorithmRepo.findByUsers(admin).forEach { algorithm ->
+      val algorithms = algorithmRepo.findByUsers(admin)
+      algorithms.forEach { algorithm ->
         user.algorithms.add(algorithm)
         algorithm.users.add(user)
       }
@@ -80,7 +78,19 @@ class UserController(
       }
       val userDetails = userDetailsService.loadUserByUsername(authenticationRequest.username)
           ?: return@create it.error(UserNotFoundException())
-      it.success(AuthenticationResponse(jwtUtil.generateToken(userDetails)))
+      val user = userRepo.findByUsername(userDetails.username).get()
+      var authenticationResponse = AuthenticationResponse()
+      authenticationResponse.username = user.username
+      authenticationResponse.email = user.email
+      authenticationResponse.firstName = user.firstName
+      authenticationResponse.lastName = user.lastName
+      authenticationResponse.problems = problemRepo.findByUsers(user).map {problem -> problem.name}
+      authenticationResponse.algorithms = algorithmRepo.findByUsers(user).map {algorithm -> algorithm.name}
+      authenticationResponse.queue = user.queue.map {
+        it
+      }.toMutableList()
+      authenticationResponse.jwt = jwtUtil.generateToken(userDetails)
+      it.success(authenticationResponse)
     }
   }
 

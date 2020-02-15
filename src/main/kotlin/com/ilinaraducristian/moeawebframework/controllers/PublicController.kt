@@ -1,5 +1,6 @@
 package com.ilinaraducristian.moeawebframework.controllers
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.ilinaraducristian.moeawebframework.entities.Algorithm
 import com.ilinaraducristian.moeawebframework.entities.Problem
 import com.ilinaraducristian.moeawebframework.exceptions.*
@@ -16,33 +17,47 @@ import javax.servlet.http.HttpServletResponse
 
 @RestController
 @RequestMapping("public")
+@CrossOrigin
 class PublicController(
     private val userRepo: UserRepository,
     private val problemRepo: ProblemRepository,
-    private val algorithmRepo: AlgorithmRepository
+    private val algorithmRepo: AlgorithmRepository,
+    private val jsonConverter: ObjectMapper
 ) {
 
-  @GetMapping("getProblems")
-  fun getProblems(): Mono<Array<Problem>> {
-    return Mono.create<Array<Problem>> {
+  @GetMapping("getProblemsAndAlgorithms")
+  fun getProblemsAndAlgorithms(): Mono<String> {
+    return Mono.create<String> {
       val foundUser = userRepo.findByUsername("admin")
       if(foundUser.isEmpty) {
         return@create it.error(InternalErrorException())
       }
       val admin = foundUser.get()
-      it.success(problemRepo.findByUsers(admin).toTypedArray())
+      it.success("""{"problems": ${jsonConverter.writeValueAsString(problemRepo.findByUsers(admin).map {problem -> problem.name})}, "algorithms": ${jsonConverter.writeValueAsString(algorithmRepo.findByUsers(admin).map{algorithm -> algorithm.name})}}""")
+    }
+  }
+
+  @GetMapping("getProblems")
+  fun getProblems(): Mono<List<String>> {
+    return Mono.create<List<String>> {
+      val foundUser = userRepo.findByUsername("admin")
+      if(foundUser.isEmpty) {
+        return@create it.error(InternalErrorException())
+      }
+      val admin = foundUser.get()
+      it.success(problemRepo.findByUsers(admin).map{problem -> problem.name})
     }
   }
 
   @GetMapping("getAlgorithms")
-  fun getAlgorithms(): Mono<Array<Algorithm>> {
-    return Mono.create<Array<Algorithm>> {
+  fun getAlgorithms(): Mono<List<String>> {
+    return Mono.create<List<String>> {
       val foundUser = userRepo.findByUsername("admin")
       if(foundUser.isEmpty) {
         return@create it.error(InternalErrorException())
       }
       val admin = foundUser.get()
-      it.success(algorithmRepo.findByUsers(admin).toTypedArray())
+      it.success(algorithmRepo.findByUsers(admin).map{algorithm -> algorithm.name})
     }
   }
 
