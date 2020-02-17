@@ -2,11 +2,9 @@ package com.ilinaraducristian.moeawebframework.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ilinaraducristian.moeawebframework.JwtUtil
-import com.ilinaraducristian.moeawebframework.dto.QueueItemDTO
 import com.ilinaraducristian.moeawebframework.dto.QueueItemResponseDTO
 import com.ilinaraducristian.moeawebframework.dto.UserDTO
 import com.ilinaraducristian.moeawebframework.entities.Authority
-import com.ilinaraducristian.moeawebframework.entities.QueueItem
 import com.ilinaraducristian.moeawebframework.entities.User
 import com.ilinaraducristian.moeawebframework.exceptions.*
 import com.ilinaraducristian.moeawebframework.repositories.*
@@ -19,7 +17,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import java.security.Principal
-import java.util.*
 import javax.validation.Valid
 
 @RestController
@@ -87,8 +84,7 @@ class UserController(
       authenticationResponse.lastName = user.lastName
       authenticationResponse.problems = problemRepo.findByUsers(user).map {problem -> problem.name}
       authenticationResponse.algorithms = algorithmRepo.findByUsers(user).map {algorithm -> algorithm.name}
-      authenticationResponse.queue = mutableListOf()
-      user.queue.forEach { queueItem ->
+      authenticationResponse.queue = user.queue.map { queueItem ->
         val queueItemResponseDTO = QueueItemResponseDTO()
         queueItemResponseDTO.name = queueItem.name
         queueItemResponseDTO.numberOfEvaluations = queueItem.numberOfEvaluations
@@ -99,14 +95,14 @@ class UserController(
         queueItemResponseDTO.results = queueItem.results
         queueItemResponseDTO.problem = queueItem.problem.name
         queueItemResponseDTO.algorithm = queueItem.algorithm.name
-        authenticationResponse.queue.add(queueItemResponseDTO)
-      }
+        return@map queueItemResponseDTO
+      }.toList()
       authenticationResponse.jwt = jwtUtil.generateToken(userDetails)
       it.success(authenticationResponse)
     }
   }
 
-  @PostMapping("details")
+  @GetMapping
   fun details(principal: Principal): Mono<String> {
     return Mono.create<String> {
       userRepo.findByUsername(principal.name).ifPresentOrElse({ user ->

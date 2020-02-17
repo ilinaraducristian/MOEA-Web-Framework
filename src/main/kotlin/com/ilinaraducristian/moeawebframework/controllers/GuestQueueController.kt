@@ -1,6 +1,6 @@
 package com.ilinaraducristian.moeawebframework.controllers
 
-import com.ilinaraducristian.moeawebframework.dto.QueueItemDTO
+import com.ilinaraducristian.moeawebframework.dto.QueueItemRequestDTO
 import com.ilinaraducristian.moeawebframework.entities.QueueItem
 import com.ilinaraducristian.moeawebframework.exceptions.*
 import com.ilinaraducristian.moeawebframework.repositories.AlgorithmRepository
@@ -24,23 +24,23 @@ class GuestQueueController(
 ) {
 
   @PostMapping("addQueueItem")
-  fun addQueueItem(@RequestBody queueItemDTO: QueueItemDTO): Mono<String> {
+  fun addQueueItem(@RequestBody queueItemRequestDTO: QueueItemRequestDTO): Mono<String> {
     return Mono.create<String> {
       val foundUser = userRepo.findByUsername("admin")
       if(foundUser.isEmpty) {
         return@create it.error(InternalErrorException())
       }
       val admin = foundUser.get()
-      val problem = problemRepo.findByUsers(admin).find { problem -> problem.name == queueItemDTO.problem}
+      val problem = problemRepo.findByUsers(admin).find { problem -> problem.name == queueItemRequestDTO.problem}
           ?: return@create it.error(ProblemNotFoundException())
-      val algorithm = algorithmRepo.findByUsers(admin).find { algorithm -> algorithm.name == queueItemDTO.algorithm}
+      val algorithm = algorithmRepo.findByUsers(admin).find { algorithm -> algorithm.name == queueItemRequestDTO.algorithm}
           ?: return@create it.error(AlgorithmNotFoundException())
       val queueItem = QueueItem()
-      queueItem.name = queueItemDTO.name
+      queueItem.name = queueItemRequestDTO.name
       queueItem.problem = problem
       queueItem.algorithm = algorithm
-      queueItem.numberOfSeeds = queueItemDTO.numberOfSeeds
-      queueItem.numberOfEvaluations = queueItemDTO.numberOfEvaluations
+      queueItem.numberOfSeeds = queueItemRequestDTO.numberOfSeeds
+      queueItem.numberOfEvaluations = queueItemRequestDTO.numberOfEvaluations
       var queueItemUUID: UUID
       do {
         queueItemUUID = UUID.randomUUID()

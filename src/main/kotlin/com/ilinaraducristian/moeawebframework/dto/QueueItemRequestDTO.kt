@@ -3,7 +3,7 @@ package com.ilinaraducristian.moeawebframework.dto
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 
-class QueueItemDTO{
+class QueueItemRequestDTO{
 
   @NotNull
   @NotBlank

@@ -12,6 +12,6 @@ class AuthenticationResponse : Serializable {
   var jwt: String = ""
   var problems: List<String> = mutableListOf()
   var algorithms: List<String> = mutableListOf()
-  var queue: MutableList<QueueItemResponseDTO> = ArrayList()
+  var queue: List<QueueItemResponseDTO> = listOf()
 
 }
