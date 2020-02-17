@@ -37,7 +37,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
-	implementation("org.springframework.session:spring-session-data-redis")
+//	implementation("org.springframework.session:spring-session-data-redis")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("mysql:mysql-connector-java")
 
@@ -47,8 +47,8 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.10.7")
 
 	// Embedded servers
-	implementation("it.ozimov:embedded-redis:0.7.2")
-		runtimeOnly("com.h2database:h2")
+//	implementation("it.ozimov:embedded-redis:0.7.2")
+//		runtimeOnly("com.h2database:h2")
 
 	// Kotlin
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

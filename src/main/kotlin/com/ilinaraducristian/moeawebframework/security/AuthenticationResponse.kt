@@ -1,8 +1,6 @@
 package com.ilinaraducristian.moeawebframework.security
 
-import com.ilinaraducristian.moeawebframework.entities.Algorithm
-import com.ilinaraducristian.moeawebframework.entities.Problem
-import com.ilinaraducristian.moeawebframework.entities.QueueItem
+import com.ilinaraducristian.moeawebframework.dto.QueueItemResponseDTO
 import java.io.Serializable
 
 class AuthenticationResponse : Serializable {
@@ -14,6 +12,6 @@ class AuthenticationResponse : Serializable {
   var jwt: String = ""
   var problems: List<String> = mutableListOf()
   var algorithms: List<String> = mutableListOf()
-  var queue: MutableList<QueueItem> = ArrayList()
+  var queue: MutableList<QueueItemResponseDTO> = ArrayList()
 
 }

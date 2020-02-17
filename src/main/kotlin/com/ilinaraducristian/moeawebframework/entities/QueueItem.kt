@@ -1,6 +1,7 @@
 package com.ilinaraducristian.moeawebframework.entities
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.ilinaraducristian.moeawebframework.dto.QualityIndicators
 import org.hibernate.annotations.Type
 import java.io.Serializable
@@ -41,17 +42,15 @@ data class QueueItem(
 
     @ManyToOne
     @JoinColumn(name = "problem_id")
-//    @JsonIgnore
     var problem: Problem = Problem(),
 
     @ManyToOne
     @JoinColumn(name = "algorithm_id")
-//    @JsonIgnore
     var algorithm: Algorithm = Algorithm(),
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-//    @JsonIgnore
+    @JsonIgnore
     var user: User = User()
 ): Serializable {
     override fun toString(): String {

@@ -3,6 +3,7 @@ package com.ilinaraducristian.moeawebframework.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ilinaraducristian.moeawebframework.JwtUtil
 import com.ilinaraducristian.moeawebframework.dto.QueueItemDTO
+import com.ilinaraducristian.moeawebframework.dto.QueueItemResponseDTO
 import com.ilinaraducristian.moeawebframework.dto.UserDTO
 import com.ilinaraducristian.moeawebframework.entities.Authority
 import com.ilinaraducristian.moeawebframework.entities.QueueItem
@@ -86,9 +87,20 @@ class UserController(
       authenticationResponse.lastName = user.lastName
       authenticationResponse.problems = problemRepo.findByUsers(user).map {problem -> problem.name}
       authenticationResponse.algorithms = algorithmRepo.findByUsers(user).map {algorithm -> algorithm.name}
-      authenticationResponse.queue = user.queue.map {
-        it
-      }.toMutableList()
+      authenticationResponse.queue = mutableListOf()
+      user.queue.forEach { queueItem ->
+        val queueItemResponseDTO = QueueItemResponseDTO()
+        queueItemResponseDTO.name = queueItem.name
+        queueItemResponseDTO.numberOfEvaluations = queueItem.numberOfEvaluations
+        queueItemResponseDTO.numberOfSeeds = queueItem.numberOfSeeds
+        queueItemResponseDTO.status = queueItem.status
+        queueItemResponseDTO.rabbitId = queueItem.rabbitId
+        queueItemResponseDTO.solverId = queueItem.solverId
+        queueItemResponseDTO.results = queueItem.results
+        queueItemResponseDTO.problem = queueItem.problem.name
+        queueItemResponseDTO.algorithm = queueItem.algorithm.name
+        authenticationResponse.queue.add(queueItemResponseDTO)
+      }
       authenticationResponse.jwt = jwtUtil.generateToken(userDetails)
       it.success(authenticationResponse)
     }
