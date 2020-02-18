@@ -9,8 +9,10 @@ import com.ilinaraducristian.moeawebframework.repositories.UserRepository
 import com.ilinaraducristian.moeawebframework.services.QueueItemSolverService
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.util.*
+
 
 @RestController
 @RequestMapping("queue")
@@ -25,15 +27,15 @@ class GuestQueueController(
 
   @PostMapping("addQueueItem")
   fun addQueueItem(@RequestBody queueItemRequestDTO: QueueItemRequestDTO): Mono<String> {
-    return Mono.create<String> {
+    return Mono.create {
       val foundUser = userRepo.findByUsername("admin")
-      if(foundUser.isEmpty) {
+      if (foundUser.isEmpty) {
         return@create it.error(InternalErrorException())
       }
       val admin = foundUser.get()
-      val problem = problemRepo.findByUsers(admin).find { problem -> problem.name == queueItemRequestDTO.problem}
+      val problem = problemRepo.findByUsers(admin).find { problem -> problem.name == queueItemRequestDTO.problem }
           ?: return@create it.error(ProblemNotFoundException())
-      val algorithm = algorithmRepo.findByUsers(admin).find { algorithm -> algorithm.name == queueItemRequestDTO.algorithm}
+      val algorithm = algorithmRepo.findByUsers(admin).find { algorithm -> algorithm.name == queueItemRequestDTO.algorithm }
           ?: return@create it.error(AlgorithmNotFoundException())
       val queueItem = QueueItem()
       queueItem.name = queueItemRequestDTO.name
@@ -79,6 +81,19 @@ class GuestQueueController(
       if (queueItem == null)
         return@flatMap Mono.error<QueueItem>(QueueItemNotFoundException())
       return@flatMap Mono.just(queueItem)
+    }
+  }
+
+  @PostMapping
+  fun getQueue(@RequestBody rabbitIds: Array<String>): Mono<Array<QueueItem>> {
+    return Mono.create {
+      val monoQueue = rabbitIds.map { rabbitId ->
+        reactiveRedisTemplate.opsForValue().get(rabbitId).filter { queueItem -> queueItem != null }
+      }
+      Mono.zip(monoQueue) { queue ->
+        it.success(queue as Array<QueueItem>)
+      }
+
     }
   }
 

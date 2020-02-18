@@ -1,5 +1,6 @@
 package com.ilinaraducristian.moeawebframework.exceptions
 
+import io.jsonwebtoken.ExpiredJwtException
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
@@ -55,7 +56,7 @@ class ExceptionProcessor : ResponseEntityExceptionHandler() {
     return ExceptionResponse(exception)
   }
 
-  @ExceptionHandler(BadCredentialsException::class)
+  @ExceptionHandler(value = [BadCredentialsException::class, ExpiredJwtException::class])
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   fun handleUnauthorizedExceptions(exception: RuntimeException): ExceptionResponse {
     return ExceptionResponse(exception)

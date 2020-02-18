@@ -73,6 +73,7 @@ class QueueItemSolverService(
           queueItem.status = "waiting"
         }
         if (isUser) {
+          queueItem.solverId = null
           queueItemRepo.save(queueItem)
         } else {
           reactiveRedisTemplate.opsForValue().set(queueItem.rabbitId, queueItem)
