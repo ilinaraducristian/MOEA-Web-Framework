@@ -1,0 +1,24 @@
+spring:
+  profiles:
+    active: dev
+  # RabbitMQ
+  rabbitmq:
+    username: root
+    password: root
+  # Uploading files
+  servlet:
+    multipart:
+      enabled: true
+      location: /mnt/hdd/Projects/MOEA-Web-Framework/
+      max-file-size: 128KB
+      max-request-size: 128KB
+  # SQL
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.MySQLInnoDBDialect
+jwt:
+  token: "SkdIMUtCM3RaT3YmTW01cDk0QiM2QlVpXk4zdnY0NDk="

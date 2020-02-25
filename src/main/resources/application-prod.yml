@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    initialization-mode: always
+    url: jdbc:mysql://localhost:3306/users
+    username: root
+    password: root
+  redis:
+    host: localhost
+    port: 6379
