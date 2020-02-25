@@ -12,7 +12,7 @@ services:
     ports:
       - "3306:3306"
   results:
-    build: ./results/
+    image: reydw/moeawebframework_results
     hostname: moeawebframework
     ports:
       - "4369:4369"
