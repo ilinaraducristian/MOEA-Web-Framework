@@ -21,20 +21,20 @@ class ProblemController(
 ) {
 
   @PutMapping("upload")
-  fun upload(@RequestParam("file") file: MultipartFile, @RequestParam("override") override: Boolean, principal: Principal): Mono<Void> {
+  fun upload(@RequestParam("file") file: MultipartFile, @RequestParam("override") override: Boolean = false, principal: Principal): Mono<Void> {
     return Mono.create<Void> {
       val foundUser = userRepo.findByUsername(principal.name)
       if (foundUser.isPresent) {
         val user = foundUser.get()
         val problem = Problem()
-        problem.name = file.originalFilename.toString()
+        problem.name = file.originalFilename.toString().replace(Regex("""\.class"""), "")
         user.problems.add(problem)
         problem.users.add(user)
         userRepo.save(user)
-        val existingFile = File("moeaData/users/${principal.name}/problems/${file.originalFilename}.class")
+        val existingFile = File("moeaData/problems/${file.originalFilename}.class")
         if (existingFile.exists() && !override)
           return@create it.error(ProblemExistsOnServerException())
-        file.transferTo(File("moeaData/users/${principal.name}/problems/${file.originalFilename}"))
+        file.transferTo(File("moeaData/problems/${file.originalFilename}"))
         it.success()
       } else {
         it.error(UserNotFoundException())

@@ -32,7 +32,7 @@ class AlgorithmController(
       }
       val user = foundUser.get()
       val algorithm = Algorithm()
-      algorithm.name = name
+      algorithm.name = file.originalFilename.toString().replace(Regex("""\.class"""), "")
       user.algorithms.add(algorithm)
       algorithm.users.add(user)
       userRepo.save(user)

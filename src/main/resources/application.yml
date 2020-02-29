@@ -13,12 +13,39 @@ spring:
       max-file-size: 128KB
       max-request-size: 128KB
   # SQL
-  jpa:
-    show-sql: true
-    hibernate:
-      ddl-auto: update
 #    properties:
 #      hibernate:
 #        dialect: org.hibernate.dialect.MySQLInnoDBDialect
 jwt:
   token: "SkdIMUtCM3RaT3YmTW01cDk0QiM2QlVpXk4zdnY0NDk="
+
+---
+
+spring:
+  profiles: dev
+  redis:
+    host: localhost
+    port: 6379
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+admin:
+  password: admin
+
+---
+
+spring:
+  profiles: prod
+  datasource:
+    initialization-mode: always
+    url: jdbc:mysql://localhost:3306/users
+    username: root
+    password: root
+  redis:
+    host: localhost
+    port: 6379
+
+admin:
+  password: "&{Trz8T*H)b%|7R<"

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 @RestController
@@ -85,16 +86,29 @@ class GuestQueueController(
   }
 
   @PostMapping
-  fun getQueue(@RequestBody rabbitIds: Array<String>): Mono<Array<QueueItem>> {
-    return Mono.create {
-      val monoQueue = rabbitIds.map { rabbitId ->
-        reactiveRedisTemplate.opsForValue().get(rabbitId).filter { queueItem -> queueItem != null }
+  fun getQueue(@RequestBody rabbitIds: Array<String>): ArrayList<QueueItem> {
+    val queueItems = arrayListOf<QueueItem>()
+    rabbitIds.forEach { rabbitId ->
+      val queueItem = reactiveRedisTemplate.opsForValue().get(rabbitId).block()
+        if (queueItem != null) {
+          queueItems.add(queueItem)
+        }
       }
-      Mono.zip(monoQueue) { queue ->
-        it.success(queue as Array<QueueItem>)
-      }
+    return queueItems
+//    return Mono.create {
+//
+//      rabbitIds.map { rabbitId ->
+//        val queueItem = reactiveRedisTemplate.opsForValue().get(rabbitId).block()
+//        if (queueItem != null) {
+//          return queueItem
+//        }
+//      }
 
-    }
+//      Mono.zip(monoQueue) { queue ->
+//        it.success(queue as Array<QueueItem>)
+//      }
+
+//    }
   }
 
   @GetMapping("cancelQueueItem/{solverId}")

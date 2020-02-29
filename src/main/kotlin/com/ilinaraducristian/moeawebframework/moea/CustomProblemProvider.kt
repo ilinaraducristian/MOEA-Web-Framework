@@ -16,11 +16,11 @@ class CustomProblemProvider : ProblemProvider() {
   @Suppress("DEPRECATION")
   override fun getProblem(name: String): Problem? {
     var problem: Problem? = null
-    var foundProblem = File("moeaData/public/problems").list()?.find { problem ->
+    var foundProblem = File("moeaData/problems").list()?.find { problem ->
       problem == "$name.class"
     }
     if (foundProblem != null) {
-      val file = File("moeaData/public/problems/$name.class")
+      val file = File("moeaData/problems/$name.class")
       if (file.exists())
         try {
           problem = URLClassLoader(arrayOf(file.toURI().toURL())).loadClass(name).newInstance() as Problem
@@ -29,42 +29,17 @@ class CustomProblemProvider : ProblemProvider() {
         } catch (e: ClassNotFoundException) {
           println("ClassNotFoundException")
         }
+    }
       return problem
-
-    }
-    val userName = (SecurityContextHolder.getContext().authentication.principal as UserPrincipal).username
-    foundProblem = File("moeaData/users/$userName/problems").list()?.find { problem ->
-      problem == "$name.class"
-    }
-    if (foundProblem != null) {
-      val file = File("moeaData/users/$userName/problems/$name.class")
-      if (file.exists())
-        try {
-          problem = URLClassLoader(arrayOf(file.toURI().toURL())).loadClass(name).newInstance() as Problem
-        } catch (e: MalformedURLException) {
-          println("MalformedURLException")
-        } catch (e: ClassNotFoundException) {
-          println("ClassNotFoundException")
-        }
-    }
-    return problem
   }
 
   override fun getReferenceSet(name: String): NondominatedPopulation? {
     var referenceSet: NondominatedPopulation? = null
-    var foundReferenceSet = File("moeaData/public/problems/references").list()?.find { referenceSet ->
+    var foundReferenceSet = File("moeaData/problems/references").list()?.find { referenceSet ->
       referenceSet == "$name.pf"
     }
     if (foundReferenceSet != null) {
-      referenceSet = NondominatedPopulation(PopulationIO.readObjectives(File("moeaData/public/problems/references/$name.pf")))
-      return referenceSet
-    }
-    val userName = (SecurityContextHolder.getContext().authentication.principal as UserPrincipal).username
-    foundReferenceSet = File("moeaData/users/$userName/problems").list()?.find { problem ->
-      problem == "$name.class"
-    }
-    if (foundReferenceSet != null) {
-      referenceSet = NondominatedPopulation(PopulationIO.readObjectives(File("moeaData/users/$userName/problems/references/$name.pf")))
+      referenceSet = NondominatedPopulation(PopulationIO.readObjectives(File("moeaData/problems/references/$name.pf")))
     }
     return referenceSet
   }
