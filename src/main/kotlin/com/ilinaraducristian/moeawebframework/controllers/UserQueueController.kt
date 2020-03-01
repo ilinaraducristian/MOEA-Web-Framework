@@ -103,4 +103,17 @@ class UserQueueController(
     queueItemSolverService.cancelQueueItem(UUID.fromString(solverId))
   }
 
+  @GetMapping("removeQueueItem/{rabbitId}")
+  fun removeQueueItem(@PathVariable rabbitId: String, principal: Principal) {
+    val queueItem = queueItemRepo.findByUserUsernameAndRabbitId(principal.name, rabbitId)
+    if(queueItem.isPresent) {
+      val solverId = queueItem.get().solverId
+      if(solverId != null) {
+        queueItemSolverService.cancelQueueItem(UUID.fromString(solverId))
+      }
+      queueItemRepo.deleteByUserUsernameAndRabbitId(principal.name, rabbitId)
+    }
+
+  }
+
 }

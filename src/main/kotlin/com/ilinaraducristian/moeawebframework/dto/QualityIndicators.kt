@@ -5,24 +5,24 @@ import org.moeaframework.analysis.collector.Accumulator
 import java.io.Serializable
 
 // [Approximation Set, R1Indicator, AdditiveEpsilonIndicator, R2Indicator, GenerationalDistance, Hypervolume, Spacing, R3Indicator, InvertedGenerationalDistance, NFE, Elapsed Time, Contribution]
-data class QualityIndicators(
-    @JsonIgnore
-    val accumulator: Accumulator,
-    val currentSeed: Int,
-//    var ApproximationSet: ArrayList<Double> = ArrayList(),
-    val R1Indicator: ArrayList<Double> = ArrayList(),
-    val AdditiveEpsilonIndicator: ArrayList<Double> = ArrayList(),
-    val R2Indicator: ArrayList<Double> = ArrayList(),
-    val GenerationalDistance: ArrayList<Double> = ArrayList(),
-    val Hypervolume: ArrayList<Double> = ArrayList(),
-    val Spacing: ArrayList<Double> = ArrayList(),
-    val R3Indicator: ArrayList<Double> = ArrayList(),
-    val InvertedGenerationalDistance: ArrayList<Double> = ArrayList(),
-    val NFE: ArrayList<Int> = ArrayList(),
-    val ElapsedTime: ArrayList<Double> = ArrayList(),
-    val Contribution: ArrayList<Double> = ArrayList()
-) : Serializable {
-  init {
+class QualityIndicators() : Serializable {
+  @JsonIgnore
+  var accumulator: Accumulator? = null
+  var currentSeed: Int = 0
+  //    var ApproximationSet: ArrayList<Double> = ArrayList(),
+  var R1Indicator: ArrayList<Double> = ArrayList()
+  var AdditiveEpsilonIndicator: ArrayList<Double> = ArrayList()
+  var R2Indicator: ArrayList<Double> = ArrayList()
+  var GenerationalDistance: ArrayList<Double> = ArrayList()
+  var Hypervolume: ArrayList<Double> = ArrayList()
+  var Spacing: ArrayList<Double> = ArrayList()
+  var R3Indicator: ArrayList<Double> = ArrayList()
+  var InvertedGenerationalDistance: ArrayList<Double> = ArrayList()
+  var NFE: ArrayList<Int> = ArrayList()
+  var ElapsedTime: ArrayList<Double> = ArrayList()
+  var Contribution: ArrayList<Double> = ArrayList()
+
+  constructor(accumulator: Accumulator) : this() {
     val size = accumulator.size("NFE") - 1
     for (i: Int in 0..size) {
 //      ApproximationSet.add(accumulator.get("Approximation Set", i) as Double)

@@ -29,11 +29,13 @@ class QueueItemSolverService(
     do {
       solverId = UUID.randomUUID()
     } while (solvers.contains(solverId))
+
     val progressListener = ProgressListener { event ->
       if (!event.isSeedFinished)
         return@ProgressListener
       try {
-        val qualityIndicators = QualityIndicators(event.executor.instrumenter.lastAccumulator, event.currentSeed - 1)
+        val qualityIndicators = QualityIndicators(event.executor.instrumenter.lastAccumulator)
+        qualityIndicators.currentSeed = event.currentSeed - 1
         queueItem.results.add(qualityIndicators)
         if (isUser) {
           rabbitTemplate.convertAndSend("user.${queueItem.user.username}.${queueItem.rabbitId}", jsonConverter.writeValueAsString(qualityIndicators))

@@ -86,34 +86,27 @@ class GuestQueueController(
   }
 
   @PostMapping
-  fun getQueue(@RequestBody rabbitIds: Array<String>): ArrayList<QueueItem> {
-    val queueItems = arrayListOf<QueueItem>()
-    rabbitIds.forEach { rabbitId ->
-      val queueItem = reactiveRedisTemplate.opsForValue().get(rabbitId).block()
-        if (queueItem != null) {
-          queueItems.add(queueItem)
-        }
-      }
-    return queueItems
-//    return Mono.create {
-//
-//      rabbitIds.map { rabbitId ->
-//        val queueItem = reactiveRedisTemplate.opsForValue().get(rabbitId).block()
-//        if (queueItem != null) {
-//          return queueItem
-//        }
-//      }
+  fun getQueue(@RequestBody rabbitIds: Array<String>): Mono<List<QueueItem>> {
+    return Mono.create {
+      val queueItems = rabbitIds.map { rabbitId ->
+        reactiveRedisTemplate.opsForValue().get(rabbitId).block()
+      }.filterNotNull()
 
-//      Mono.zip(monoQueue) { queue ->
-//        it.success(queue as Array<QueueItem>)
-//      }
-
-//    }
+      it.success(queueItems)
+    }
   }
 
   @GetMapping("cancelQueueItem/{solverId}")
   fun cancelQueueItem(@PathVariable solverId: String) {
     queueItemSolverService.cancelQueueItem(UUID.fromString(solverId))
+  }
+
+  @GetMapping("removeQueueItem/{rabbitId}")
+  fun removeQueueItem(@PathVariable rabbitId: String): Mono<Boolean> {
+    return reactiveRedisTemplate.opsForValue().get(rabbitId).filter{queueItem -> queueItem != null}.flatMap {queueItem ->
+      queueItemSolverService.cancelQueueItem(UUID.fromString(queueItem.solverId))
+      reactiveRedisTemplate.opsForValue().delete(rabbitId)
+    }
   }
 
 }
