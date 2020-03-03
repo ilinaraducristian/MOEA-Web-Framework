@@ -47,11 +47,11 @@ spring:
   redis:
     host: localhost
   # MySQL
-  datasource:
-    initialization-mode: always
-    url: jdbc:mysql://localhost/users
-    username: root
-    password: ${admin_pass}
+#  datasource:
+#    initialization-mode: always
+#    url: jdbc:mysql://localhost/users
+#    username: root
+#    password: ${admin_pass}
 
 admin:
   password: ${admin_pass}

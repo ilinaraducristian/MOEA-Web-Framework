@@ -1,6 +1,5 @@
 package com.ilinaraducristian.moeawebframework.moea
 
-import com.ilinaraducristian.moeawebframework.controllers.TestController
 import com.ilinaraducristian.moeawebframework.entities.QueueItem
 import org.moeaframework.Executor
 import org.moeaframework.Instrumenter
