@@ -9,10 +9,9 @@ import com.ilinaraducristian.moeawebframework.repositories.UserRepository
 import com.ilinaraducristian.moeawebframework.services.QueueItemSolverService
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.web.bind.annotation.*
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.util.*
-import kotlin.collections.ArrayList
+import kotlin.reflect.KClass
 
 
 @RestController
@@ -29,14 +28,13 @@ class GuestQueueController(
   @PostMapping("addQueueItem")
   fun addQueueItem(@RequestBody queueItemRequestDTO: QueueItemRequestDTO): Mono<String> {
     return Mono.create {
-      val foundUser = userRepo.findByUsername("admin")
-      if (foundUser.isEmpty) {
+      val guest = userRepo.findByUsername("guest")
+      if(guest.isEmpty) {
         return@create it.error(InternalErrorException())
       }
-      val admin = foundUser.get()
-      val problem = problemRepo.findByUsers(admin).find { problem -> problem.name == queueItemRequestDTO.problem }
+      val problem = problemRepo.findByUsers(guest.get()).find{ problem -> problem.name == queueItemRequestDTO.problem}
           ?: return@create it.error(ProblemNotFoundException())
-      val algorithm = algorithmRepo.findByUsers(admin).find { algorithm -> algorithm.name == queueItemRequestDTO.algorithm }
+      val algorithm = algorithmRepo.findByUsers(guest.get()).find{ algorithm -> algorithm.name == queueItemRequestDTO.algorithm}
           ?: return@create it.error(AlgorithmNotFoundException())
       val queueItem = QueueItem()
       queueItem.name = queueItemRequestDTO.name

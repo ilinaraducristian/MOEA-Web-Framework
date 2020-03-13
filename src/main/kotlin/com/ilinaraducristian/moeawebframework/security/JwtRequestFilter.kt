@@ -29,11 +29,13 @@ class JwtRequestFilter(
 
     if (username != null && SecurityContextHolder.getContext().authentication == null) {
       val userDetails = userDetailsService.loadUserByUsername(username)
-      if (jwtUtil.validateToken(jwt!!, userDetails!!)) {
-        val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken(
-            userDetails, null, userDetails.authorities)
-        usernamePasswordAuthenticationToken.details = WebAuthenticationDetailsSource().buildDetails(request)
-        SecurityContextHolder.getContext().authentication = usernamePasswordAuthenticationToken
+      if (jwt != null && userDetails != null) {
+        if (jwtUtil.validateToken(jwt, userDetails)) {
+          val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken(
+              userDetails, null, userDetails.authorities)
+          usernamePasswordAuthenticationToken.details = WebAuthenticationDetailsSource().buildDetails(request)
+          SecurityContextHolder.getContext().authentication = usernamePasswordAuthenticationToken
+        }
       }
     }
     filterChain.doFilter(request, response)

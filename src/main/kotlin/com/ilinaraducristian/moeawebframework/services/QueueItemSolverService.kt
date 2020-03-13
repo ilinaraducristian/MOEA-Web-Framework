@@ -38,6 +38,7 @@ class QueueItemSolverService(
         qualityIndicators.currentSeed = event.currentSeed - 1
         queueItem.results.add(qualityIndicators)
         if (isUser) {
+          println("user.${queueItem.user.username}.${queueItem.rabbitId}")
           rabbitTemplate.convertAndSend("user.${queueItem.user.username}.${queueItem.rabbitId}", jsonConverter.writeValueAsString(qualityIndicators))
         } else {
           rabbitTemplate.convertAndSend("guest.${queueItem.rabbitId}", jsonConverter.writeValueAsString(qualityIndicators))
@@ -85,12 +86,14 @@ class QueueItemSolverService(
     return solverId.toString()
   }
 
-  fun cancelQueueItem(solverId: UUID) {
+  fun cancelQueueItem(solverId: UUID): Boolean {
     val found = solvers[solverId]
     if (found != null) {
       found.cancel()
       solvers.remove(solverId)
+      return true
     }
+    return false
   }
 
 }
