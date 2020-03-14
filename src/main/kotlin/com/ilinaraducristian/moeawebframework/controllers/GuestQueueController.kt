@@ -1,6 +1,8 @@
 package com.ilinaraducristian.moeawebframework.controllers
 
 import com.ilinaraducristian.moeawebframework.dto.QueueItemRequestDTO
+import com.ilinaraducristian.moeawebframework.entities.Algorithm
+import com.ilinaraducristian.moeawebframework.entities.Problem
 import com.ilinaraducristian.moeawebframework.entities.QueueItem
 import com.ilinaraducristian.moeawebframework.exceptions.*
 import com.ilinaraducristian.moeawebframework.repositories.AlgorithmRepository
@@ -8,9 +10,11 @@ import com.ilinaraducristian.moeawebframework.repositories.ProblemRepository
 import com.ilinaraducristian.moeawebframework.repositories.UserRepository
 import com.ilinaraducristian.moeawebframework.services.QueueItemSolverService
 import org.springframework.data.redis.core.ReactiveRedisTemplate
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import java.util.*
+import javax.validation.Valid
 import kotlin.reflect.KClass
 
 
@@ -25,23 +29,17 @@ class GuestQueueController(
     private val algorithmRepo: AlgorithmRepository
 ) {
 
-  @PostMapping("addQueueItem")
-  fun addQueueItem(@RequestBody queueItemRequestDTO: QueueItemRequestDTO): Mono<String> {
+  @PostMapping("addQueueItem", produces = [MediaType.APPLICATION_JSON_VALUE])
+  fun addQueueItem(@RequestBody @Valid queueItemRequestDTO: QueueItemRequestDTO): Mono<String> {
     return Mono.create {
-      val guest = userRepo.findByUsername("guest")
-      if(guest.isEmpty) {
-        return@create it.error(InternalErrorException())
-      }
-      val problem = problemRepo.findByUsers(guest.get()).find{ problem -> problem.name == queueItemRequestDTO.problem}
-          ?: return@create it.error(ProblemNotFoundException())
-      val algorithm = algorithmRepo.findByUsers(guest.get()).find{ algorithm -> algorithm.name == queueItemRequestDTO.algorithm}
-          ?: return@create it.error(AlgorithmNotFoundException())
+
       val queueItem = QueueItem()
       queueItem.name = queueItemRequestDTO.name
-      queueItem.problem = problem
-      queueItem.algorithm = algorithm
+      queueItem.problem = Problem(name = queueItemRequestDTO.problem)
+      queueItem.algorithm = Algorithm(name = queueItemRequestDTO.algorithm)
       queueItem.numberOfSeeds = queueItemRequestDTO.numberOfSeeds
       queueItem.numberOfEvaluations = queueItemRequestDTO.numberOfEvaluations
+      println(queueItemRequestDTO.name)
       var queueItemUUID: UUID
       do {
         queueItemUUID = UUID.randomUUID()
@@ -53,7 +51,7 @@ class GuestQueueController(
     }
   }
 
-  @GetMapping("solveQueueItem/{rabbitId}")
+  @GetMapping("solveQueueItem/{rabbitId}", produces = [MediaType.APPLICATION_JSON_VALUE])
   fun solveQueueItem(@PathVariable rabbitId: String): Mono<String> {
     return reactiveRedisTemplate.opsForValue().get(rabbitId)
         .flatMap { queueItem ->

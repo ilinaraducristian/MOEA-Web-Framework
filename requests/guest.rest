@@ -6,11 +6,11 @@ POST {{backend}}/addQueueItem HTTP/1.1
 Content-Type: application/json
 
 {
-  "name": "Problema nouha",
+  "name": "asd",
   "problem": "Belegundu",
   "algorithm": "CMA-ES",
-  "numberOfEvaluations": "10000",
-  "numberOfSeeds": "10"
+  "numberOfEvaluations": "500",
+  "numberOfSeeds": null
 }
 
 @rabbitId = 8a385b52-72ae-4619-b0b8-81cb9af72117
