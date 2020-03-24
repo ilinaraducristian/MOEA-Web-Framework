@@ -53,10 +53,10 @@ class UserController(
   fun register(@Valid @RequestBody userDTO: UserDTO): Mono<Void> {
     return Mono.create<Void> {
       val guest = userRepo.findByUsername("guest")
-      if(guest.isEmpty) return@create it.error(InternalErrorException())
+      if (guest.isEmpty) return@create it.error(InternalErrorException())
       val problems = problemRepo.findByUsers(guest.get())
       val algorithms = algorithmRepo.findByUsers(guest.get())
-      if(problems.isEmpty() || algorithms.isEmpty()) return@create it.error(InternalErrorException())
+      if (problems.isEmpty() || algorithms.isEmpty()) return@create it.error(InternalErrorException())
       val user = User()
       user.username = userDTO.username
       user.password = encoder.encode(userDTO.password)

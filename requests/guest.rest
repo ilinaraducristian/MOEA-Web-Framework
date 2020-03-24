@@ -10,10 +10,10 @@ Content-Type: application/json
   "problem": "Belegundu",
   "algorithm": "CMA-ES",
   "numberOfEvaluations": "500",
-  "numberOfSeeds": null
+  "numberOfSeeds": 10
 }
 
-@rabbitId = 8a385b52-72ae-4619-b0b8-81cb9af72117
+@rabbitId = 0da74076-a88e-49e7-8453-8d95a1aa788d
 
 ### Solve problem
 

@@ -28,8 +28,6 @@ dependencies {
   implementation("org.moeaframework:moeaframework:2.13")
 
   // Spring Framework
-//	implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
-//	implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
 //	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-amqp")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")

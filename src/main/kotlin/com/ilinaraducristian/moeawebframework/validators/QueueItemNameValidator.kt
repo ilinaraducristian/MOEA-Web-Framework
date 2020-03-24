@@ -12,7 +12,7 @@ class QueueItemNameValidator : ConstraintValidator<QueueItemNameConstraint, Stri
                        cxt: ConstraintValidatorContext): Boolean {
     var error = true
     try{
-      Integer.parseInt(value[0].toString())
+      Integer.parseInt(value.trim()[0].toString())
     }catch(e: Exception){
       error = false
     }

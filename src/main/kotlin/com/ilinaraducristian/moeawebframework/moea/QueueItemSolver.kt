@@ -6,11 +6,8 @@ import org.moeaframework.Instrumenter
 import org.moeaframework.analysis.sensitivity.EpsilonHelper
 import org.moeaframework.core.spi.ProblemFactory
 import org.moeaframework.util.progress.ProgressListener
-import org.slf4j.LoggerFactory
 
 class QueueItemSolver(val queueItem: QueueItem, listener: ProgressListener) {
-
-  private val logger = LoggerFactory.getLogger(QueueItemSolver::class.java)
 
   private val instrumenter: Instrumenter = Instrumenter()
       .withProblem(queueItem.problem.name)
@@ -34,7 +31,6 @@ class QueueItemSolver(val queueItem: QueueItem, listener: ProgressListener) {
   private var solved: Boolean = false
 
   init {
-    logger.info("QUEUE ITEM PROBLEM NAME " + queueItem.problem.name)
     var tmpProblem: org.moeaframework.core.Problem? = null
     try {
       tmpProblem = ProblemFactory.getInstance().getProblem(

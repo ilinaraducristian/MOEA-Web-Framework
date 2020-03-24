@@ -30,6 +30,13 @@ class QueueItemSolverService(
       solverId = UUID.randomUUID()
     } while (solvers.contains(solverId))
 
+    var routingKey = ""
+    if (isUser) {
+      routingKey = "user.${queueItem.user.username}.${queueItem.rabbitId}"
+    } else {
+      routingKey = "guest.${queueItem.rabbitId}"
+    }
+
     val progressListener = ProgressListener { event ->
       if (!event.isSeedFinished)
         return@ProgressListener
@@ -37,12 +44,7 @@ class QueueItemSolverService(
         val qualityIndicators = QualityIndicators(event.executor.instrumenter.lastAccumulator)
         qualityIndicators.currentSeed = event.currentSeed - 1
         queueItem.results.add(qualityIndicators)
-        if (isUser) {
-          println("user.${queueItem.user.username}.${queueItem.rabbitId}")
-          rabbitTemplate.convertAndSend("user.${queueItem.user.username}.${queueItem.rabbitId}", jsonConverter.writeValueAsString(qualityIndicators))
-        } else {
-          rabbitTemplate.convertAndSend("guest.${queueItem.rabbitId}", jsonConverter.writeValueAsString(qualityIndicators))
-        }
+        rabbitTemplate.convertAndSend(routingKey, jsonConverter.writeValueAsString(qualityIndicators))
       } catch (e: IllegalArgumentException) {
         // executor was canceled
       }
@@ -58,18 +60,13 @@ class QueueItemSolverService(
           queueItem.status = "done"
           if (isUser) {
             queueItemRepo.save(queueItem)
-            rabbitTemplate.convertAndSend("user.${queueItem.user.username}.${queueItem.rabbitId}", """{"status":"done"}""")
           } else {
             reactiveRedisTemplate.opsForValue().set(queueItem.rabbitId, queueItem).block()
-            rabbitTemplate.convertAndSend("guest.${queueItem.rabbitId}", """{"status":"done"}""")
           }
+          rabbitTemplate.convertAndSend(routingKey, """{"status":"done"}""")
         }
       } catch (e: Exception) {
-        if (isUser) {
-          rabbitTemplate.convertAndSend("user.${queueItem.user.username}.${queueItem.rabbitId}", """{"error":"${e.message}"}""")
-        } else {
-          rabbitTemplate.convertAndSend("guest.${queueItem.rabbitId}", """{"error":"${e.message}"}""")
-        }
+        rabbitTemplate.convertAndSend(routingKey, """{"error":"${e.message}"}""")
       } finally {
         if (!solved) {
           queueItem.results = ArrayList()

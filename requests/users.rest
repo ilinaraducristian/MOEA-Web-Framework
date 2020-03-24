@@ -27,13 +27,13 @@ Content-Type: application/json
 
 POST {{userRoute}}/details HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNTgxNTc0Mjk0LCJleHAiOjE1ODE2MTAyOTR9.G_yQtNiUY_PTuqYiPLri0AGFLtDESW5eNeaNs0ilwGk
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNTg0MjQ5MDIxLCJleHAiOjE1ODQyODUwMjF9.G1TceZAeA3jQstsPFqAUtpjnt9Q2DN6ClNIs8pm7Osg
 
 {
 
 }
 
-@jwt = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNTgxNTg4MTI2LCJleHAiOjE1ODE2MjQxMjZ9.HaS9uZXMFwySIbezTy0gADXjR3wWNM9AxfbQ1nvfUZM
+@jwt = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNTg0MjQ5MDIxLCJleHAiOjE1ODQyODUwMjF9.G1TceZAeA3jQstsPFqAUtpjnt9Q2DN6ClNIs8pm7Osg
 
 ### Add queue item
 

@@ -9,6 +9,7 @@ import com.ilinaraducristian.moeawebframework.repositories.ProblemRepository
 import com.ilinaraducristian.moeawebframework.repositories.QueueItemRepository
 import com.ilinaraducristian.moeawebframework.repositories.UserRepository
 import com.ilinaraducristian.moeawebframework.services.QueueItemSolverService
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import java.security.Principal
@@ -103,6 +104,7 @@ class UserQueueController(
     queueItemSolverService.cancelQueueItem(UUID.fromString(solverId))
   }
 
+  @Transactional
   @GetMapping("removeQueueItem/{rabbitId}")
   fun removeQueueItem(@PathVariable rabbitId: String, principal: Principal) {
     val queueItem = queueItemRepo.findByUserUsernameAndRabbitId(principal.name, rabbitId)
@@ -111,7 +113,8 @@ class UserQueueController(
       if(solverId != null) {
         queueItemSolverService.cancelQueueItem(UUID.fromString(solverId))
       }
-      queueItemRepo.deleteByUserUsernameAndRabbitId(principal.name, rabbitId)
+      val response = queueItemRepo.deleteByUserUsernameAndRabbitId(principal.name, rabbitId)
+      println("delete queueItem")
     }
 
   }

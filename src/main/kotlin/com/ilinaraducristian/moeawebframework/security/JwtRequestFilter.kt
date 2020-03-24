@@ -1,6 +1,7 @@
 package com.ilinaraducristian.moeawebframework.security
 
 import com.ilinaraducristian.moeawebframework.JwtUtil
+import io.jsonwebtoken.MalformedJwtException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
@@ -24,7 +25,10 @@ class JwtRequestFilter(
 
     if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
       jwt = authorizationHeader.replace("Bearer ", "")
-      username = jwtUtil.extractUsername(jwt)
+      try {
+        username = jwtUtil.extractUsername(jwt)
+      }catch(e: MalformedJwtException){
+      }
     }
 
     if (username != null && SecurityContextHolder.getContext().authentication == null) {
@@ -39,7 +43,6 @@ class JwtRequestFilter(
       }
     }
     filterChain.doFilter(request, response)
-
   }
 
 }
