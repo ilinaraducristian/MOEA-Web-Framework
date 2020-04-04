@@ -28,6 +28,7 @@ class SecurityConfig(
         .cors().and()
         .authorizeRequests()
         .antMatchers("/queue/**").permitAll()
+        .antMatchers("/test/**").permitAll()
         .antMatchers("/public").permitAll()
         .antMatchers("/user/login").permitAll()
         .antMatchers("/user/register").permitAll()

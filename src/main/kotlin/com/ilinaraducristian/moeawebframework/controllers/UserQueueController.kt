@@ -4,8 +4,6 @@ import com.ilinaraducristian.moeawebframework.dto.QueueItemRequestDTO
 import com.ilinaraducristian.moeawebframework.dto.QueueItemResponseDTO
 import com.ilinaraducristian.moeawebframework.entities.QueueItem
 import com.ilinaraducristian.moeawebframework.exceptions.*
-import com.ilinaraducristian.moeawebframework.repositories.AlgorithmRepository
-import com.ilinaraducristian.moeawebframework.repositories.ProblemRepository
 import com.ilinaraducristian.moeawebframework.repositories.QueueItemRepository
 import com.ilinaraducristian.moeawebframework.repositories.UserRepository
 import com.ilinaraducristian.moeawebframework.services.QueueItemSolverService
@@ -21,8 +19,6 @@ import javax.validation.Valid
 class UserQueueController(
     private val queueItemSolverService: QueueItemSolverService,
     private val userRepo: UserRepository,
-    private val problemRepo: ProblemRepository,
-    private val algorithmRepo: AlgorithmRepository,
     private val queueItemRepo: QueueItemRepository
 ) {
 
@@ -38,10 +34,9 @@ class UserQueueController(
         queueItemResponseDTO.numberOfSeeds = queueItem.numberOfSeeds
         queueItemResponseDTO.status = queueItem.status
         queueItemResponseDTO.rabbitId = queueItem.rabbitId
-        queueItemResponseDTO.solverId = queueItem.solverId
         queueItemResponseDTO.results = queueItem.results
-        queueItemResponseDTO.problem = queueItem.problem.name
-        queueItemResponseDTO.algorithm = queueItem.algorithm.name
+        queueItemResponseDTO.problem = queueItem.problem
+        queueItemResponseDTO.algorithm = queueItem.algorithm
         return@map queueItemResponseDTO
       }.toList())
     }
@@ -55,14 +50,10 @@ class UserQueueController(
         return@create it.error(UserNotFoundException())
       }
       val user = foundUser.get()
-      val problem = problemRepo.findByUsersAndName(user, queueItemRequestDTO.problem).orElse(null)
-          ?: return@create it.error(ProblemNotFoundException())
-      val algorithm = algorithmRepo.findByUsersAndName(user, queueItemRequestDTO.algorithm).orElse(null)
-          ?: return@create it.error(AlgorithmNotFoundException())
       val queueItem = QueueItem()
       queueItem.name = queueItemRequestDTO.name
-      queueItem.problem = problem
-      queueItem.algorithm = algorithm
+      queueItem.problem = queueItemRequestDTO.problem
+      queueItem.algorithm = queueItemRequestDTO.algorithm
       queueItem.numberOfSeeds = queueItemRequestDTO.numberOfSeeds
       queueItem.numberOfEvaluations = queueItemRequestDTO.numberOfEvaluations
       queueItem.user = user
@@ -93,15 +84,15 @@ class UserQueueController(
         return@create it.error(QueueItemIsSolvingException())
       }
       queueItem.status = "working"
-      queueItem.solverId = queueItemSolverService.solveQueueItem(queueItem)
+      queueItemSolverService.solveQueueItem(queueItem)
       queueItemRepo.save(queueItem)
-      it.success("""{"solverId": "${queueItem.solverId}"}""")
+      it.success("""{"solverId": "${queueItem.rabbitId}"}""")
     }
   }
 
   @GetMapping("cancelQueueItem/{solverId}")
-  fun cancelQueueItem(@PathVariable solverId: String) {
-    queueItemSolverService.cancelQueueItem(UUID.fromString(solverId))
+  fun cancelQueueItem(@PathVariable rabbitId: String) {
+    queueItemSolverService.cancelQueueItem(rabbitId)
   }
 
   @Transactional
@@ -109,10 +100,7 @@ class UserQueueController(
   fun removeQueueItem(@PathVariable rabbitId: String, principal: Principal) {
     val queueItem = queueItemRepo.findByUserUsernameAndRabbitId(principal.name, rabbitId)
     if(queueItem.isPresent) {
-      val solverId = queueItem.get().solverId
-      if(solverId != null) {
-        queueItemSolverService.cancelQueueItem(UUID.fromString(solverId))
-      }
+        queueItemSolverService.cancelQueueItem(rabbitId)
       val response = queueItemRepo.deleteByUserUsernameAndRabbitId(principal.name, rabbitId)
       println("delete queueItem")
     }

@@ -3,12 +3,8 @@ package com.ilinaraducristian.moeawebframework.entities
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.hibernate.annotations.NaturalId
 import java.io.Serializable
-import java.util.*
 import javax.persistence.*
 import javax.validation.constraints.NotBlank
-import kotlin.collections.ArrayList
-import kotlin.collections.MutableList
-import kotlin.collections.MutableSet
 
 @Entity
 @Table
@@ -39,21 +35,9 @@ data class User(
 
     var enabled: Boolean = true,
 
-    @ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
-    @JoinTable(name = "user_problem",
-        joinColumns = [JoinColumn(name = "user_id", referencedColumnName = "id")],
-        inverseJoinColumns = [JoinColumn(name = "problem_id",
-            referencedColumnName = "id")])
-    @JsonIgnore
-    var problems: MutableSet<Problem> = mutableSetOf(),
+    var problems: ArrayList<String> = ArrayList(),
 
-    @ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
-    @JoinTable(name = "user_algorithm",
-        joinColumns = [JoinColumn(name = "user_id", referencedColumnName = "id")],
-        inverseJoinColumns = [JoinColumn(name = "algorithm_id",
-            referencedColumnName = "id")])
-    @JsonIgnore
-    var algorithms: MutableSet<Algorithm> = mutableSetOf(),
+    var algorithms: ArrayList<String> = ArrayList(),
 
     @OneToMany(mappedBy = "user")
     @JsonIgnore
@@ -63,18 +47,4 @@ data class User(
     @JsonIgnore
     var authorities: MutableList<Authority> = mutableListOf()
 
-) : Serializable {
-  fun addProblem(problem: Problem) {
-    this.problems.add(problem)
-    problem.users.add(this)
-  }
-
-  fun addAlgorithm(algorithm: Algorithm) {
-    algorithm.users.add(this)
-    this.algorithms.add(algorithm)
-  }
-
-  override fun hashCode(): Int {
-    return Objects.hash(id)
-  }
-}
+) : Serializable

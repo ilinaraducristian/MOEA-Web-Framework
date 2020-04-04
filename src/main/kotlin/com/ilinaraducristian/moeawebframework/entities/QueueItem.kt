@@ -34,26 +34,17 @@ data class QueueItem(
     @NotBlank
     var rabbitId: String = "",
 
-    @Column(nullable = true)
-    var solverId: String? = null,
-
     @Column(nullable = false, columnDefinition = "MEDIUMBLOB")
     var results: ArrayList<QualityIndicators> = ArrayList(),
 
-    @ManyToOne
-    @JoinColumn(name = "problem_id")
-    var problem: Problem = Problem(),
+    @Column(nullable = false)
+    var problem: String = "",
 
-    @ManyToOne
-    @JoinColumn(name = "algorithm_id")
-    var algorithm: Algorithm = Algorithm(),
+    @Column(nullable = false)
+    var algorithm: String = "",
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonIgnore
-    var user: User = User()
-): Serializable {
-    override fun toString(): String {
-        return "QueueItem(id=$id, name='$name', numberOfEvaluations=$numberOfEvaluations, numberOfSeeds=$numberOfSeeds, status='$status', rabbitId='$rabbitId', solverId=$solverId, results=$results, problem=$problem, algorithm=$algorithm, user=$user)"
-    }
-}
+    var user: User = User(username = "guest")
+) : Serializable

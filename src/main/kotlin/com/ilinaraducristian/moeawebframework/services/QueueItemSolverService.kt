@@ -22,75 +22,72 @@ class QueueItemSolverService(
     private val queueItemRepo: QueueItemRepository
 ) {
 
-  val solvers = HashMap<UUID, QueueItemSolver>()
+  val solvers = HashMap<String, QueueItemSolver>()
 
-  fun solveQueueItem(queueItem: QueueItem, isUser: Boolean = true): String {
-    var solverId: UUID
-    do {
-      solverId = UUID.randomUUID()
-    } while (solvers.contains(solverId))
+  fun solveQueueItem(queueItem: QueueItem) {
 
-    var routingKey = ""
-    if (isUser) {
-      routingKey = "user.${queueItem.user.username}.${queueItem.rabbitId}"
-    } else {
-      routingKey = "guest.${queueItem.rabbitId}"
-    }
+      val routingKey: String
 
-    val progressListener = ProgressListener { event ->
-      if (!event.isSeedFinished)
-        return@ProgressListener
-      try {
-        val qualityIndicators = QualityIndicators(event.executor.instrumenter.lastAccumulator)
-        qualityIndicators.currentSeed = event.currentSeed - 1
-        queueItem.results.add(qualityIndicators)
-        rabbitTemplate.convertAndSend(routingKey, jsonConverter.writeValueAsString(qualityIndicators))
-      } catch (e: IllegalArgumentException) {
-        // executor was canceled
+      if (queueItem.user.username == "guest") {
+        routingKey = "guest.${queueItem.rabbitId}"
+      } else {
+        routingKey = "user.${queueItem.user.username}.${queueItem.rabbitId}"
       }
-    }
-    val queueItemSolver = QueueItemSolver(queueItem, progressListener)
-    solvers[solverId] = queueItemSolver
-    var solved = false
 
+      val progressListener = ProgressListener { event ->
+        if (!event.isSeedFinished)
+          return@ProgressListener
+        try {
+          val qualityIndicators = QualityIndicators(event.executor.instrumenter.lastAccumulator)
+          qualityIndicators.currentSeed = event.currentSeed - 1
+          queueItem.results.add(qualityIndicators)
+          rabbitTemplate.convertAndSend(routingKey, jsonConverter.writeValueAsString(qualityIndicators))
+        } catch (e: IllegalArgumentException) {
+          // executor was canceled
+        }
+      }
+
+      val queueItemSolver = QueueItemSolver(queueItem, progressListener)
     threadPoolTaskExecutor.submit {
+      solvers[queueItem.rabbitId] = queueItemSolver
+      var solved = false
+
       try {
         solved = queueItemSolver.solve()
         if (solved) {
           queueItem.status = "done"
-          if (isUser) {
-            queueItemRepo.save(queueItem)
-          } else {
-            reactiveRedisTemplate.opsForValue().set(queueItem.rabbitId, queueItem).block()
-          }
+          updateQueueItem(queueItem)
           rabbitTemplate.convertAndSend(routingKey, """{"status":"done"}""")
         }
       } catch (e: Exception) {
+        println(e.printStackTrace())
         rabbitTemplate.convertAndSend(routingKey, """{"error":"${e.message}"}""")
-      } finally {
-        if (!solved) {
-          queueItem.results = ArrayList()
-          queueItem.status = "waiting"
-        }
-        if (isUser) {
-          queueItem.solverId = null
-          queueItemRepo.save(queueItem)
-        } else {
-          reactiveRedisTemplate.opsForValue().set(queueItem.rabbitId, queueItem)
-        }
       }
+      if (!solved) {
+        queueItem.results = ArrayList()
+        queueItem.status = "waiting"
+      }
+      updateQueueItem(queueItem)
+
     }
-    return solverId.toString()
   }
 
-  fun cancelQueueItem(solverId: UUID): Boolean {
-    val found = solvers[solverId]
+  fun cancelQueueItem(rabbitId: String): Boolean {
+    val found = solvers[rabbitId]
     if (found != null) {
       found.cancel()
-      solvers.remove(solverId)
+      solvers.remove(rabbitId)
       return true
     }
     return false
+  }
+
+  private fun updateQueueItem(queueItem: QueueItem) {
+    if (queueItem.user.username == "guest") {
+      reactiveRedisTemplate.opsForValue().set(queueItem.rabbitId, queueItem).block()
+    } else {
+      queueItemRepo.save(queueItem)
+    }
   }
 
 }

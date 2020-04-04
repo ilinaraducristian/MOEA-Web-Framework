@@ -1,45 +1,36 @@
 package com.ilinaraducristian.moeawebframework.controllers
 
 import com.ilinaraducristian.moeawebframework.dto.QueueItemRequestDTO
-import com.ilinaraducristian.moeawebframework.entities.Algorithm
-import com.ilinaraducristian.moeawebframework.entities.Problem
 import com.ilinaraducristian.moeawebframework.entities.QueueItem
-import com.ilinaraducristian.moeawebframework.exceptions.ProblemNotFoundException
-import com.ilinaraducristian.moeawebframework.exceptions.QueueItemIsSolvingException
-import com.ilinaraducristian.moeawebframework.exceptions.QueueItemNotFoundException
-import com.ilinaraducristian.moeawebframework.exceptions.QueueItemSolvedException
-import com.ilinaraducristian.moeawebframework.repositories.AlgorithmRepository
-import com.ilinaraducristian.moeawebframework.repositories.ProblemRepository
-import com.ilinaraducristian.moeawebframework.repositories.UserRepository
+import com.ilinaraducristian.moeawebframework.entities.User
+import com.ilinaraducristian.moeawebframework.exceptions.*
 import com.ilinaraducristian.moeawebframework.services.QueueItemSolverService
-import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.ReactiveRedisTemplate
-import org.springframework.data.redis.core.getAndAwait
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
+import java.lang.RuntimeException
 import java.util.*
 import javax.validation.Valid
-
+import kotlin.collections.ArrayList
 
 @RestController
 @RequestMapping("queue")
 @CrossOrigin
 class GuestQueueController(
     private val redisTemplate: ReactiveRedisTemplate<String, QueueItem>,
-    private val queueItemSolverService: QueueItemSolverService,
-    private val userRepo: UserRepository,
-    private val problemRepo: ProblemRepository,
-    private val algorithmRepo: AlgorithmRepository
+    private val queueItemSolverService: QueueItemSolverService
 ) {
 
   @PostMapping("addQueueItem", consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
   fun addQueueItem(@RequestBody @Valid queueItemRequestDTO: QueueItemRequestDTO): Mono<String> {
     return Mono.create {
+      if (!problems.contains(queueItemRequestDTO.problem)) return@create it.error(ProblemNotFoundException())
+      if (!algorithms.contains(queueItemRequestDTO.algorithm)) return@create it.error(AlgorithmNotFoundException())
       val queueItem = QueueItem()
       queueItem.name = queueItemRequestDTO.name
-      queueItem.problem = Problem(name = queueItemRequestDTO.problem)
-      queueItem.algorithm = Algorithm(name = queueItemRequestDTO.algorithm)
+      queueItem.problem = queueItemRequestDTO.problem
+      queueItem.algorithm = queueItemRequestDTO.algorithm
       queueItem.numberOfSeeds = queueItemRequestDTO.numberOfSeeds
       queueItem.numberOfEvaluations = queueItemRequestDTO.numberOfEvaluations
       var queueItemUUID: UUID
@@ -53,57 +44,48 @@ class GuestQueueController(
   }
 
   @GetMapping("solveQueueItem/{rabbitId}", produces = [MediaType.APPLICATION_JSON_VALUE])
-  fun solveQueueItem(@PathVariable rabbitId: String): Mono<String> {
-    return Mono.create<String> {
-      val queueItem = redisTemplate.opsForValue().get(rabbitId).block()
-          ?: return@create it.error(ProblemNotFoundException())
-
-      if (queueItem.status == "done")
-          return@create it.error(QueueItemSolvedException())
-        if (queueItem.status == "working")
-          return@create it.error(QueueItemIsSolvingException())
-        queueItem.status = "working"
-        val solverId = queueItemSolverService.solveQueueItem(queueItem, false)
-        queueItem.solverId = solverId
-        it.success(redisTemplate.opsForValue().set(rabbitId, queueItem).map {
-          """{"solverId": "$solverId"}"""
-        }.block())
-      }
-
+  fun solveQueueItem(@PathVariable rabbitId: String): Mono<Any> {
+    return redisTemplate.opsForValue().get(rabbitId)
+        .switchIfEmpty(Mono.error<QueueItem>(QueueItemNotFoundException()))
+        .flatMap { queueItem ->
+          if (queueItem.status == "done")
+            return@flatMap Mono.error<QueueItemSolvedException>(QueueItemSolvedException())
+          if (queueItem.status == "working")
+            return@flatMap Mono.error<QueueItemIsSolvingException>(QueueItemIsSolvingException())
+          queueItem.status = "working"
+          try {
+            queueItemSolverService.solveQueueItem(queueItem)
+          }catch(e: Exception) {
+            if(e is ProblemNotFoundException || e is AlgorithmNotFoundException) {
+              return@flatMap Mono.error<RuntimeException>(e)
+            }
+          }
+          redisTemplate.opsForValue().set(rabbitId, queueItem).map { Mono.empty<Void>() }
+        }
   }
 
-  @GetMapping("getQueueItem/{rabbitId}")
-  fun getQueueItem(@PathVariable rabbitId: String): Mono<QueueItem> {
-    return redisTemplate.opsForValue().get(rabbitId).flatMap { queueItem ->
-      if (queueItem == null)
-        return@flatMap Mono.error<QueueItem>(QueueItemNotFoundException())
-      return@flatMap Mono.just(queueItem)
-    }
-  }
-
-  @PostMapping
-  fun getQueue(@RequestBody rabbitIds: Array<String>): Mono<List<QueueItem>> {
-    return Mono.create {
-      val queueItems = rabbitIds.map { rabbitId ->
-        redisTemplate.opsForValue().get(rabbitId).block()
-      }.filterNotNull()
-
-      it.success(queueItems)
-    }
-  }
-
-  @GetMapping("cancelQueueItem/{solverId}")
-  fun cancelQueueItem(@PathVariable solverId: String) {
-    queueItemSolverService.cancelQueueItem(UUID.fromString(solverId))
+  @GetMapping("cancelQueueItem/{rabbitId}")
+  fun cancelQueueItem(@PathVariable rabbitId: String): Mono<Any> {
+    return redisTemplate.opsForValue().get(rabbitId)
+        .switchIfEmpty(Mono.error<QueueItem>(QueueItemNotFoundException()))
+        .flatMap { queueItem ->
+          if (queueItem.status != "working")
+            return@flatMap Mono.just(QueueItemIsNotSolvingException())
+          queueItemSolverService.cancelQueueItem(rabbitId)
+          queueItem.results = ArrayList()
+          queueItem.status = "waiting"
+          redisTemplate.opsForValue().set(rabbitId, queueItem).flatMap { Mono.empty<Any>() }
+        }
   }
 
   @GetMapping("removeQueueItem/{rabbitId}")
-  fun removeQueueItem(@PathVariable rabbitId: String): Mono<Boolean> {
-    return redisTemplate.opsForValue().get(rabbitId).filter{ queueItem -> queueItem != null}.flatMap { queueItem ->
-      if(queueItem.solverId != null)
-        queueItemSolverService.cancelQueueItem(UUID.fromString(queueItem.solverId))
-      redisTemplate.opsForValue().delete(rabbitId)
-    }
+  fun removeQueueItem(@PathVariable rabbitId: String): Mono<Void> {
+    return redisTemplate.opsForValue().get(rabbitId)
+        .switchIfEmpty(Mono.error<QueueItem>(QueueItemNotFoundException()))
+        .flatMap {
+          queueItemSolverService.cancelQueueItem(rabbitId)
+          redisTemplate.delete(rabbitId).map { null }
+        }
   }
 
 }

@@ -44,7 +44,7 @@ class ExceptionProcessor : ResponseEntityExceptionHandler() {
     return ExceptionResponse(exception)
   }
 
-  @ExceptionHandler(value = [QueueItemSolvedException::class, QueueItemIsSolvingException::class, ProblemIsNotSolvingException::class])
+  @ExceptionHandler(value = [QueueItemSolvedException::class, QueueItemIsSolvingException::class, QueueItemIsNotSolvingException::class, QueueItemNotFoundException::class])
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   fun handleBadRequestExceptions(exception: RuntimeException): ExceptionResponse {
     return ExceptionResponse(exception)

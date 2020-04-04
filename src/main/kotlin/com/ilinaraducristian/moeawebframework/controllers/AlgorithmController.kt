@@ -1,11 +1,9 @@
 package com.ilinaraducristian.moeawebframework.controllers
 
-import com.ilinaraducristian.moeawebframework.entities.Algorithm
 import com.ilinaraducristian.moeawebframework.exceptions.AlgorithmExistsOnServerException
 import com.ilinaraducristian.moeawebframework.exceptions.AlgorithmNotFoundException
 import com.ilinaraducristian.moeawebframework.exceptions.AlgorithmNotFoundOnServerException
 import com.ilinaraducristian.moeawebframework.exceptions.UserNotFoundException
-import com.ilinaraducristian.moeawebframework.repositories.AlgorithmRepository
 import com.ilinaraducristian.moeawebframework.repositories.UserRepository
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -19,8 +17,7 @@ import javax.servlet.http.HttpServletResponse
 @RestController
 @RequestMapping("algorithm")
 class AlgorithmController(
-    private val userRepo: UserRepository,
-    private val algorithmRepo: AlgorithmRepository
+    private val userRepo: UserRepository
 ) {
 
   @PutMapping("upload")
@@ -35,10 +32,7 @@ class AlgorithmController(
         return@create it.error(UserNotFoundException())
       }
       val user = foundUser.get()
-      val algorithm = Algorithm()
-      algorithm.name = file.originalFilename.toString().replace(Regex("""\.class"""), "")
-      user.algorithms.add(algorithm)
-      algorithm.users.add(user)
+      user.algorithms.add(file.originalFilename.toString().replace(Regex("""\.class"""), ""))
       userRepo.save(user)
       file.transferTo(File("moeaData/${principal.name}/algorithms/${file.originalFilename}.class"))
       it.success()
@@ -53,16 +47,13 @@ class AlgorithmController(
         return@create it.error(UserNotFoundException())
       }
       val user = foundUser.get()
-      val foundAlgorithm = algorithmRepo.findByUsersAndName(user, name)
-      if (foundAlgorithm.isEmpty) {
+      if (!user.algorithms.contains(name)) {
         return@create it.error(AlgorithmNotFoundException())
       }
       val file = File("moeaData/${principal.name}/algorithms/$name.class")
-      if (!file.exists()) {
-        return@create it.error(AlgorithmNotFoundOnServerException())
-      }
-      algorithmRepo.delete(foundAlgorithm.get())
       file.delete()
+      user.algorithms.remove(name)
+      userRepo.save(user)
       it.success()
     }
   }

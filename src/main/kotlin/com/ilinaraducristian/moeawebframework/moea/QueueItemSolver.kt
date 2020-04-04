@@ -1,61 +1,103 @@
 package com.ilinaraducristian.moeawebframework.moea
 
 import com.ilinaraducristian.moeawebframework.entities.QueueItem
+import com.ilinaraducristian.moeawebframework.exceptions.AlgorithmNotFoundException
+import com.ilinaraducristian.moeawebframework.exceptions.ProblemNotFoundException
+import com.ilinaraducristian.moeawebframework.exceptions.ReferenceSetNotFoundException
 import org.moeaframework.Executor
 import org.moeaframework.Instrumenter
 import org.moeaframework.analysis.sensitivity.EpsilonHelper
+import org.moeaframework.core.Algorithm
+import org.moeaframework.core.NondominatedPopulation
+import org.moeaframework.core.Problem
+import org.moeaframework.core.spi.AlgorithmFactory
 import org.moeaframework.core.spi.ProblemFactory
+import org.moeaframework.core.spi.ProviderNotFoundException
+import org.moeaframework.util.TypedProperties
 import org.moeaframework.util.progress.ProgressListener
+import java.io.File
+import java.net.URLClassLoader
+import java.util.*
 
-class QueueItemSolver(val queueItem: QueueItem, listener: ProgressListener) {
 
-  private val instrumenter: Instrumenter = Instrumenter()
-      .withProblem(queueItem.problem.name)
-      .withFrequency(1)
-      .attachHypervolumeCollector()
-      .attachGenerationalDistanceCollector()
-      .attachInvertedGenerationalDistanceCollector()
-      .attachSpacingCollector()
-      .attachAdditiveEpsilonIndicatorCollector()
-      .attachContributionCollector()
-      .attachR1Collector()
-      .attachR2Collector()
-      .attachR3Collector()
-      .attachEpsilonProgressCollector()
-      .attachAdaptiveMultimethodVariationCollector()
-      .attachAdaptiveTimeContinuationCollector()
-      .attachElapsedTimeCollector()
-      .attachApproximationSetCollector()
-      .attachPopulationSizeCollector()
-  private val executor: Executor
-  private var solved: Boolean = false
+class QueueItemSolver(private val queueItem: QueueItem, listener: ProgressListener) {
+
+  private val instrumenter: Instrumenter
+  private var executor: Executor
 
   init {
-    var tmpProblem: org.moeaframework.core.Problem? = null
-    try {
-      tmpProblem = ProblemFactory.getInstance().getProblem(
-          queueItem.problem.name)
-      instrumenter.withEpsilon(EpsilonHelper.getEpsilon(
-          tmpProblem))
-    } finally {
-      tmpProblem?.close()
-    }
+    instrumenter = Instrumenter()
+        .withFrequency(1)
+        .attachHypervolumeCollector()
+        .attachGenerationalDistanceCollector()
+        .attachInvertedGenerationalDistanceCollector()
+        .attachSpacingCollector()
+        .attachAdditiveEpsilonIndicatorCollector()
+        .attachContributionCollector()
+        .attachR1Collector()
+        .attachR2Collector()
+        .attachR3Collector()
+        .attachEpsilonProgressCollector()
+        .attachAdaptiveMultimethodVariationCollector()
+        .attachAdaptiveTimeContinuationCollector()
+        .attachElapsedTimeCollector()
+        .attachApproximationSetCollector()
+        .attachPopulationSizeCollector()
+
     executor = Executor()
-        .withProblem(queueItem.problem.name)
         .withInstrumenter(instrumenter)
-        .withAlgorithm(queueItem.algorithm.name)
         .withMaxEvaluations(queueItem.numberOfEvaluations)
         .withProgressListener(listener)
+
+    if (queueItem.user.username == "guest") {
+      instrumenter.withProblem(queueItem.problem)
+      try {
+        instrumenter.withEpsilon(EpsilonHelper.getEpsilon(ProblemFactory.getInstance().getProblem(queueItem.problem)))
+      } catch (e: Exception) {
+      }
+      executor = executor
+          .withProblem(queueItem.problem)
+          .withAlgorithm(queueItem.algorithm)
+    } else {
+      val problemFile = File("moeaData/${queueItem.user.username}/problems/${queueItem.problem}.class")
+      val referenceSetFile = File("moeaData/${queueItem.user.username}/problems/${queueItem.problem}.class")
+      val algorithmFile = File("moeaData/${queueItem.user.username}/algorithms/${queueItem.algorithm}.class")
+      if (!problemFile.exists()) {
+        throw ProblemNotFoundException()
+      }
+      if(!referenceSetFile.exists()) {
+        throw ReferenceSetNotFoundException()
+      }
+      if (!algorithmFile.exists()) {
+        throw AlgorithmNotFoundException()
+      }
+      val problem = URLClassLoader(arrayOf(problemFile.toURI().toURL())).loadClass(queueItem.problem).getDeclaredConstructor().newInstance() as Problem
+      val algorithm = URLClassLoader(arrayOf(algorithmFile.toURI().toURL())).loadClass(queueItem.algorithm).getDeclaredConstructor()
+      instrumenter
+          .withProblem(problem)
+          .withReferenceSet(referenceSetFile)
+      try {
+        instrumenter.withEpsilon(EpsilonHelper.getEpsilon(problem))
+      } catch (e: Exception) {
+      }
+      executor.withProblem(problem).withAlgorithm("").usingAlgorithmFactory(
+          object : AlgorithmFactory() {
+            override fun getAlgorithm(name: String?, properties: Properties?, problem: Problem?): Algorithm {
+              return algorithm.newInstance(properties, problem) as Algorithm
+            }
+          }
+      )
+    }
   }
 
   fun solve(): Boolean {
-    solved = true
+    println("before runSeeds")
     executor.runSeeds(queueItem.numberOfSeeds)
-    return solved
+    println("after runSeeds")
+    return !executor.isCanceled
   }
 
   fun cancel() {
-    solved = false
     executor.cancel()
   }
 

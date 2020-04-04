@@ -1,7 +1,5 @@
 package com.ilinaraducristian.moeawebframework.dto
 
-import com.ilinaraducristian.moeawebframework.entities.Algorithm
-import com.ilinaraducristian.moeawebframework.entities.Problem
 import com.ilinaraducristian.moeawebframework.entities.QueueItem
 
 class UserDetailsDTO {
@@ -10,7 +8,7 @@ class UserDetailsDTO {
   var firstName: String = ""
   var lastName: String? = null
   var jwt: String = ""
-  var problems: MutableSet<Problem> = mutableSetOf()
-  var algorithms: MutableSet<Algorithm> = mutableSetOf()
+  var problems: ArrayList<String> = ArrayList()
+  var algorithms: ArrayList<String> = ArrayList()
   var queue: MutableList<QueueItem> = ArrayList()
 }
