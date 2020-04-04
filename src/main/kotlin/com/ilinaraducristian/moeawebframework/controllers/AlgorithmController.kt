@@ -27,11 +27,7 @@ class AlgorithmController(
       if (existingFile.exists() && !override) {
         return@create it.error(AlgorithmExistsOnServerException())
       }
-      val foundUser = userRepo.findByUsername(principal.name)
-      if (foundUser.isEmpty) {
-        return@create it.error(UserNotFoundException())
-      }
-      val user = foundUser.get()
+      val user = userRepo.findByUsername(principal.name) ?: return@create it.error(UserNotFoundException())
       user.algorithms.add(file.originalFilename.toString().replace(Regex("""\.class"""), ""))
       userRepo.save(user)
       file.transferTo(File("moeaData/${principal.name}/algorithms/${file.originalFilename}.class"))
@@ -42,11 +38,7 @@ class AlgorithmController(
   @DeleteMapping("{name}")
   fun delete(@PathVariable name: String, principal: Principal): Mono<Void> {
     return Mono.create<Void> {
-      val foundUser = userRepo.findByUsername(principal.name)
-      if (foundUser.isEmpty) {
-        return@create it.error(UserNotFoundException())
-      }
-      val user = foundUser.get()
+      val user = userRepo.findByUsername(principal.name) ?: return@create it.error(UserNotFoundException())
       if (!user.algorithms.contains(name)) {
         return@create it.error(AlgorithmNotFoundException())
       }
@@ -61,11 +53,8 @@ class AlgorithmController(
   @GetMapping("/{name}")
   fun download(request: HttpServletRequest, response: HttpServletResponse, @PathVariable name: String, principal: Principal): Mono<Void> {
     return Mono.create<Void> {
-      val foundUser = userRepo.findByUsername(principal.name)
-      if (foundUser.isEmpty) {
-        return@create it.error(UserNotFoundException())
-      }
-      val file = File("moeaData/${principal.name}/algorithms/$name.class")
+      val user = userRepo.findByUsername(principal.name) ?: return@create it.error(UserNotFoundException())
+      val file = File("moeaData/${user.username}/algorithms/$name.class")
       if (!file.exists())
         return@create it.error(AlgorithmNotFoundOnServerException())
       response.contentType = "application/octet-stream"

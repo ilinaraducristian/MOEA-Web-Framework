@@ -26,28 +26,28 @@ class QueueItemSolverService(
 
   fun solveQueueItem(queueItem: QueueItem) {
 
-      val routingKey: String
+    val routingKey: String
 
-      if (queueItem.user.username == "guest") {
-        routingKey = "guest.${queueItem.rabbitId}"
-      } else {
-        routingKey = "user.${queueItem.user.username}.${queueItem.rabbitId}"
+    if (queueItem.user.username == "guest") {
+      routingKey = "guest.${queueItem.rabbitId}"
+    } else {
+      routingKey = "user.${queueItem.user.username}.${queueItem.rabbitId}"
+    }
+
+    val progressListener = ProgressListener { event ->
+      if (!event.isSeedFinished)
+        return@ProgressListener
+      try {
+        val qualityIndicators = QualityIndicators(event.executor.instrumenter.lastAccumulator)
+        qualityIndicators.currentSeed = event.currentSeed - 1
+        queueItem.results.add(qualityIndicators)
+        rabbitTemplate.convertAndSend(routingKey, jsonConverter.writeValueAsString(qualityIndicators))
+      } catch (e: IllegalArgumentException) {
+        // executor was canceled
       }
+    }
 
-      val progressListener = ProgressListener { event ->
-        if (!event.isSeedFinished)
-          return@ProgressListener
-        try {
-          val qualityIndicators = QualityIndicators(event.executor.instrumenter.lastAccumulator)
-          qualityIndicators.currentSeed = event.currentSeed - 1
-          queueItem.results.add(qualityIndicators)
-          rabbitTemplate.convertAndSend(routingKey, jsonConverter.writeValueAsString(qualityIndicators))
-        } catch (e: IllegalArgumentException) {
-          // executor was canceled
-        }
-      }
-
-      val queueItemSolver = QueueItemSolver(queueItem, progressListener)
+    val queueItemSolver = QueueItemSolver(queueItem, progressListener)
     threadPoolTaskExecutor.submit {
       solvers[queueItem.rabbitId] = queueItemSolver
       var solved = false
@@ -60,7 +60,6 @@ class QueueItemSolverService(
           rabbitTemplate.convertAndSend(routingKey, """{"status":"done"}""")
         }
       } catch (e: Exception) {
-        println(e.printStackTrace())
         rabbitTemplate.convertAndSend(routingKey, """{"error":"${e.message}"}""")
       }
       if (!solved) {

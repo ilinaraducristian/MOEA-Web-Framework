@@ -3,6 +3,7 @@ package com.ilinaraducristian.moeawebframework.controllers
 import com.ilinaraducristian.moeawebframework.dto.QueueItemRequestDTO
 import com.ilinaraducristian.moeawebframework.dto.QueueItemResponseDTO
 import com.ilinaraducristian.moeawebframework.entities.QueueItem
+import com.ilinaraducristian.moeawebframework.entities.User
 import com.ilinaraducristian.moeawebframework.exceptions.*
 import com.ilinaraducristian.moeawebframework.repositories.QueueItemRepository
 import com.ilinaraducristian.moeawebframework.repositories.UserRepository
@@ -22,34 +23,30 @@ class UserQueueController(
     private val queueItemRepo: QueueItemRepository
 ) {
 
-  @GetMapping
-  fun getQueue(principal: Principal): Mono<List<QueueItemResponseDTO>> {
-    return Mono.create<List<QueueItemResponseDTO>> {
-      val user = userRepo.findByUsername(principal.name).orElse(null)
-          ?: return@create it.error(UserNotFoundException())
-      it.success(user.queue.map { queueItem ->
-        val queueItemResponseDTO = QueueItemResponseDTO()
-        queueItemResponseDTO.name = queueItem.name
-        queueItemResponseDTO.numberOfEvaluations = queueItem.numberOfEvaluations
-        queueItemResponseDTO.numberOfSeeds = queueItem.numberOfSeeds
-        queueItemResponseDTO.status = queueItem.status
-        queueItemResponseDTO.rabbitId = queueItem.rabbitId
-        queueItemResponseDTO.results = queueItem.results
-        queueItemResponseDTO.problem = queueItem.problem
-        queueItemResponseDTO.algorithm = queueItem.algorithm
-        return@map queueItemResponseDTO
-      }.toList())
-    }
-  }
+//  @GetMapping
+//  fun getQueue(principal: Principal): Mono<List<QueueItemResponseDTO>> {
+//    return Mono.create<List<QueueItemResponseDTO>> {
+//      val user = userRepo.findByUsername(principal.name)
+//          ?: return@create it.error(UserNotFoundException())
+//      it.success(user.queue.map { queueItem ->
+//        val queueItemResponseDTO = QueueItemResponseDTO()
+//        queueItemResponseDTO.name = queueItem.name
+//        queueItemResponseDTO.numberOfEvaluations = queueItem.numberOfEvaluations
+//        queueItemResponseDTO.numberOfSeeds = queueItem.numberOfSeeds
+//        queueItemResponseDTO.status = queueItem.status
+//        queueItemResponseDTO.rabbitId = queueItem.rabbitId
+//        queueItemResponseDTO.results = queueItem.results
+//        queueItemResponseDTO.problem = queueItem.problem
+//        queueItemResponseDTO.algorithm = queueItem.algorithm
+//        return@map queueItemResponseDTO
+//      }.toList())
+//    }
+//  }
 
   @PostMapping("addQueueItem")
   fun addQueueItem(@Valid @RequestBody queueItemRequestDTO: QueueItemRequestDTO, principal: Principal): Mono<String> {
     return Mono.create<String> {
-      val foundUser = userRepo.findByUsername(principal.name)
-      if (foundUser.isEmpty) {
-        return@create it.error(UserNotFoundException())
-      }
-      val user = foundUser.get()
+      val user = userRepo.findByUsername(principal.name) ?: return@create it.error(UserNotFoundException())
       val queueItem = QueueItem()
       queueItem.name = queueItemRequestDTO.name
       queueItem.problem = queueItemRequestDTO.problem
@@ -68,13 +65,9 @@ class UserQueueController(
   }
 
   @GetMapping("solveQueueItem/{rabbitId}")
-  fun solveProblem(@PathVariable rabbitId: String, principal: Principal): Mono<String> {
+  fun solveQueueItem(@PathVariable rabbitId: String, principal: Principal): Mono<String> {
     return Mono.create<String> {
-      val foundUser = userRepo.findByUsername(principal.name)
-      if (foundUser.isEmpty) {
-        return@create it.error(UserNotFoundException())
-      }
-      val user = foundUser.get()
+      val user = userRepo.findByUsername(principal.name) ?: return@create it.error(UserNotFoundException())
       val queueItem = user.queue.find { queueItem -> queueItem.rabbitId == rabbitId }
           ?: return@create it.error(QueueItemNotFoundException())
       if (queueItem.status == "done") {
@@ -86,25 +79,34 @@ class UserQueueController(
       queueItem.status = "working"
       queueItemSolverService.solveQueueItem(queueItem)
       queueItemRepo.save(queueItem)
-      it.success("""{"solverId": "${queueItem.rabbitId}"}""")
+      it.success()
     }
   }
 
   @GetMapping("cancelQueueItem/{solverId}")
-  fun cancelQueueItem(@PathVariable rabbitId: String) {
-    queueItemSolverService.cancelQueueItem(rabbitId)
+  fun cancelQueueItem(@PathVariable rabbitId: String): Mono<Void> {
+    return Mono.create<Void>{
+      if(queueItemSolverService.cancelQueueItem(rabbitId)) {
+        it.success()
+      }else {
+        it.error(QueueItemNotFoundException())
+      }
+    }
   }
 
   @Transactional
   @GetMapping("removeQueueItem/{rabbitId}")
-  fun removeQueueItem(@PathVariable rabbitId: String, principal: Principal) {
-    val queueItem = queueItemRepo.findByUserUsernameAndRabbitId(principal.name, rabbitId)
-    if(queueItem.isPresent) {
+  fun removeQueueItem(@PathVariable rabbitId: String, principal: Principal): Mono<Void> {
+    return Mono.create<Void>{
+      val queueItem = queueItemRepo.findByUserUsernameAndRabbitId(principal.name, rabbitId)
+      if(queueItem == null) {
+        it.error(QueueItemNotFoundException())
+      }else {
         queueItemSolverService.cancelQueueItem(rabbitId)
-      val response = queueItemRepo.deleteByUserUsernameAndRabbitId(principal.name, rabbitId)
-      println("delete queueItem")
+        queueItemRepo.deleteByUserUsernameAndRabbitId(principal.name, rabbitId)
+        it.success()
+      }
     }
-
   }
 
 }

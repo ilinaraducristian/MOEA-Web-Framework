@@ -1,12 +1,12 @@
 package com.ilinaraducristian.moeawebframework.controllers
 
+import com.ilinaraducristian.moeawebframework.configurations.algorithms
+import com.ilinaraducristian.moeawebframework.configurations.problems
 import com.ilinaraducristian.moeawebframework.dto.QueueItemRequestDTO
 import com.ilinaraducristian.moeawebframework.entities.QueueItem
-import com.ilinaraducristian.moeawebframework.entities.User
 import com.ilinaraducristian.moeawebframework.exceptions.*
 import com.ilinaraducristian.moeawebframework.services.QueueItemSolverService
 import org.springframework.data.redis.core.ReactiveRedisTemplate
-import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import java.lang.RuntimeException
@@ -22,7 +22,7 @@ class GuestQueueController(
     private val queueItemSolverService: QueueItemSolverService
 ) {
 
-  @PostMapping("addQueueItem", consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+  @PostMapping("addQueueItem")
   fun addQueueItem(@RequestBody @Valid queueItemRequestDTO: QueueItemRequestDTO): Mono<String> {
     return Mono.create {
       if (!problems.contains(queueItemRequestDTO.problem)) return@create it.error(ProblemNotFoundException())
@@ -43,7 +43,7 @@ class GuestQueueController(
     }
   }
 
-  @GetMapping("solveQueueItem/{rabbitId}", produces = [MediaType.APPLICATION_JSON_VALUE])
+  @GetMapping("solveQueueItem/{rabbitId}")
   fun solveQueueItem(@PathVariable rabbitId: String): Mono<Any> {
     return redisTemplate.opsForValue().get(rabbitId)
         .switchIfEmpty(Mono.error<QueueItem>(QueueItemNotFoundException()))

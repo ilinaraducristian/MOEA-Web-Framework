@@ -91,9 +91,7 @@ class QueueItemSolver(private val queueItem: QueueItem, listener: ProgressListen
   }
 
   fun solve(): Boolean {
-    println("before runSeeds")
     executor.runSeeds(queueItem.numberOfSeeds)
-    println("after runSeeds")
     return !executor.isCanceled
   }
 

@@ -10,7 +10,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
-
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
@@ -29,14 +28,8 @@ class SecurityConfig(
         .authorizeRequests()
         .antMatchers("/queue/**").permitAll()
         .antMatchers("/test/**").permitAll()
-        .antMatchers("/public").permitAll()
         .antMatchers("/user/login").permitAll()
         .antMatchers("/user/register").permitAll()
-        .antMatchers("/public/getProblems").permitAll()
-        .antMatchers("/public/getAlgorithms").permitAll()
-        .antMatchers("/public/downloadProblem").permitAll()
-        .antMatchers("/public/downloadAlgorithm").permitAll()
-        .antMatchers("/public/getProblemsAndAlgorithms").permitAll()
         .anyRequest().authenticated()
         .and()
         .sessionManagement()

@@ -46,5 +46,5 @@ data class QueueItem(
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonIgnore
-    var user: User = User(username = "guest")
+    var user: User = User()
 ) : Serializable

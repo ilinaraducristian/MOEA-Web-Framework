@@ -17,7 +17,7 @@ data class User(
     @Column(nullable = false, unique = true)
     @NotBlank
     @NaturalId
-    var username: String = "",
+    var username: String = "guest",
 
     @Column(nullable = false)
     @NotBlank

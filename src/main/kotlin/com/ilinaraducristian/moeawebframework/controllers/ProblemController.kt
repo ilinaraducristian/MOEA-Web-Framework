@@ -27,11 +27,7 @@ class ProblemController(
       val existingReferenceFile = File("moeaData/${principal.name}/problems/references/${referenceFile.originalFilename}")
       if (existingFile.exists() && !override && existingReferenceFile.exists() && !override)
         return@create it.error(ProblemExistsOnServerException())
-      val foundUser = userRepo.findByUsername(principal.name)
-      if (foundUser.isEmpty) {
-        it.error(UserNotFoundException())
-      }
-      val user = foundUser.get()
+      val user = userRepo.findByUsername(principal.name) ?: return@create it.error(UserNotFoundException())
       user.problems.add(problemFile.originalFilename.toString().replace(""".class""", ""))
       userRepo.save(user)
       problemFile.transferTo(File("moeaData/${principal.name}/problems/${problemFile.originalFilename}"))
@@ -43,11 +39,7 @@ class ProblemController(
   @DeleteMapping("{name}")
   fun delete(@PathVariable name: String, principal: Principal): Mono<Void> {
     return Mono.create<Void> {
-      val foundUser = userRepo.findByUsername(principal.name)
-      if (!foundUser.isPresent) {
-        return@create it.error(UserNotFoundException())
-      }
-      val user = foundUser.get()
+      val user = userRepo.findByUsername(principal.name) ?: return@create it.error(UserNotFoundException())
       if (!user.problems.contains(name)) {
         return@create it.error(ProblemNotFoundException())
       }
