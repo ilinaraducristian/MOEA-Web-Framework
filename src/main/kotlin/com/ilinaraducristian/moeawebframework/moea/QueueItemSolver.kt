@@ -1,5 +1,6 @@
 package com.ilinaraducristian.moeawebframework.moea
 
+import com.ilinaraducristian.moeawebframework.configurations.problems
 import com.ilinaraducristian.moeawebframework.entities.QueueItem
 import com.ilinaraducristian.moeawebframework.exceptions.AlgorithmNotFoundException
 import com.ilinaraducristian.moeawebframework.exceptions.ProblemNotFoundException
@@ -8,12 +9,9 @@ import org.moeaframework.Executor
 import org.moeaframework.Instrumenter
 import org.moeaframework.analysis.sensitivity.EpsilonHelper
 import org.moeaframework.core.Algorithm
-import org.moeaframework.core.NondominatedPopulation
 import org.moeaframework.core.Problem
 import org.moeaframework.core.spi.AlgorithmFactory
 import org.moeaframework.core.spi.ProblemFactory
-import org.moeaframework.core.spi.ProviderNotFoundException
-import org.moeaframework.util.TypedProperties
 import org.moeaframework.util.progress.ProgressListener
 import java.io.File
 import java.net.URLClassLoader
@@ -59,34 +57,45 @@ class QueueItemSolver(private val queueItem: QueueItem, listener: ProgressListen
           .withProblem(queueItem.problem)
           .withAlgorithm(queueItem.algorithm)
     } else {
-      val problemFile = File("moeaData/${queueItem.user.username}/problems/${queueItem.problem}.class")
-      val referenceSetFile = File("moeaData/${queueItem.user.username}/problems/${queueItem.problem}.class")
-      val algorithmFile = File("moeaData/${queueItem.user.username}/algorithms/${queueItem.algorithm}.class")
-      if (!problemFile.exists()) {
-        throw ProblemNotFoundException()
-      }
-      if(!referenceSetFile.exists()) {
-        throw ReferenceSetNotFoundException()
-      }
-      if (!algorithmFile.exists()) {
-        throw AlgorithmNotFoundException()
-      }
-      val problem = URLClassLoader(arrayOf(problemFile.toURI().toURL())).loadClass(queueItem.problem).getDeclaredConstructor().newInstance() as Problem
-      val algorithm = URLClassLoader(arrayOf(algorithmFile.toURI().toURL())).loadClass(queueItem.algorithm).getDeclaredConstructor()
-      instrumenter
-          .withProblem(problem)
-          .withReferenceSet(referenceSetFile)
-      try {
-        instrumenter.withEpsilon(EpsilonHelper.getEpsilon(problem))
-      } catch (e: Exception) {
-      }
-      executor.withProblem(problem).withAlgorithm("").usingAlgorithmFactory(
-          object : AlgorithmFactory() {
-            override fun getAlgorithm(name: String?, properties: Properties?, problem: Problem?): Algorithm {
-              return algorithm.newInstance(properties, problem) as Algorithm
+      if (problems.contains(queueItem.problem)) {
+        instrumenter.withProblem(queueItem.problem)
+        try {
+          instrumenter.withEpsilon(EpsilonHelper.getEpsilon(ProblemFactory.getInstance().getProblem(queueItem.problem)))
+        } catch (e: Exception) {
+        }
+        executor = executor
+            .withProblem(queueItem.problem)
+            .withAlgorithm(queueItem.algorithm)
+      } else {
+        val problemFile = File("moeaData/${queueItem.user.username}/problems/${queueItem.problem}.class")
+        val referenceSetFile = File("moeaData/${queueItem.user.username}/problems/${queueItem.problem}.class")
+        val algorithmFile = File("moeaData/${queueItem.user.username}/algorithms/${queueItem.algorithm}.class")
+        if (!problemFile.exists()) {
+          throw ProblemNotFoundException()
+        }
+        if (!referenceSetFile.exists()) {
+          throw ReferenceSetNotFoundException()
+        }
+        if (!algorithmFile.exists()) {
+          throw AlgorithmNotFoundException()
+        }
+        val problem = URLClassLoader(arrayOf(problemFile.toURI().toURL())).loadClass(queueItem.problem).getDeclaredConstructor().newInstance() as Problem
+        val algorithm = URLClassLoader(arrayOf(algorithmFile.toURI().toURL())).loadClass(queueItem.algorithm).getDeclaredConstructor()
+        instrumenter
+            .withProblem(problem)
+            .withReferenceSet(referenceSetFile)
+        try {
+          instrumenter.withEpsilon(EpsilonHelper.getEpsilon(problem))
+        } catch (e: Exception) {
+        }
+        executor.withProblem(problem).withAlgorithm("").usingAlgorithmFactory(
+            object : AlgorithmFactory() {
+              override fun getAlgorithm(name: String?, properties: Properties?, problem: Problem?): Algorithm {
+                return algorithm.newInstance(properties, problem) as Algorithm
+              }
             }
-          }
-      )
+        )
+      }
     }
   }
 

@@ -47,6 +47,12 @@ class UserQueueController(
   fun addQueueItem(@Valid @RequestBody queueItemRequestDTO: QueueItemRequestDTO, principal: Principal): Mono<String> {
     return Mono.create<String> {
       val user = userRepo.findByUsername(principal.name) ?: return@create it.error(UserNotFoundException())
+      if(!user.problems.contains(queueItemRequestDTO.problem)) {
+        return@create it.error(ProblemNotFoundException())
+      }
+      if(!user.algorithms.contains(queueItemRequestDTO.algorithm)) {
+        return@create it.error(AlgorithmNotFoundException())
+      }
       val queueItem = QueueItem()
       queueItem.name = queueItemRequestDTO.name
       queueItem.problem = queueItemRequestDTO.problem
@@ -83,7 +89,7 @@ class UserQueueController(
     }
   }
 
-  @GetMapping("cancelQueueItem/{solverId}")
+  @GetMapping("cancelQueueItem/{rabbitId}")
   fun cancelQueueItem(@PathVariable rabbitId: String): Mono<Void> {
     return Mono.create<Void>{
       if(queueItemSolverService.cancelQueueItem(rabbitId)) {

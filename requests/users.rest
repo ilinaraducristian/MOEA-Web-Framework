@@ -8,7 +8,7 @@ Content-Type: application/json
 
 {
   "username": "user",
-  "password": "password",
+  "password": "user",
   "email": "user@email.com",
   "firstName": "User"
 }
@@ -20,20 +20,10 @@ Content-Type: application/json
 
 {
   "username": "user",
-  "password": "password"
+  "password": "user"
 }
 
-### User details
-
-POST {{userRoute}}/details HTTP/1.1
-Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNTg0MjQ5MDIxLCJleHAiOjE1ODQyODUwMjF9.G1TceZAeA3jQstsPFqAUtpjnt9Q2DN6ClNIs8pm7Osg
-
-{
-
-}
-
-@jwt = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNTg0MjQ5MDIxLCJleHAiOjE1ODQyODUwMjF9.G1TceZAeA3jQstsPFqAUtpjnt9Q2DN6ClNIs8pm7Osg
+@jwt = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNTg2MDgwNTgwLCJleHAiOjE1ODYxMTY1ODB9.IUprBrhQV2Jd8o0seqfNUE1DcF33ZmYm8O2Z7y-bhjk
 
 ### Add queue item
 
@@ -42,14 +32,14 @@ Content-Type: application/json
 Authorization: Bearer {{jwt}}
 
 {
-  "name": "Problema noua",
+  "name": "Problemad noua",
   "problem": "Belegundu",
   "algorithm": "CMA-ES",
   "numberOfEvaluations": "10000",
   "numberOfSeeds": "10"
 }
 
-@rabbitId = 80e00c64-6186-4188-b7d0-41fcbaea7ea9
+@rabbitId = 355fd51a-f901-4056-96bf-c98721f006c2
 
 ### Solve queue item
 
@@ -60,3 +50,9 @@ Authorization: Bearer {{jwt}}
 {
 
 }
+
+### Cancel problem
+
+GET {{backend}}/queue/cancelQueueItem/{{rabbitId}} HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{jwt}}

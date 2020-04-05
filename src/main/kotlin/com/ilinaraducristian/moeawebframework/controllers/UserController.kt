@@ -57,6 +57,7 @@ class UserController(
         File("moeaData/${user.username}/algorithms/").mkdirs()
         it.success()
       } catch (e: Exception) {
+        println(e.printStackTrace())
         it.error(CannotCreateUserException())
       }
     }

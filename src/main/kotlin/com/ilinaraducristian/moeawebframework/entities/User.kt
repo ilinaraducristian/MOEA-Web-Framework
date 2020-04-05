@@ -35,8 +35,10 @@ data class User(
 
     var enabled: Boolean = true,
 
+    @Column(nullable = false, columnDefinition = "VARBINARY(1024)")
     var problems: ArrayList<String> = ArrayList(),
 
+    @Column(nullable = false, columnDefinition = "VARBINARY(1024)")
     var algorithms: ArrayList<String> = ArrayList(),
 
     @OneToMany(mappedBy = "user")

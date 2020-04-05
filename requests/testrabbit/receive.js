@@ -5,19 +5,19 @@ var amqp = require("amqplib/callback_api");
 amqp.connect(
   "amqp://localhost",
   { credentials: amqp.credentials.plain("root", "root") },
-  function(error0, connection) {
+  function (error0, connection) {
     if (error0) {
       throw error0;
     }
-    connection.createChannel(function(error1, channel) {
+    connection.createChannel(function (error1, channel) {
       if (error1) {
         throw error1;
       }
 
-      var queue = "guest.69";
+      var queue = "user.user.32888258-17fb-450f-a2a7-aed945b907ae";
 
       channel.assertQueue(queue, {
-        durable: false
+        durable: false,
       });
 
       console.log(
@@ -27,11 +27,11 @@ amqp.connect(
 
       channel.consume(
         queue,
-        function(msg) {
+        function (msg) {
           console.log(" [x] Received %s", msg.content.toString());
         },
         {
-          noAck: true
+          noAck: true,
         }
       );
     });
