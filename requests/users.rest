@@ -23,7 +23,7 @@ Content-Type: application/json
   "password": "user"
 }
 
-@jwt = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNTg2MDgwNTgwLCJleHAiOjE1ODYxMTY1ODB9.IUprBrhQV2Jd8o0seqfNUE1DcF33ZmYm8O2Z7y-bhjk
+@jwt = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNTg2MDk3MDUyLCJleHAiOjE1ODYxMzMwNTJ9.9-AV3PZhDO4XpXqztS6xCF4AU-4-NyJnoAiOynhA24k
 
 ### Add queue item
 
@@ -39,7 +39,7 @@ Authorization: Bearer {{jwt}}
   "numberOfSeeds": "10"
 }
 
-@rabbitId = 355fd51a-f901-4056-96bf-c98721f006c2
+@rabbitId = 447b7a10-6fec-499e-91e8-4a10948d7895
 
 ### Solve queue item
 
@@ -53,6 +53,6 @@ Authorization: Bearer {{jwt}}
 
 ### Cancel problem
 
-GET {{backend}}/queue/cancelQueueItem/{{rabbitId}} HTTP/1.1
+GET {{userRoute}}/queue/cancelQueueItem/{{rabbitId}} HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{jwt}}

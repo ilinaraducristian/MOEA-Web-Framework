@@ -14,7 +14,7 @@ amqp.connect(
         throw error1;
       }
 
-      var queue = "user.user.32888258-17fb-450f-a2a7-aed945b907ae";
+      var queue = "user.plsasdl";
 
       channel.assertQueue(queue, {
         durable: false,

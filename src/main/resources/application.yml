@@ -51,10 +51,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLInnoDBDialect
   datasource:
-    initialization-mode: always
-    url: jdbc:${mysql_url}
-    username: ${mysql_username}
-    password: ${mysql_password}
+    url: jdbc:h2:file:/db
 
 guest:
   password: ${guest_password}

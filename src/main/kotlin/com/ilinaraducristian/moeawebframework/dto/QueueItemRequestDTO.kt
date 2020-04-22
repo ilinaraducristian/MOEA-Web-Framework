@@ -13,9 +13,7 @@ class QueueItemRequestDTO {
   @NotBlank
   @QueueItemNameConstraint
   var name: String = ""
-  @DefaultProblemsConstraint
   var problem: String = ""
-  @DefaultAlgorithmsConstraint
   var algorithm: String = ""
   @Min(500)
   var numberOfEvaluations: Int = 10000

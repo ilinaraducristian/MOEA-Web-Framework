@@ -21,7 +21,7 @@ class AlgorithmController(
 ) {
 
   @PutMapping("upload")
-  fun upload(@RequestParam("file") file: MultipartFile, @RequestParam("override") override: Boolean, @RequestParam("name") name: String, principal: Principal): Mono<Void> {
+  fun upload(@RequestParam("algorithm") file: MultipartFile, @RequestParam("override") override: Boolean, @RequestParam("name") name: String, principal: Principal): Mono<Void> {
     return Mono.create<Void> {
       val existingFile = File("moeaData/${principal.name}/algorithms/${file.originalFilename}.class")
       if (existingFile.exists() && !override) {
@@ -30,7 +30,7 @@ class AlgorithmController(
       val user = userRepo.findByUsername(principal.name) ?: return@create it.error(UserNotFoundException())
       user.algorithms.add(file.originalFilename.toString().replace(Regex("""\.class"""), ""))
       userRepo.save(user)
-      file.transferTo(File("moeaData/${principal.name}/algorithms/${file.originalFilename}.class"))
+      file.transferTo(File("moeaData/${principal.name}/algorithms/${file.originalFilename}"))
       it.success()
     }
   }
