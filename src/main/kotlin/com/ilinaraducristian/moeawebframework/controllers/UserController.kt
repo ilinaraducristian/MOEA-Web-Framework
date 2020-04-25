@@ -10,13 +10,13 @@ import com.ilinaraducristian.moeawebframework.entities.Authority
 import com.ilinaraducristian.moeawebframework.entities.User
 import com.ilinaraducristian.moeawebframework.exceptions.BadCredentialsException
 import com.ilinaraducristian.moeawebframework.exceptions.CannotCreateUserException
-import com.ilinaraducristian.moeawebframework.exceptions.InternalErrorException
 import com.ilinaraducristian.moeawebframework.exceptions.UserNotFoundException
 import com.ilinaraducristian.moeawebframework.repositories.AuthorityRepository
 import com.ilinaraducristian.moeawebframework.repositories.UserRepository
 import com.ilinaraducristian.moeawebframework.security.AuthenticationRequest
 import com.ilinaraducristian.moeawebframework.security.AuthenticationResponse
 import com.ilinaraducristian.moeawebframework.security.SecurityUserDetailsService
+import kotlinx.coroutines.reactor.mono
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
@@ -41,8 +41,8 @@ class UserController(
 ) {
 
   @PostMapping("register")
-  fun register(@Valid @RequestBody userDTO: UserDTO): Mono<Void> {
-    return Mono.create<Void> {
+  fun register(@Valid @RequestBody userDTO: UserDTO): Mono<Unit> {
+    return mono {
       val user = User()
       user.username = userDTO.username
       user.password = encoder.encode(userDTO.password)
@@ -55,26 +55,25 @@ class UserController(
         authorityRepo.save(Authority(user = userRepo.save(user)))
         File("moeaData/${user.username}/problems/references").mkdirs()
         File("moeaData/${user.username}/algorithms/").mkdirs()
-        it.success()
+        return@mono
       } catch (e: Exception) {
-        println(e.printStackTrace())
-        it.error(CannotCreateUserException())
+        throw CannotCreateUserException()
       }
     }
   }
 
   @PostMapping("login")
   fun login(@Valid @RequestBody authenticationRequest: AuthenticationRequest): Mono<AuthenticationResponse> {
-    return Mono.create<AuthenticationResponse> {
+    return mono {
       try {
         authenticationManager.authenticate(UsernamePasswordAuthenticationToken(authenticationRequest.username, authenticationRequest.password))
       } catch (e: Exception) {
-        return@create it.error(BadCredentialsException())
+        throw BadCredentialsException()
       }
       val userDetails = userDetailsService.loadUserByUsername(authenticationRequest.username)
-          ?: return@create it.error(UserNotFoundException())
-      val user = userRepo.findByUsername(userDetails.username) ?: return@create it.error(UserNotFoundException())
-      var authenticationResponse = AuthenticationResponse()
+          ?: throw UserNotFoundException()
+      val user = userRepo.findByUsername(userDetails.username) ?: throw UserNotFoundException()
+      val authenticationResponse = AuthenticationResponse()
       authenticationResponse.username = user.username
       authenticationResponse.email = user.email
       authenticationResponse.firstName = user.firstName
@@ -94,7 +93,7 @@ class UserController(
         return@map queueItemResponseDTO
       }.toList()
       authenticationResponse.jwt = jwtUtil.generateToken(userDetails)
-      it.success(authenticationResponse)
+      authenticationResponse
     }
   }
 
