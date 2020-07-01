@@ -48,8 +48,9 @@ class QueueItemSolverService(
     }
 
     val queueItemSolver = QueueItemSolver(queueItem, progressListener)
+    solvers[queueItem.rabbitId] = queueItemSolver
+    println(solvers[queueItem.rabbitId])
     threadPoolTaskExecutor.submit {
-      solvers[queueItem.rabbitId] = queueItemSolver
       var solved = false
 
       try {

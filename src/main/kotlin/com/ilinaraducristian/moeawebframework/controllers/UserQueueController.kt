@@ -2,6 +2,7 @@ package com.ilinaraducristian.moeawebframework.controllers
 
 import com.ilinaraducristian.moeawebframework.dto.QueueItemRequestDTO
 import com.ilinaraducristian.moeawebframework.entities.QueueItem
+import com.ilinaraducristian.moeawebframework.entities.User
 import com.ilinaraducristian.moeawebframework.exceptions.*
 import com.ilinaraducristian.moeawebframework.repositories.QueueItemRepository
 import com.ilinaraducristian.moeawebframework.repositories.UserRepository
@@ -86,16 +87,23 @@ class UserQueueController(
     }
   }
 
-  @Transactional
+
   @GetMapping("removeQueueItem/{rabbitId}")
   fun removeQueueItem(@PathVariable rabbitId: String, principal: Principal): Mono<Void> {
     return Mono.create<Void> {
+      var user = userRepo.findByUsername(principal.name)
       val queueItem = queueItemRepo.findByUserUsernameAndRabbitId(principal.name, rabbitId)
+      if(user != null) {
+        user.queue.remove(user.queue.find { qi ->
+          qi.rabbitId == rabbitId
+        })
+        userRepo.save(user)
+      }
       if (queueItem == null) {
         it.error(QueueItemNotFoundException())
       } else {
         queueItemSolverService.cancelQueueItem(rabbitId)
-        queueItemRepo.deleteByUserUsernameAndRabbitId(principal.name, rabbitId)
+
         it.success()
       }
     }

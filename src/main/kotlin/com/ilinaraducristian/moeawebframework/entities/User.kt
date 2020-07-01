@@ -1,6 +1,7 @@
 package com.ilinaraducristian.moeawebframework.entities
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import org.hibernate.annotations.Cascade
 import org.hibernate.annotations.NaturalId
 import java.io.Serializable
 import javax.persistence.*
@@ -41,8 +42,13 @@ data class User(
     @Column(nullable = false, columnDefinition = "VARBINARY(1024)")
     var algorithms: ArrayList<String> = ArrayList(),
 
-    @OneToMany(mappedBy = "user")
     @JsonIgnore
+    @OneToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH], mappedBy = "user")
+    @Cascade(org.hibernate.annotations.CascadeType.SAVE_UPDATE,
+        org.hibernate.annotations.CascadeType.DELETE,
+        org.hibernate.annotations.CascadeType.MERGE,
+        org.hibernate.annotations.CascadeType.PERSIST,
+        org.hibernate.annotations.CascadeType.DELETE_ORPHAN)
     var queue: MutableList<QueueItem> = mutableListOf(),
 
     @OneToMany(mappedBy = "user")

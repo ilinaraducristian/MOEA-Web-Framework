@@ -23,16 +23,10 @@ class GuestQueueController(
 ) {
 
   @PostMapping("addQueueItem")
-  fun addQueueItem(@RequestBody @Valid queueItemRequestDTO: QueueItemRequestDTO): Mono<String> {
+  fun addQueueItem(@RequestBody @Valid queueItem: QueueItem): Mono<String> {
     return Mono.create {
-      if (!problems.contains(queueItemRequestDTO.problem)) return@create it.error(ProblemNotFoundException())
-      if (!algorithms.contains(queueItemRequestDTO.algorithm)) return@create it.error(AlgorithmNotFoundException())
-      val queueItem = QueueItem()
-      queueItem.name = queueItemRequestDTO.name
-      queueItem.problem = queueItemRequestDTO.problem
-      queueItem.algorithm = queueItemRequestDTO.algorithm
-      queueItem.numberOfSeeds = queueItemRequestDTO.numberOfSeeds
-      queueItem.numberOfEvaluations = queueItemRequestDTO.numberOfEvaluations
+      if (!problems.contains(queueItem.problem)) return@create it.error(ProblemNotFoundException())
+      if (!algorithms.contains(queueItem.algorithm)) return@create it.error(AlgorithmNotFoundException())
       var queueItemUUID: UUID
       do {
         queueItemUUID = UUID.randomUUID()
@@ -79,12 +73,15 @@ class GuestQueueController(
   }
 
   @GetMapping("removeQueueItem/{rabbitId}")
-  fun removeQueueItem(@PathVariable rabbitId: String): Mono<Void> {
+  fun removeQueueItem(@PathVariable rabbitId: String): Mono<Any> {
     return redisTemplate.opsForValue().get(rabbitId)
         .switchIfEmpty(Mono.error<QueueItem>(QueueItemNotFoundException()))
         .flatMap {
           queueItemSolverService.cancelQueueItem(rabbitId)
-          redisTemplate.delete(rabbitId).map { null }
+          redisTemplate.delete(rabbitId).then(redisTemplate.opsForValue().get(rabbitId)).subscribe {
+            println(it)
+          }
+          Mono.empty<Any>()
         }
   }
 
