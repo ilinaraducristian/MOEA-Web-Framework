@@ -4,7 +4,7 @@ import com.ilinaraducristian.moeawebframework.entities.User
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 
-class UserPrincipal(private val user: User, private val grantedAuthorities: MutableCollection<GrantedAuthority>) : UserDetails {
+class UserPrincipal(val user: User, private val grantedAuthorities: MutableCollection<GrantedAuthority>) : UserDetails {
 
   override fun getAuthorities(): MutableCollection<GrantedAuthority> {
     return grantedAuthorities
@@ -33,4 +33,5 @@ class UserPrincipal(private val user: User, private val grantedAuthorities: Muta
   override fun isAccountNonLocked(): Boolean {
     return user.enabled
   }
+
 }

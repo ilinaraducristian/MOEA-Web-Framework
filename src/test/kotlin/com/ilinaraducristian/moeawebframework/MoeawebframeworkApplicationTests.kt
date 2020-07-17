@@ -1,8 +1,6 @@
 package com.ilinaraducristian.moeawebframework
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.ilinaraducristian.moeawebframework.dto.UserDTO
-import com.ilinaraducristian.moeawebframework.security.AuthenticationRequest
+import com.ilinaraducristian.moeawebframework.dto.AuthenticationRequestDTO
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
@@ -12,7 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.http.HttpStatus
 import javax.annotation.Resource
-import kotlin.reflect.jvm.internal.impl.load.kotlin.JvmType
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -35,20 +32,8 @@ class MoeawebframeworkApplicationTests {
 
   @Test
   @Order(2)
-  fun createUser() {
-    val userDTO = UserDTO()
-    userDTO.email = "user@email.com"
-    userDTO.firstName = "User"
-    userDTO.password = "user"
-    userDTO.username = "user"
-    val response = testRestTemplate.postForEntity<Void>(LOCALHOST + "user/register", userDTO, Void::class.java)
-    assert(response.statusCode == HttpStatus.OK)
-  }
-
-  @Test
-  @Order(3)
   fun loginUser() {
-    val authenticationRequest = AuthenticationRequest()
+    val authenticationRequest = AuthenticationRequestDTO()
     authenticationRequest.username = "user"
     authenticationRequest.password = "user"
     val response = testRestTemplate.postForEntity<LoginResponse>(LOCALHOST + "user/login", authenticationRequest, LoginResponse::class.java)

@@ -17,31 +17,39 @@ class JwtRequestFilter(
     private val jwtUtil: JwtUtil
 ) : OncePerRequestFilter() {
 
-  override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
+  fun jwtFilter(request: HttpServletRequest) {
+
+    if (SecurityContextHolder.getContext().authentication != null) {
+      return
+    }
+
     val authorizationHeader: String? = request.getHeader("Authorization")
 
-    var username: String? = null
-    var jwt: String? = null
+    if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+      return
+    }
+    val jwt = authorizationHeader.replace("Bearer ", "")
+    val username: String
 
-    if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-      jwt = authorizationHeader.replace("Bearer ", "")
-      try {
-        username = jwtUtil.extractUsername(jwt)
-      }catch(e: MalformedJwtException){
-      }
+    try {
+      username = jwtUtil.extractUsername(jwt)
+    } catch (e: MalformedJwtException) {
+      return
     }
 
-    if (username != null && SecurityContextHolder.getContext().authentication == null) {
-      val userDetails = userDetailsService.loadUserByUsername(username)
-      if (jwt != null && userDetails != null) {
-        if (jwtUtil.validateToken(jwt, userDetails)) {
-          val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken(
-              userDetails, null, userDetails.authorities)
-          usernamePasswordAuthenticationToken.details = WebAuthenticationDetailsSource().buildDetails(request)
-          SecurityContextHolder.getContext().authentication = usernamePasswordAuthenticationToken
-        }
-      }
+    val userDetails = userDetailsService.loadUserByUsername(username) ?: return
+
+    if (!jwtUtil.validateToken(jwt, userDetails)) {
+      return
     }
+    val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken(
+        userDetails, null, userDetails.authorities)
+    usernamePasswordAuthenticationToken.details = WebAuthenticationDetailsSource().buildDetails(request)
+    SecurityContextHolder.getContext().authentication = usernamePasswordAuthenticationToken
+  }
+
+  override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
+    jwtFilter(request)
     filterChain.doFilter(request, response)
   }
 

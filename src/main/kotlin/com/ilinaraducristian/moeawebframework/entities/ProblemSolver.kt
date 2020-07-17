@@ -1,23 +1,21 @@
 package com.ilinaraducristian.moeawebframework.entities
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonUnwrapped
-import com.ilinaraducristian.moeawebframework.dto.QualityIndicators
-import org.hibernate.annotations.Type
+import com.ilinaraducristian.moeawebframework.constraints.ProblemSolverNameConstraint
+import com.ilinaraducristian.moeawebframework.moea.QualityIndicators
 import java.io.Serializable
-import java.util.*
 import javax.persistence.*
 import javax.validation.constraints.NotBlank
-import kotlin.collections.ArrayList
 
 @Entity
-data class QueueItem(
+data class ProblemSolver(
     @Id
     @GeneratedValue
     var id: Long = 0,
 
     @Column(nullable = false)
     @NotBlank
+    @ProblemSolverNameConstraint
     var name: String = "",
 
     @Column(nullable = false)

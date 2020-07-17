@@ -2,7 +2,7 @@ package com.ilinaraducristian.moeawebframework.moea
 
 import com.ilinaraducristian.moeawebframework.configurations.algorithms
 import com.ilinaraducristian.moeawebframework.configurations.problems
-import com.ilinaraducristian.moeawebframework.entities.QueueItem
+import com.ilinaraducristian.moeawebframework.entities.ProblemSolver
 import com.ilinaraducristian.moeawebframework.exceptions.AlgorithmNotFoundException
 import com.ilinaraducristian.moeawebframework.exceptions.ProblemNotFoundException
 import com.ilinaraducristian.moeawebframework.exceptions.ReferenceSetNotFoundException
@@ -18,7 +18,7 @@ import java.io.File
 import java.net.URLClassLoader
 import java.util.*
 
-class QueueItemSolver(private val queueItem: QueueItem, listener: ProgressListener) {
+class ProblemSolverRunner(private val problemSolver: ProblemSolver, listener: ProgressListener) {
 
   private val instrumenter: Instrumenter = Instrumenter()
       .withFrequency(1)
@@ -42,28 +42,28 @@ class QueueItemSolver(private val queueItem: QueueItem, listener: ProgressListen
   init {
     executor = Executor()
         .withInstrumenter(instrumenter)
-        .withMaxEvaluations(queueItem.numberOfEvaluations)
+        .withMaxEvaluations(problemSolver.numberOfEvaluations)
         .withProgressListener(listener)
 
-    if (problems.contains(queueItem.problem)) {
-      instrumenter.withProblem(queueItem.problem)
+    if (problems.contains(problemSolver.problem)) {
+      instrumenter.withProblem(problemSolver.problem)
       try {
-        instrumenter.withEpsilon(EpsilonHelper.getEpsilon(ProblemFactory.getInstance().getProblem(queueItem.problem)))
+        instrumenter.withEpsilon(EpsilonHelper.getEpsilon(ProblemFactory.getInstance().getProblem(problemSolver.problem)))
       } catch (e: Exception) {
       }
-      executor.withProblem(queueItem.problem)
+      executor.withProblem(problemSolver.problem)
     } else {
-      if (queueItem.user.username == "guest")
-        throw ProblemNotFoundException()
-      val problemFile = File("moeaData/${queueItem.user.username}/problems/${queueItem.problem}.class")
-      val referenceSetFile = File("moeaData/${queueItem.user.username}/problems/${queueItem.problem}.class")
+      if (problemSolver.user.username == "guest")
+        throw RuntimeException(ProblemNotFoundException)
+      val problemFile = File("moeaData/${problemSolver.user.username}/problems/${problemSolver.problem}.class")
+      val referenceSetFile = File("moeaData/${problemSolver.user.username}/problems/${problemSolver.problem}.class")
       if (!problemFile.exists()) {
-        throw ProblemNotFoundException()
+        throw RuntimeException(ProblemNotFoundException)
       }
       if (!referenceSetFile.exists()) {
-        throw ReferenceSetNotFoundException()
+        throw RuntimeException(ReferenceSetNotFoundException)
       }
-      val problem = URLClassLoader(arrayOf(problemFile.toURI().toURL())).loadClass(queueItem.problem).getDeclaredConstructor().newInstance() as Problem
+      val problem = URLClassLoader(arrayOf(problemFile.toURI().toURL())).loadClass(problemSolver.problem).getDeclaredConstructor().newInstance() as Problem
       instrumenter
           .withProblem(problem)
           .withReferenceSet(referenceSetFile)
@@ -74,16 +74,16 @@ class QueueItemSolver(private val queueItem: QueueItem, listener: ProgressListen
       executor.withProblem(problem)
     }
 
-    if (algorithms.contains(queueItem.algorithm)) {
-      executor.withAlgorithm(queueItem.algorithm)
+    if (algorithms.contains(problemSolver.algorithm)) {
+      executor.withAlgorithm(problemSolver.algorithm)
     } else {
-      if (queueItem.user.username == "guest")
-        throw AlgorithmNotFoundException()
-      val algorithmFile = File("moeaData/${queueItem.user.username}/algorithms/${queueItem.algorithm}.class")
+      if (problemSolver.user.username == "guest")
+        throw RuntimeException(AlgorithmNotFoundException)
+      val algorithmFile = File("moeaData/${problemSolver.user.username}/algorithms/${problemSolver.algorithm}.class")
       if (!algorithmFile.exists()) {
-        throw AlgorithmNotFoundException()
+        throw RuntimeException(AlgorithmNotFoundException)
       }
-      val algorithm = URLClassLoader(arrayOf(algorithmFile.toURI().toURL())).loadClass(queueItem.algorithm).declaredConstructors[1]
+      val algorithm = URLClassLoader(arrayOf(algorithmFile.toURI().toURL())).loadClass(problemSolver.algorithm).declaredConstructors[1]
       println(algorithm)
       executor.withAlgorithm("").usingAlgorithmFactory(
           object : AlgorithmFactory() {
@@ -96,7 +96,7 @@ class QueueItemSolver(private val queueItem: QueueItem, listener: ProgressListen
   }
 
   fun solve(): Boolean {
-    executor.runSeeds(queueItem.numberOfSeeds)
+    executor.runSeeds(problemSolver.numberOfSeeds)
     return !executor.isCanceled
   }
 

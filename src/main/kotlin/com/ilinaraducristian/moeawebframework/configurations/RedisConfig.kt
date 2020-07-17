@@ -1,6 +1,6 @@
 package com.ilinaraducristian.moeawebframework.configurations
 
-import com.ilinaraducristian.moeawebframework.entities.QueueItem
+import com.ilinaraducristian.moeawebframework.entities.ProblemSolver
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
@@ -16,12 +16,12 @@ class RedisConfig {
 
   @Bean
   fun reactiveRedisTemplate(
-      factory: ReactiveRedisConnectionFactory): ReactiveRedisTemplate<String, QueueItem> {
+      factory: ReactiveRedisConnectionFactory): ReactiveRedisTemplate<String, ProblemSolver> {
     val keySerializer = StringRedisSerializer()
-    val valueSerializer: Jackson2JsonRedisSerializer<QueueItem> = Jackson2JsonRedisSerializer<QueueItem>(QueueItem::class.java)
-    val builder: RedisSerializationContextBuilder<String, QueueItem> = RedisSerializationContext.newSerializationContext<String, QueueItem>(keySerializer)
-    val context: RedisSerializationContext<String, QueueItem> = builder.value(valueSerializer).build()
-    return ReactiveRedisTemplate<String, QueueItem>(factory, context)
+    val valueSerializer: Jackson2JsonRedisSerializer<ProblemSolver> = Jackson2JsonRedisSerializer<ProblemSolver>(ProblemSolver::class.java)
+    val builder: RedisSerializationContextBuilder<String, ProblemSolver> = RedisSerializationContext.newSerializationContext<String, ProblemSolver>(keySerializer)
+    val context: RedisSerializationContext<String, ProblemSolver> = builder.value(valueSerializer).build()
+    return ReactiveRedisTemplate<String, ProblemSolver>(factory, context)
   }
 
 }

@@ -2,10 +2,9 @@ package com.ilinaraducristian.moeawebframework.controllers
 
 import com.ilinaraducristian.moeawebframework.configurations.algorithms
 import com.ilinaraducristian.moeawebframework.configurations.problems
-import com.ilinaraducristian.moeawebframework.dto.QueueItemRequestDTO
-import com.ilinaraducristian.moeawebframework.entities.QueueItem
+import com.ilinaraducristian.moeawebframework.entities.ProblemSolver
 import com.ilinaraducristian.moeawebframework.exceptions.*
-import com.ilinaraducristian.moeawebframework.services.QueueItemSolverService
+import com.ilinaraducristian.moeawebframework.services.ProblemSolverService
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
@@ -20,71 +19,69 @@ import kotlin.collections.ArrayList
 @RequestMapping("queue")
 @CrossOrigin
 class GuestQueueController(
-    private val redisTemplate: ReactiveRedisTemplate<String, QueueItem>,
-    private val queueItemSolverService: QueueItemSolverService
+    private val redisTemplate: ReactiveRedisTemplate<String, ProblemSolver>,
+    private val problemSolverService: ProblemSolverService
 ) {
 
-  @PostMapping("addQueueItem")
-  fun addQueueItem(@RequestBody @Valid queueItemRequestDTO: QueueItemRequestDTO): Mono<String> {
+  @PostMapping("addProblemSolver")
+  fun addProblemSolver(@RequestBody @Valid problemSolver: ProblemSolver): Mono<String> {
     return mono {
-      if (!problems.contains(queueItemRequestDTO.problem)) throw ProblemNotFoundException()
-      if (!algorithms.contains(queueItemRequestDTO.algorithm)) throw AlgorithmNotFoundException()
-      val queueItem = QueueItem()
-      queueItem.name = queueItemRequestDTO.name
-      queueItem.problem = queueItemRequestDTO.problem
-      queueItem.algorithm = queueItemRequestDTO.algorithm
-      queueItem.numberOfSeeds = queueItemRequestDTO.numberOfSeeds
-      queueItem.numberOfEvaluations = queueItemRequestDTO.numberOfEvaluations
-      var queueItemUUID: UUID
+      if (!problems.contains(problemSolver.problem)) throw RuntimeException(ProblemNotFoundException)
+      if (!algorithms.contains(problemSolver.algorithm)) throw RuntimeException(AlgorithmNotFoundException)
+
+      var problemSolverUUID: UUID
       do {
-        queueItemUUID = UUID.randomUUID()
-      } while (redisTemplate.opsForValue().get(queueItemUUID.toString()).block() != null)
-      queueItem.rabbitId = queueItemUUID.toString()
-      redisTemplate.opsForValue().set(queueItem.rabbitId, queueItem).block()
-      """ {"rabbitId": "${queueItem.rabbitId}"} """
+        problemSolverUUID = UUID.randomUUID()
+      } while (redisTemplate.opsForValue().get(problemSolverUUID.toString()).block() != null)
+      problemSolver.rabbitId = problemSolverUUID.toString()
+      redisTemplate.opsForValue().set(problemSolver.rabbitId, problemSolver).block()
+      """ {"rabbitId": "${problemSolver.rabbitId}"} """
     }
   }
 
-  @GetMapping("solveQueueItem/{rabbitId}")
-  fun solveQueueItem(@PathVariable rabbitId: String): Mono<Unit> {
+  @GetMapping("solveProblemSolver/{rabbitId}")
+  fun solveProblemSolver(@PathVariable rabbitId: String): Mono<Unit> {
     return mono {
-      val queueItem = redisTemplate.opsForValue().get(rabbitId).awaitFirstOrNull() ?: throw QueueItemNotFoundException()
-      if (queueItem.status == "done")
-        throw QueueItemSolvedException()
-      if (queueItem.status == "working")
-        throw QueueItemIsSolvingException()
-      queueItem.status = "working"
+      val problemSolver = redisTemplate.opsForValue().get(rabbitId).awaitFirstOrNull()
+          ?: throw RuntimeException(ProblemSolverNotFoundException)
+      if (problemSolver.status == "done")
+        throw RuntimeException(ProblemSolverSolvedException)
+      if (problemSolver.status == "working")
+        throw RuntimeException(ProblemSolverIsSolvingException)
+      problemSolver.status = "working"
       try {
-        queueItemSolverService.solveQueueItem(queueItem)
+        problemSolverService.solveProblemSolver(problemSolver)
       } catch (e: Exception) {
-        if (e is ProblemNotFoundException || e is AlgorithmNotFoundException) {
+        if (e.message == ProblemNotFoundException || e.message == AlgorithmNotFoundException) {
           throw e
         }
       }
-      redisTemplate.opsForValue().set(rabbitId, queueItem).awaitFirst()
+      redisTemplate.opsForValue().set(rabbitId, problemSolver).awaitFirst()
       return@mono
     }
   }
 
-  @GetMapping("cancelQueueItem/{rabbitId}")
-  fun cancelQueueItem(@PathVariable rabbitId: String): Mono<Any> {
+  @GetMapping("cancelProblemSolver/{rabbitId}")
+  fun cancelProblemSolver(@PathVariable rabbitId: String): Mono<Any> {
     return mono {
-      val queueItem = redisTemplate.opsForValue().get(rabbitId).awaitFirstOrNull() ?: throw QueueItemNotFoundException()
-      if (queueItem.status != "working")
-        throw QueueItemIsNotSolvingException()
-      queueItemSolverService.cancelQueueItem(rabbitId)
-      queueItem.results = ArrayList()
-      queueItem.status = "waiting"
-      redisTemplate.opsForValue().set(rabbitId, queueItem).awaitFirst()
+      val problemSolver = redisTemplate.opsForValue().get(rabbitId).awaitFirstOrNull()
+          ?: throw RuntimeException(ProblemSolverNotFoundException)
+      if (problemSolver.status != "working")
+        throw RuntimeException(ProblemSolverIsNotSolvingException)
+      problemSolverService.cancelProblemSolver(rabbitId)
+      problemSolver.results = ArrayList()
+      problemSolver.status = "waiting"
+      redisTemplate.opsForValue().set(rabbitId, problemSolver).awaitFirst()
       return@mono
     }
   }
 
-  @GetMapping("removeQueueItem/{rabbitId}")
-  fun removeQueueItem(@PathVariable rabbitId: String): Mono<Unit> {
+  @GetMapping("removeProblemSolver/{rabbitId}")
+  fun removeProblemSolver(@PathVariable rabbitId: String): Mono<Unit> {
     return mono {
-      val queueItem = redisTemplate.opsForValue().get(rabbitId).awaitFirstOrNull() ?: throw QueueItemNotFoundException()
-      queueItemSolverService.cancelQueueItem(rabbitId)
+      val problemSolver = redisTemplate.opsForValue().get(rabbitId).awaitFirstOrNull()
+          ?: throw RuntimeException(ProblemSolverNotFoundException)
+      problemSolverService.cancelProblemSolver(rabbitId)
       redisTemplate.delete(rabbitId).awaitFirst()
       return@mono
     }

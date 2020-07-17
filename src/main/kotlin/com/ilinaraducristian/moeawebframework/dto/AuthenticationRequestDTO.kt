@@ -1,10 +1,10 @@
-package com.ilinaraducristian.moeawebframework.security
+package com.ilinaraducristian.moeawebframework.dto
 
 import java.io.Serializable
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 
-class AuthenticationRequest : Serializable {
+class AuthenticationRequestDTO : Serializable {
 
   @NotBlank
   @NotNull

@@ -1,6 +1,5 @@
 package com.ilinaraducristian.moeawebframework.exceptions
 
-import io.jsonwebtoken.ExpiredJwtException
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
@@ -9,7 +8,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
@@ -32,34 +30,13 @@ class ExceptionProcessor : ResponseEntityExceptionHandler() {
     return ResponseEntity(violations, HttpStatus.BAD_REQUEST)
   }
 
-  @ExceptionHandler(value = [ProblemNotFoundException::class, AlgorithmNotFoundException::class, UserNotFoundException::class])
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  fun handleNotFoundExceptions(exception: RuntimeException): ExceptionResponse {
-    return ExceptionResponse(exception)
-  }
-
-  @ExceptionHandler(value = [ProblemExistsOnServerException::class, ProblemExistsException::class, AlgorithmExistsOnServerException::class, AlgorithmExistsException::class])
-  @ResponseStatus(HttpStatus.CONFLICT)
-  fun handleConflictExceptions(exception: RuntimeException): ExceptionResponse {
-    return ExceptionResponse(exception)
-  }
-
-  @ExceptionHandler(value = [QueueItemSolvedException::class, QueueItemIsSolvingException::class, QueueItemIsNotSolvingException::class, QueueItemNotFoundException::class])
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  fun handleBadRequestExceptions(exception: RuntimeException): ExceptionResponse {
-    return ExceptionResponse(exception)
-  }
-
-  @ExceptionHandler(value = [CannotCreateUserException::class, InternalErrorException::class])
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  fun handleInternalServerExceptions(exception: RuntimeException): ExceptionResponse {
-    return ExceptionResponse(exception)
-  }
-
-  @ExceptionHandler(value = [BadCredentialsException::class, ExpiredJwtException::class])
-  @ResponseStatus(HttpStatus.UNAUTHORIZED)
-  fun handleUnauthorizedExceptions(exception: RuntimeException): ExceptionResponse {
-    return ExceptionResponse(exception)
+  @ExceptionHandler(value = [java.lang.RuntimeException::class])
+  fun handleRuntimeExceptions(ex: RuntimeException): ResponseEntity<String> {
+    val statusCode = Integer.parseInt(ex.message!!.substring(1..3))
+    val errorMessage = ex.message!!.substring(6 until ex.message!!.length)
+    val headers = HttpHeaders()
+    headers.set("Content-Type", "application/json")
+    return ResponseEntity(""" {"error": "$errorMessage"} """, headers, HttpStatus.valueOf(statusCode))
   }
 
 }

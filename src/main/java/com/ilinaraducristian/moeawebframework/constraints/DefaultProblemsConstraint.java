@@ -8,10 +8,12 @@ import java.lang.annotation.*;
 
 @Documented
 @Constraint(validatedBy = DefaultProblemsValidator.class)
-@Target( { ElementType.METHOD, ElementType.FIELD })
+@Target({ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DefaultProblemsConstraint {
   String message() default "problem not found";
+
   Class<?>[] groups() default {};
+
   Class<? extends Payload>[] payload() default {};
 }

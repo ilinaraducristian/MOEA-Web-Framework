@@ -1,7 +1,7 @@
 package com.ilinaraducristian.moeawebframework.validators
 
-import com.ilinaraducristian.moeawebframework.constraints.DefaultProblemsConstraint
 import com.ilinaraducristian.moeawebframework.configurations.problems
+import com.ilinaraducristian.moeawebframework.constraints.DefaultProblemsConstraint
 import javax.validation.ConstraintValidator
 import javax.validation.ConstraintValidatorContext
 

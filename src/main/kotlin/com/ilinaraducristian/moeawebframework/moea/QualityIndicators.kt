@@ -1,4 +1,4 @@
-package com.ilinaraducristian.moeawebframework.dto
+package com.ilinaraducristian.moeawebframework.moea
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.moeaframework.analysis.collector.Accumulator
@@ -9,6 +9,7 @@ class QualityIndicators() : Serializable {
   @JsonIgnore
   var accumulator: Accumulator? = null
   var currentSeed: Int = 0
+
   //    var ApproximationSet: ArrayList<Double> = ArrayList(),
   var R1Indicator: ArrayList<Double> = ArrayList()
   var AdditiveEpsilonIndicator: ArrayList<Double> = ArrayList()

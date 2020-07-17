@@ -1,10 +1,10 @@
 package com.ilinaraducristian.moeawebframework.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.ilinaraducristian.moeawebframework.dto.QualityIndicators
-import com.ilinaraducristian.moeawebframework.entities.QueueItem
-import com.ilinaraducristian.moeawebframework.moea.QueueItemSolver
-import com.ilinaraducristian.moeawebframework.repositories.QueueItemRepository
+import com.ilinaraducristian.moeawebframework.entities.ProblemSolver
+import com.ilinaraducristian.moeawebframework.moea.ProblemSolverRunner
+import com.ilinaraducristian.moeawebframework.moea.QualityIndicators
+import com.ilinaraducristian.moeawebframework.repositories.ProblemSolverRepository
 import org.moeaframework.util.progress.ProgressListener
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.data.redis.core.ReactiveRedisTemplate
@@ -14,24 +14,24 @@ import java.util.*
 import kotlin.collections.HashMap
 
 @Service
-class QueueItemSolverService(
+class ProblemSolverService(
     private val threadPoolTaskExecutor: ThreadPoolTaskExecutor,
     private val rabbitTemplate: RabbitTemplate,
     private val jsonConverter: ObjectMapper,
-    private val reactiveRedisTemplate: ReactiveRedisTemplate<String, QueueItem>,
-    private val queueItemRepo: QueueItemRepository
+    private val reactiveRedisTemplate: ReactiveRedisTemplate<String, ProblemSolver>,
+    private val problemSolverRepo: ProblemSolverRepository
 ) {
 
-  val solvers = HashMap<String, QueueItemSolver>()
+  val solvers = HashMap<String, ProblemSolverRunner>()
 
-  fun solveQueueItem(queueItem: QueueItem) {
+  fun solveProblemSolver(problemSolver: ProblemSolver) {
 
     val routingKey: String
 
-    if (queueItem.user.username == "guest") {
-      routingKey = "guest.${queueItem.rabbitId}"
+    if (problemSolver.user.username == "guest") {
+      routingKey = "guest.${problemSolver.rabbitId}"
     } else {
-      routingKey = "user.${queueItem.user.username}.${queueItem.rabbitId}"
+      routingKey = "user.${problemSolver.user.username}.${problemSolver.rabbitId}"
     }
 
     val progressListener = ProgressListener { event ->
@@ -40,38 +40,38 @@ class QueueItemSolverService(
       try {
         val qualityIndicators = QualityIndicators(event.executor.instrumenter.lastAccumulator)
         qualityIndicators.currentSeed = event.currentSeed - 1
-        queueItem.results.add(qualityIndicators)
+        problemSolver.results.add(qualityIndicators)
         rabbitTemplate.convertAndSend(routingKey, jsonConverter.writeValueAsString(qualityIndicators))
       } catch (e: IllegalArgumentException) {
         // executor was canceled
       }
     }
 
-    val queueItemSolver = QueueItemSolver(queueItem, progressListener)
+    val problemSolverSolver = ProblemSolverRunner(problemSolver, progressListener)
     threadPoolTaskExecutor.submit {
-      solvers[queueItem.rabbitId] = queueItemSolver
+      solvers[problemSolver.rabbitId] = problemSolverSolver
       var solved = false
 
       try {
-        solved = queueItemSolver.solve()
+        solved = problemSolverSolver.solve()
         if (solved) {
-          queueItem.status = "done"
-          updateQueueItem(queueItem)
+          problemSolver.status = "done"
+          updateProblemSolver(problemSolver)
           rabbitTemplate.convertAndSend(routingKey, """{"status":"done"}""")
         }
       } catch (e: Exception) {
         rabbitTemplate.convertAndSend(routingKey, """{"error":"${e.message}"}""")
       }
       if (!solved) {
-        queueItem.results = ArrayList()
-        queueItem.status = "waiting"
+        problemSolver.results = ArrayList()
+        problemSolver.status = "waiting"
       }
-      updateQueueItem(queueItem)
+      updateProblemSolver(problemSolver)
 
     }
   }
 
-  fun cancelQueueItem(rabbitId: String): Boolean {
+  fun cancelProblemSolver(rabbitId: String): Boolean {
     val found = solvers[rabbitId]
     if (found != null) {
       found.cancel()
@@ -81,11 +81,11 @@ class QueueItemSolverService(
     return false
   }
 
-  private fun updateQueueItem(queueItem: QueueItem) {
-    if (queueItem.user.username == "guest") {
-      reactiveRedisTemplate.opsForValue().set(queueItem.rabbitId, queueItem).block()
+  private fun updateProblemSolver(problemSolver: ProblemSolver) {
+    if (problemSolver.user.username == "guest") {
+      reactiveRedisTemplate.opsForValue().set(problemSolver.rabbitId, problemSolver).block()
     } else {
-      queueItemRepo.save(queueItem)
+      problemSolverRepo.save(problemSolver)
     }
   }
 

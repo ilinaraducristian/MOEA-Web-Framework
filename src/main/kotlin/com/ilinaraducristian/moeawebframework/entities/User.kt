@@ -43,7 +43,7 @@ data class User(
 
     @OneToMany(mappedBy = "user")
     @JsonIgnore
-    var queue: MutableList<QueueItem> = mutableListOf(),
+    var queue: MutableList<ProblemSolver> = mutableListOf(),
 
     @OneToMany(mappedBy = "user")
     @JsonIgnore
