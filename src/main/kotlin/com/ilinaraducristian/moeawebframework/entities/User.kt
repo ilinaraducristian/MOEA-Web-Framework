@@ -41,7 +41,7 @@ data class User(
     @Column(nullable = false, columnDefinition = "VARBINARY(1024)")
     var algorithms: ArrayList<String> = ArrayList(),
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     @JsonIgnore
     var queue: MutableList<ProblemSolver> = mutableListOf(),
 

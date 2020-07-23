@@ -4,7 +4,7 @@ import com.ilinaraducristian.moeawebframework.entities.ProblemSolver
 import com.ilinaraducristian.moeawebframework.entities.User
 import java.io.Serializable
 
-class AuthenticationResponseDTO() : Serializable {
+class AuthenticationResponseDTO(user: User, jwt: String) : Serializable {
 
   var username: String = ""
   var email: String = ""
@@ -15,7 +15,7 @@ class AuthenticationResponseDTO() : Serializable {
   var algorithms: List<String> = mutableListOf()
   var queue: List<ProblemSolver> = listOf()
 
-  constructor(user: User) : this() {
+  init {
     username = user.username
     email = user.email
     firstName = user.firstName
@@ -23,6 +23,7 @@ class AuthenticationResponseDTO() : Serializable {
     problems = user.problems
     algorithms = user.algorithms
     queue = user.queue
+    this.jwt = jwt
   }
 
 }

@@ -32,7 +32,11 @@ class ExceptionProcessor : ResponseEntityExceptionHandler() {
 
   @ExceptionHandler(value = [java.lang.RuntimeException::class])
   fun handleRuntimeExceptions(ex: RuntimeException): ResponseEntity<String> {
-    val statusCode = Integer.parseInt(ex.message!!.substring(1..3))
+    val statusCode: Int = try {
+      Integer.parseInt(ex.message!!.substring(1..3))
+    } catch (e: NumberFormatException) {
+      500
+    }
     val errorMessage = ex.message!!.substring(6 until ex.message!!.length)
     val headers = HttpHeaders()
     headers.set("Content-Type", "application/json")

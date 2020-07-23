@@ -1,6 +1,7 @@
 package com.ilinaraducristian.moeawebframework.security
 
-import com.ilinaraducristian.moeawebframework.JwtUtil
+import com.ilinaraducristian.moeawebframework.extractUsername
+import com.ilinaraducristian.moeawebframework.validateToken
 import io.jsonwebtoken.MalformedJwtException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
@@ -13,8 +14,7 @@ import javax.servlet.http.HttpServletResponse
 
 @Component
 class JwtRequestFilter(
-    private val userDetailsService: SecurityUserDetailsService,
-    private val jwtUtil: JwtUtil
+    private val userDetailsService: SecurityUserDetailsService
 ) : OncePerRequestFilter() {
 
   fun jwtFilter(request: HttpServletRequest) {
@@ -32,14 +32,14 @@ class JwtRequestFilter(
     val username: String
 
     try {
-      username = jwtUtil.extractUsername(jwt)
+      username = extractUsername(jwt)
     } catch (e: MalformedJwtException) {
       return
     }
 
     val userDetails = userDetailsService.loadUserByUsername(username) ?: return
 
-    if (!jwtUtil.validateToken(jwt, userDetails)) {
+    if (!validateToken(jwt, userDetails)) {
       return
     }
     val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken(

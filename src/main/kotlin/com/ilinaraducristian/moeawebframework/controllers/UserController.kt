@@ -1,6 +1,5 @@
 package com.ilinaraducristian.moeawebframework.controllers
 
-import com.ilinaraducristian.moeawebframework.JwtUtil
 import com.ilinaraducristian.moeawebframework.configurations.algorithms
 import com.ilinaraducristian.moeawebframework.configurations.problems
 import com.ilinaraducristian.moeawebframework.dto.AuthenticationRequestDTO
@@ -9,13 +8,16 @@ import com.ilinaraducristian.moeawebframework.entities.Authority
 import com.ilinaraducristian.moeawebframework.entities.User
 import com.ilinaraducristian.moeawebframework.exceptions.BadCredentialsException
 import com.ilinaraducristian.moeawebframework.exceptions.CannotCreateUserException
-import com.ilinaraducristian.moeawebframework.exceptions.UserNotFoundException
+import com.ilinaraducristian.moeawebframework.exceptions.UserExistsException
+import com.ilinaraducristian.moeawebframework.generateToken
 import com.ilinaraducristian.moeawebframework.repositories.AuthorityRepository
 import com.ilinaraducristian.moeawebframework.repositories.UserRepository
 import com.ilinaraducristian.moeawebframework.security.SecurityUserDetailsService
+import com.ilinaraducristian.moeawebframework.security.UserPrincipal
 import kotlinx.coroutines.reactor.mono
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.AuthenticationException
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import java.io.File
+import javax.sql.DataSource
 import javax.validation.Valid
 
 @RestController
@@ -33,13 +36,17 @@ class UserController(
     private val encoder: BCryptPasswordEncoder,
     private val authenticationManager: AuthenticationManager,
     private val userDetailsService: SecurityUserDetailsService,
-    private val jwtUtil: JwtUtil
+    private val dataSource: DataSource
 ) {
 
   @PostMapping("register")
-//  @Resp
   fun register(@Valid @RequestBody user: User): Mono<Unit> {
     return mono {
+
+      if (userRepo.countByUsernameOrEmail(user.username, user.email) > 0) {
+        throw RuntimeException(UserExistsException)
+      }
+
       user.password = encoder.encode(user.password)
       user.problems = problems
       user.algorithms = algorithms
@@ -56,18 +63,15 @@ class UserController(
 
   @PostMapping("login")
   fun login(@Valid @RequestBody authenticationRequestDTO: AuthenticationRequestDTO): Mono<AuthenticationResponseDTO> {
-    return Mono.create<AuthenticationResponseDTO> {
+    return mono {
       try {
         authenticationManager.authenticate(UsernamePasswordAuthenticationToken(authenticationRequestDTO.username, authenticationRequestDTO.password))
-      } catch (e: Exception) {
+      } catch (e: AuthenticationException) {
         throw RuntimeException(BadCredentialsException)
       }
-      val userDetails = userDetailsService.loadUserByUsername(authenticationRequestDTO.username)
-          ?: throw RuntimeException(UserNotFoundException)
-      val user = userRepo.findByUsername(userDetails.username) ?: throw RuntimeException(UserNotFoundException)
-      val authenticationResponse = AuthenticationResponseDTO(user)
-      authenticationResponse.jwt = jwtUtil.generateToken(userDetails)
-      it.success(authenticationResponse)
+
+      val userDetails = (userDetailsService.loadUserByUsername(authenticationRequestDTO.username) as UserPrincipal)
+      AuthenticationResponseDTO(userDetails.user, generateToken(userDetails))
     }
   }
 

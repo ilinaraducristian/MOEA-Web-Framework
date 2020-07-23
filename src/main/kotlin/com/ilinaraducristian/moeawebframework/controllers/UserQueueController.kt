@@ -21,14 +21,6 @@ class UserQueueController(
     private val problemSolverRepo: ProblemSolverRepository
 ) {
 
-  @GetMapping
-  fun getQueue(authentication: Authentication): Mono<List<ProblemSolver>> {
-    return mono {
-      val user = (authentication.principal as UserPrincipal).user
-      user.queue
-    }
-  }
-
   @PostMapping("addProblemSolver")
   fun addProblemSolver(@Valid @RequestBody problemSolver: ProblemSolver, authentication: Authentication): Mono<String> {
     return mono {
@@ -53,7 +45,6 @@ class UserQueueController(
 
   @GetMapping("solveProblemSolver/{rabbitId}")
   fun solveProblemSolver(@PathVariable rabbitId: String, authentication: Authentication): Mono<Unit> {
-
     return mono {
       val user = (authentication.principal as UserPrincipal).user
       val problemSolver = user.queue.find { problemSolver -> problemSolver.rabbitId == rabbitId }
