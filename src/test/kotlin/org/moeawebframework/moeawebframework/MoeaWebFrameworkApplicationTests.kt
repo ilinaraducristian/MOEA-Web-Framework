@@ -3,6 +3,7 @@ package org.moeawebframework.moeawebframework
 import org.junit.jupiter.api.Test
 import org.moeawebframework.moeawebframework.entities.User
 import org.moeawebframework.moeawebframework.repositories.UserRepository
+import org.moeawebframework.moeawebframework.utils.JwtUtilfoo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 
@@ -13,16 +14,26 @@ class MoeaWebFrameworkApplicationTests {
   @Autowired
   lateinit var userRepository: UserRepository
 
-  @Test
+//  @Test
   fun saveUser() {
     val user = User()
     user.username = "my username"
     userRepository.save(user).block()
+    val user2 = User()
+    user2.username = "my username2222"
+    userRepository.save(user2).block()
+  }
+
+//  @Test
+  fun findUser() {
+    userRepository.findAll().subscribe {
+      println(it.id)
+    }
   }
 
   @Test
-  fun findUser() {
-    println(userRepository.findById(0).block()!!.username)
+  fun foo() {
+    JwtUtilfoo()
   }
 
 }

@@ -21,6 +21,10 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
+  // JWT
+  implementation("io.jsonwebtoken:jjwt-api:0.11.2")
+  runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.2")
+  runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.2")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
   implementation("org.jetbrains.kotlin:kotlin-reflect")
