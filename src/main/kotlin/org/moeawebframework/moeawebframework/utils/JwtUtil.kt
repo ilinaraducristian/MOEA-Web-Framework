@@ -16,5 +16,6 @@ fun createToken(): String {
 }
 
 fun validateJwt(jwt: String): Jws<Claims> {
+  println("""JWT: $jwt""")
   return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt)
 }

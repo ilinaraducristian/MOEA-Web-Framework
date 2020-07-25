@@ -3,7 +3,6 @@ package org.moeawebframework.moeawebframework
 import org.junit.jupiter.api.Test
 import org.moeawebframework.moeawebframework.entities.User
 import org.moeawebframework.moeawebframework.repositories.UserRepository
-import org.moeawebframework.moeawebframework.utils.JwtUtilfoo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 
@@ -29,11 +28,6 @@ class MoeaWebFrameworkApplicationTests {
     userRepository.findAll().subscribe {
       println(it.id)
     }
-  }
-
-  @Test
-  fun foo() {
-    JwtUtilfoo()
   }
 
 }

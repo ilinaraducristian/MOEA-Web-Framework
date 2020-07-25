@@ -30,4 +30,9 @@ class UserDao(
   override fun delete(t: User): Mono<Void> {
     return userRepository.delete(t)
   }
+
+  fun findByUsername(username: String): Mono<User> {
+    return userRepository.findByUsername(username)
+  }
+
 }
