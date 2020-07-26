@@ -7,7 +7,16 @@ spring:
       enabled: true
       max-file-size: 128KB
       max-request-size: 128KB
-
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          r2dbc: DEBUG
+        security:
+          web:
+            FilterChainProxy: DEBUG
+#debug: true
 ---
 
 spring:
@@ -31,12 +40,15 @@ guest:
 jwt:
   token: "SkdIMUtCM3RaT3YmTW01cDk0QiM2QlVpXk4zdnY0NDk="
 
-logging:
-  level:
-    org:
-      springframework:
-        data:
-          r2dbc: DEBUG
+#logging:
+#  level:
+#    org:
+#      springframework:
+#        data:
+#          r2dbc: DEBUG
+#        security:
+#          web:
+#            FilterChainProxy: DEBUG
 
 ---
 

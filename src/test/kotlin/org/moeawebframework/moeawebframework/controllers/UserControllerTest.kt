@@ -16,7 +16,8 @@ class UserControllerTest {
         .exchange().block()
         ?: return assert(false)
 
-    println("""Raspuns: ${response.bodyToMono(String::class.java).block()}""")
+    println(response.statusCode())
+    println(response.bodyToMono(String::class.java).block())
   }
 
 }

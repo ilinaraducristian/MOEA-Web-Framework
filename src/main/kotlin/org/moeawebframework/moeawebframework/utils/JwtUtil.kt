@@ -11,11 +11,10 @@ import java.util.*
 
   val key: Key = Keys.hmacShaKeyFor("x\u0001�\u0006�2[u�U||g�> V\u000FiV���O\u001B��b�X".toByteArray())
 
-fun createToken(): String {
-  return Jwts.builder().setSubject("username").setIssuedAt(Date()).setExpiration(Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)).signWith(key).compact()
+fun createToken(username: String, password: Any): String {
+  return Jwts.builder().setSubject(username).claim("password", password).setIssuedAt(Date()).setExpiration(Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)).signWith(key).compact()
 }
 
 fun validateJwt(jwt: String): Jws<Claims> {
-  println("""JWT: $jwt""")
   return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt)
 }
