@@ -1,21 +1,20 @@
 package org.moeawebframework.moeawebframework.controllers
 
-import kotlinx.coroutines.reactive.awaitSingle
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertAll
+import org.moeawebframework.moeawebframework.dto.RegisteredUserDTO
 import org.moeawebframework.moeawebframework.dto.SignupInfoDTO
 import org.moeawebframework.moeawebframework.dto.UserCredentialsDTO
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpStatus
 import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.awaitBody
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 class UserControllerTest {
 
-  //  @Test
+  @Test
   fun signup() {
     val signupInfoDTO = SignupInfoDTO()
     signupInfoDTO.username = "foo"
@@ -29,26 +28,32 @@ class UserControllerTest {
         .exchange().block()
         ?: return assert(false)
 
-//    println(response.bodyToMono(String::class.java).block())
     Assertions.assertEquals(HttpStatus.OK, response.statusCode())
   }
 
-
   @Test
-  fun login() = runBlocking {
+  fun login() {
     val userCredentialsDTO = UserCredentialsDTO()
     userCredentialsDTO.username = "foo"
     userCredentialsDTO.password = "bar"
-    val response: ClientResponse = WebClient.create("http://localhost:8080").post()
+
+    val clientResponse: ClientResponse = WebClient.create("http://localhost:8080").post()
         .uri("/user/login")
-//        .header("Authorization", "Something")
         .bodyValue(userCredentialsDTO)
-        .retrieve().awaitBody()
+        .exchange().block()
+        ?: return assert(false)
 
-    println(response.statusCode())
-    println(response.bodyToMono(String::class.java).awaitSingle())
-    Assertions.assertEquals(HttpStatus.OK, response.statusCode())
+    val statusCode = clientResponse.statusCode()
+    val body = clientResponse.bodyToMono(RegisteredUserDTO::class.java).block()
 
+    assertAll(
+        { Assertions.assertEquals(HttpStatus.OK, statusCode) },
+        { Assertions.assertEquals("foo", body?.username) },
+        { Assertions.assertEquals("foo@bar.com", body?.email) },
+        { Assertions.assertEquals("Foo", body?.firstName) },
+        { Assertions.assertEquals(null, body?.lastName) }
+
+    )
   }
 
 }

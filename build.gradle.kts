@@ -29,6 +29,9 @@ dependencies {
   runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.2")
   runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.2")
 
+  // Parse JSON patch request
+  implementation("com.github.fge:json-patch:1.9")
+
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
   implementation("org.jetbrains.kotlin:kotlin-reflect")

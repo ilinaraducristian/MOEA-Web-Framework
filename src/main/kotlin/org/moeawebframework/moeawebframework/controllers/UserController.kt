@@ -1,18 +1,11 @@
 package org.moeawebframework.moeawebframework.controllers
 
-import kotlinx.coroutines.reactive.awaitLast
-import kotlinx.coroutines.reactive.awaitSingle
-import kotlinx.coroutines.reactor.mono
+import com.github.fge.jsonpatch.JsonPatch
 import org.moeawebframework.moeawebframework.dto.RegisteredUserDTO
 import org.moeawebframework.moeawebframework.dto.SignupInfoDTO
 import org.moeawebframework.moeawebframework.dto.UserCredentialsDTO
-import org.moeawebframework.moeawebframework.exceptions.BadCredentialsException
-import org.moeawebframework.moeawebframework.exceptions.UserNotFoundException
 import org.moeawebframework.moeawebframework.services.UserService
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import javax.validation.Valid
 
@@ -24,15 +17,19 @@ class UserController(
 ) {
 
   @PostMapping("signup")
-  suspend fun signup(@RequestBody @Valid signupInfo: SignupInfoDTO) = mono{
-    userService.signup(signupInfo)
+  fun signup(@RequestBody @Valid signupInfo: SignupInfoDTO): Mono<Void> {
+    return userService.signup(signupInfo)
   }
 
   @PostMapping("login")
-  suspend fun login(@RequestBody @Valid userCredentials: UserCredentialsDTO) = mono{
-    println("LOGIN?")
-    userService.login(userCredentials)
-    return@mono
+  fun login(@RequestBody @Valid userCredentials: UserCredentialsDTO): Mono<RegisteredUserDTO> {
+    return userService.login(userCredentials)
+  }
+
+  @PatchMapping("update")
+  fun update(@RequestBody jsonPatch: JsonPatch) {
+    val patched: JsonNode = patch.apply(objectMapper.convertValue(targetCustomer, JsonNode::class.java))
+    return objectMapper.treeToValue(patched, Customer::class.java)
   }
 
 }

@@ -1,6 +1,5 @@
 package org.moeawebframework.moeawebframework.entities
 
-import org.moeawebframework.moeawebframework.dto.SignupInfoDTO
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 
@@ -51,4 +50,5 @@ data class User(
 //    @OneToMany(mappedBy = "user")
 //    @JsonIgnore
 //    var authorities: MutableList<Authority> = mutableListOf()
+
 )
