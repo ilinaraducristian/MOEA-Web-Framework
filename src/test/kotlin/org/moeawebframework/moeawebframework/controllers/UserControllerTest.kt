@@ -9,6 +9,18 @@ import org.springframework.web.reactive.function.client.WebClient
 class UserControllerTest {
 
   @Test
+  fun signup() {
+    val response: ClientResponse = WebClient.create("http://localhost:8080").post()
+        .uri("/user/signup")
+        .header("Authorization", "Something")
+        .exchange().block()
+        ?: return assert(false)
+
+    println(response.statusCode())
+    println(response.bodyToMono(String::class.java).block())
+  }
+
+  @Test
   fun login() {
     val response: ClientResponse = WebClient.create("http://localhost:8080").post()
         .uri("/user/login")

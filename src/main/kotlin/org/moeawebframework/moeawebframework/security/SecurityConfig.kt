@@ -19,7 +19,7 @@ class SecurityConfig {
         .pathMatchers("/queue/**").permitAll()
         .pathMatchers("/test/**").permitAll()
         .pathMatchers("/user/login").permitAll()
-        .pathMatchers("/user/register").permitAll()
+        .pathMatchers("/user/signup").permitAll()
         .anyExchange().authenticated()
         .and()
         .addFilterAt(JwtAuthenticationWebFilter(JwtReactiveAuthenticationManager()), SecurityWebFiltersOrder.AUTHENTICATION)
