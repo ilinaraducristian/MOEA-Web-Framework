@@ -1,18 +1,15 @@
 package org.moeawebframework.moeawebframework.entities
 
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
+import kotlinx.coroutines.flow.Flow
 
 interface Dao<T> {
 
-  fun get(id: Long): Mono<T>
+  suspend fun get(id: Long): T
 
-  fun getAll(): Flux<T>
+  suspend fun getAll(): Flow<T>
 
-  fun save(t: T): Mono<User>
+  suspend fun save(t: T): T
 
-  fun update(t: T, params: Array<String?>): Mono<User>
-
-  fun delete(t: T): Mono<Void>
+  suspend fun delete(t: T)
 
 }

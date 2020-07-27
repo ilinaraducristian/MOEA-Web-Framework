@@ -8,10 +8,10 @@ data class RegisteredUserDTO(
     var firstName: String = "",
     var lastName: String? = null
 ) {
-  constructor(user: User) : this(
-      user.username,
-      user.email,
-      user.firstName,
-      user.lastName
-  )
+//  constructor(user: User) : this(
+//      user.username,
+//      user.email,
+//      user.firstName,
+//      user.lastName
+//  )
 }

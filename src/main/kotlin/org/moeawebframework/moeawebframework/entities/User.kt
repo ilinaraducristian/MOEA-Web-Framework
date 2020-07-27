@@ -51,15 +51,4 @@ data class User(
 //    @OneToMany(mappedBy = "user")
 //    @JsonIgnore
 //    var authorities: MutableList<Authority> = mutableListOf()
-
-) {
-  constructor(signupInfo: SignupInfoDTO) : this(
-      null,
-      signupInfo.username,
-      signupInfo.password,
-      signupInfo.email,
-      signupInfo.firstName,
-      signupInfo.lastName
-
-  )
-}
+)

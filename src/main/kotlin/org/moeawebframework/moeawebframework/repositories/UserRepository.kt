@@ -10,6 +10,6 @@ import reactor.core.publisher.Mono
 interface UserRepository : R2dbcRepository<User, Long> {
 
   @Query("SELECT * FROM USERS WHERE username = :username")
-  fun findByUsername(username: String): Mono<User>
+  suspend fun findByUsername(username: String): User
 
 }

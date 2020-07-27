@@ -1,5 +1,7 @@
 package org.moeawebframework.moeawebframework.controllers
 
+import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.moeawebframework.moeawebframework.dto.SignupInfoDTO
@@ -8,11 +10,12 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpStatus
 import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.awaitBody
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 class UserControllerTest {
 
-  @Test
+  //  @Test
   fun signup() {
     val signupInfoDTO = SignupInfoDTO()
     signupInfoDTO.username = "foo"
@@ -30,8 +33,9 @@ class UserControllerTest {
     Assertions.assertEquals(HttpStatus.OK, response.statusCode())
   }
 
+
   @Test
-  fun login() {
+  fun login() = runBlocking {
     val userCredentialsDTO = UserCredentialsDTO()
     userCredentialsDTO.username = "foo"
     userCredentialsDTO.password = "bar"
@@ -39,12 +43,12 @@ class UserControllerTest {
         .uri("/user/login")
 //        .header("Authorization", "Something")
         .bodyValue(userCredentialsDTO)
-        .exchange().block()
-        ?: return assert(false)
+        .retrieve().awaitBody()
 
     println(response.statusCode())
-    println(response.bodyToMono(String::class.java).block())
+    println(response.bodyToMono(String::class.java).awaitSingle())
     Assertions.assertEquals(HttpStatus.OK, response.statusCode())
+
   }
 
 }
