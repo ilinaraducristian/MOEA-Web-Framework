@@ -5,12 +5,12 @@ import javax.validation.constraints.NotEmpty
 data class SignupInfoDTO (
 
     @NotEmpty
-    var username: String,
+    var username: String = "",
     @NotEmpty
-    var password: String,
+    var password: String = "",
     @NotEmpty
-    var email: String,
+    var email: String = "",
     @NotEmpty
-    var firstName: String,
-    var lastName: String?
+    var firstName: String = "",
+    var lastName: String? = null
 )

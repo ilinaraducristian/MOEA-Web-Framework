@@ -3,10 +3,9 @@ package org.moeawebframework.moeawebframework.entities
 import org.moeawebframework.moeawebframework.dto.SignupInfoDTO
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
-import javax.validation.constraints.NotEmpty
 
 @Table("users")
-data class User (
+data class User(
 
     @Id
     var id: Long? = null,
@@ -54,11 +53,13 @@ data class User (
 //    var authorities: MutableList<Authority> = mutableListOf()
 
 ) {
-  constructor(signupInfo: SignupInfoDTO) {
-    username = signupInfo.username
-    password = signupInfo.password
-    email = signupInfo.email
-    firstName = signupInfo.firstName
-    lastName = signupInfo.lastName
-  }
+  constructor(signupInfo: SignupInfoDTO) : this(
+      null,
+      signupInfo.username,
+      signupInfo.password,
+      signupInfo.email,
+      signupInfo.firstName,
+      signupInfo.lastName
+
+  )
 }
