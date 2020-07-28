@@ -1,7 +1,6 @@
 package org.moeawebframework.moeawebframework.security
 
-import kotlinx.coroutines.reactor.mono
-import org.moeawebframework.moeawebframework.entities.UserDao
+import org.moeawebframework.moeawebframework.dao.UserDao
 import org.moeawebframework.moeawebframework.utils.validateJwt
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.BadCredentialsException
@@ -10,7 +9,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 
 
 class JwtReactiveAuthenticationManager : ReactiveAuthenticationManager {
@@ -22,7 +20,7 @@ class JwtReactiveAuthenticationManager : ReactiveAuthenticationManager {
     return Mono.just(authentication)
         .map { validateJwt(it.credentials as String) }
         .onErrorResume { Mono.error(BadCredentialsException("Authorization header not present")) }
-        .flatMap { jws -> mono{userDao.findByUsername(jws.body.subject)} }
+        .flatMap { jws -> userDao.getByUsername(jws.body.subject) }
         .map { user ->
           UsernamePasswordAuthenticationToken(
               user.username,

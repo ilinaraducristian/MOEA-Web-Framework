@@ -26,10 +26,10 @@ class UserController(
     return userService.login(userCredentials)
   }
 
-  @PatchMapping("update")
-  fun update(@RequestBody jsonPatch: JsonPatch) {
-    val patched: JsonNode = patch.apply(objectMapper.convertValue(targetCustomer, JsonNode::class.java))
-    return objectMapper.treeToValue(patched, Customer::class.java)
-  }
+//  @PatchMapping("update")
+//  fun update(@RequestBody jsonPatch: JsonPatch) {
+//    val patched: JsonNode = patch.apply(objectMapper.convertValue(targetCustomer, JsonNode::class.java))
+//    return objectMapper.treeToValue(patched, Customer::class.java)
+//  }
 
 }

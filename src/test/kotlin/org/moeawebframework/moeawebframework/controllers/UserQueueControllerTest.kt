@@ -12,21 +12,22 @@ import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-class UserControllerTest {
+class UserQueueControllerTest {
 
 //  @Test
-  fun signup() {
-    val signupInfoDTO = SignupInfoDTO()
-    signupInfoDTO.username = "foo"
-    signupInfoDTO.password = "bar"
-    signupInfoDTO.email = "foo@bar.com"
-    signupInfoDTO.firstName = "Foo"
+  fun testRoute() {
+//    val signupInfoDTO = SignupInfoDTO()
+//    signupInfoDTO.username = "foo"
+//    signupInfoDTO.password = "bar"
+//    signupInfoDTO.email = "foo@bar.com"
+//    signupInfoDTO.firstName = "Foo"
 
-    val response: ClientResponse = WebClient.create("http://localhost:8080").post()
-        .uri("/user/signup")
-        .bodyValue(signupInfoDTO)
+    val response: ClientResponse = WebClient.create("http://localhost:8080").get()
+        .uri("/user/queue")
         .exchange().block()
         ?: return assert(false)
+
+    println(response.bodyToMono(String::class.java).block())
 
     Assertions.assertEquals(HttpStatus.OK, response.statusCode())
   }
