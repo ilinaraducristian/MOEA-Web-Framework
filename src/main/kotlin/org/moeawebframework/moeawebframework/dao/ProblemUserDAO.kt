@@ -31,8 +31,12 @@ class ProblemUserDAO(
     return problemUserRepository.delete(t)
   }
 
-  fun getByUserId(userId: Long): Mono<ProblemUser> {
+  fun getByUserId(userId: Long): Flux<ProblemUser> {
     return problemUserRepository.findByUserId(userId)
+  }
+
+  fun getByUserUsername(username: String): Flux<ProblemUser> {
+    return problemUserRepository.findByUserUsername(username)
   }
 
 //  fun existsByMd5(sha256: String): Boolean {

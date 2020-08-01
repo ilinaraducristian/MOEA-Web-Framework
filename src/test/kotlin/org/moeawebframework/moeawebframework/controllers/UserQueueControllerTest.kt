@@ -8,6 +8,7 @@ import org.moeawebframework.moeawebframework.dto.SignupInfoDTO
 import org.moeawebframework.moeawebframework.dto.UserCredentialsDTO
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpStatus
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
 
@@ -55,6 +56,12 @@ class UserQueueControllerTest {
         { Assertions.assertEquals(null, body?.lastName) }
 
     )
+  }
+
+//  @Test
+  @WithMockUser(username = "user")
+  fun anotherTest() {
+
   }
 
 }

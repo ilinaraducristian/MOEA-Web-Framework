@@ -7,16 +7,19 @@ spring:
       enabled: true
       max-file-size: 128KB
       max-request-size: 128KB
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          issuer-uri: "http://localhost:8180/auth/realms/MOEA-Web-Framework"
+#          jwk-set-uri: "http://localhost:8180/auth/realms/MOEA-Web-Framework/protocol/openid-connect/certs"
+
 logging:
   level:
     org:
       springframework:
         data:
           r2dbc: DEBUG
-        security:
-          web:
-            FilterChainProxy: DEBUG
-#debug: true
 ---
 
 spring:

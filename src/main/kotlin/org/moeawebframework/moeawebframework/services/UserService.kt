@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 import java.io.File
 import java.security.MessageDigest
 import java.util.*
@@ -28,6 +29,13 @@ class UserService(
 ) {
 
   fun signup(signupInfoDTO: SignupInfoDTO): Mono<Void> {
+    val moeawebframeworkUser = userDao.getByUsername("moeawebframework")
+    problemUserDAO.getByUserUsername("moeawebframework").collectList().flatMap {
+      
+    }
+//    moeawebframeworkUser.flatMap {
+//      it.
+//    }
     val user = User()
     user.username = signupInfoDTO.username
     user.password = encoder.encode(signupInfoDTO.password)
@@ -61,7 +69,7 @@ class UserService(
   }
 
   /**
-   * The user must contain the real id from database.
+   * @param user Must contain the real id from database
    * */
   fun uploadProblem(user: User, name: String, file: File): Mono<Void> {
     val hash = hasher.digest(file.readBytes())
@@ -76,7 +84,7 @@ class UserService(
           problemDAO.save(newProblem)
         }
         .flatMap {
-          problemUserDAO.getByUserId(user.id!!)
+          problemUserDAO.getByUserId(user.id!!).next()
               .flatMap {
                 Mono.error<ProblemUser>(RuntimeException("Problem exists"))
               }

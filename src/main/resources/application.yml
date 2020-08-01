@@ -7,7 +7,19 @@ spring:
       enabled: true
       max-file-size: 128KB
       max-request-size: 128KB
-
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: "http://localhost:8180/auth/realms/Moea-Web-Framework"
+          jwk-set-uri:
+            - "http://localhost:8180/auth/realms/Moea-Web-Framework/protocol/openid-connect/certs"
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          r2dbc: DEBUG
 ---
 
 spring:
@@ -17,10 +29,10 @@ spring:
     username: root
     password: root
   # MySQL
-#  jpa:
-#    show-sql: false
-#    hibernate:
-#      ddl-auto: update
+  #  jpa:
+  #    show-sql: false
+  #    hibernate:
+  #      ddl-auto: update
   servlet:
     multipart:
       location: ${user.dir}
@@ -31,12 +43,15 @@ guest:
 jwt:
   token: "SkdIMUtCM3RaT3YmTW01cDk0QiM2QlVpXk4zdnY0NDk="
 
-logging:
-  level:
-    org:
-      springframework:
-        data:
-          r2dbc: DEBUG
+#logging:
+#  level:
+#    org:
+#      springframework:
+#        data:
+#          r2dbc: DEBUG
+#        security:
+#          web:
+#            FilterChainProxy: DEBUG
 
 ---
 
@@ -53,10 +68,10 @@ spring:
     host: ${redis_host}
     port: ${redis_port}
   # MySQL
-#  jpa:
-#    properties:
-#      hibernate:
-#        dialect: org.hibernate.dialect.MySQLInnoDBDialect
+  #  jpa:
+  #    properties:
+  #      hibernate:
+  #        dialect: org.hibernate.dialect.MySQLInnoDBDialect
   servlet:
     multipart:
       location: ${data_location}
