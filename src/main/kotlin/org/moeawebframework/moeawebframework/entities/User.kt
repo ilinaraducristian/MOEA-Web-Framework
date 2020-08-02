@@ -12,8 +12,7 @@ data class User(
     var password: String = "",
     var email: String = "",
     var firstName: String = "",
-    var lastName: String? = null,
-    var problemSolver: ProblemSolver? = null
+    var lastName: String? = null
 
 //    var id: Long = 0,
 //

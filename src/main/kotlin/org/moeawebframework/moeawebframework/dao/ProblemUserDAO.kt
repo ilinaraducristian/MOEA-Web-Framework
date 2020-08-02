@@ -2,7 +2,6 @@ package org.moeawebframework.moeawebframework.dao
 
 import org.moeawebframework.moeawebframework.entities.ProblemUser
 import org.moeawebframework.moeawebframework.repositories.ProblemUserRepository
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -33,6 +32,10 @@ class ProblemUserDAO(
 
   fun getByUserId(userId: Long): Flux<ProblemUser> {
     return problemUserRepository.findByUserId(userId)
+  }
+
+  fun getByUserIdAndProblemId(userId: Long, problemId: Long): Mono<ProblemUser> {
+    return problemUserRepository.findByUserIdAndProblemId(userId, problemId)
   }
 
   fun getByUserUsername(username: String): Flux<ProblemUser> {

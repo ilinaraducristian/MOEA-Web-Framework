@@ -11,9 +11,4 @@ class AlgorithmController(
     private val userService: UserService
 ) {
 
-  @GetMapping
-  fun upload() {
-//    userService.uploadAlgorithm()
-  }
-
 }

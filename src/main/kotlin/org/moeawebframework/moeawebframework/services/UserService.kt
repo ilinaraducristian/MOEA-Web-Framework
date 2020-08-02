@@ -6,12 +6,13 @@ import org.moeawebframework.moeawebframework.dto.SignupInfoDTO
 import org.moeawebframework.moeawebframework.dto.UserCredentialsDTO
 import org.moeawebframework.moeawebframework.entities.*
 import org.moeawebframework.moeawebframework.exceptions.BadCredentialsException
+import org.moeawebframework.moeawebframework.exceptions.UserExistsException
 import org.moeawebframework.moeawebframework.exceptions.UserNotFoundException
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
-import reactor.kotlin.core.publisher.toMono
 import java.io.File
 import java.security.MessageDigest
 import java.util.*
@@ -28,21 +29,32 @@ class UserService(
     private val hasher: MessageDigest
 ) {
 
-  fun signup(signupInfoDTO: SignupInfoDTO): Mono<Void> {
-    val moeawebframeworkUser = userDao.getByUsername("moeawebframework")
-    problemUserDAO.getByUserUsername("moeawebframework").collectList().flatMap {
-      
-    }
-//    moeawebframeworkUser.flatMap {
-//      it.
-//    }
-    val user = User()
+  fun signup(signupInfoDTO: SignupInfoDTO): Mono<User> {
+    var user = User()
     user.username = signupInfoDTO.username
     user.password = encoder.encode(signupInfoDTO.password)
     user.email = signupInfoDTO.email
     user.firstName = signupInfoDTO.firstName
     user.lastName = signupInfoDTO.lastName
-    return userDao.save(user).flatMap { Mono.empty<Void>() }
+    return userDao.getByUsername(user.username)
+        .flatMap {
+          Mono.error<User>(RuntimeException(UserExistsException))
+        }
+        .switchIfEmpty {
+          userDao.save(user)
+        }
+        .flatMapMany {
+          user = it
+          problemUserDAO.getByUserUsername("moeawebframework")
+        }
+        .flatMap {
+          val newProblemUser = ProblemUser()
+          newProblemUser.userId = user.id!!
+          newProblemUser.problemId = it.problemId
+          problemUserDAO.save(newProblemUser)
+        }
+        .collectList()
+        .map { user }
   }
 
   fun login(userCredentials: UserCredentialsDTO): Mono<RegisteredUserDTO> {
@@ -71,7 +83,7 @@ class UserService(
   /**
    * @param user Must contain the real id from database
    * */
-  fun uploadProblem(user: User, name: String, file: File): Mono<Void> {
+  fun uploadProblem(userId: Long, name: String, file: File): Mono<ProblemUser> {
     val hash = hasher.digest(file.readBytes())
     val b64Hash = Base64.getEncoder().encodeToString(hash)
     return problemDAO.findBySha256(b64Hash)
@@ -84,15 +96,14 @@ class UserService(
           problemDAO.save(newProblem)
         }
         .flatMap {
-          problemUserDAO.getByUserId(user.id!!).next()
+          problemUserDAO.getByUserIdAndProblemId(userId, it.id!!)
               .flatMap {
                 Mono.error<ProblemUser>(RuntimeException("Problem exists"))
               }
               .switchIfEmpty {
-                problemUserDAO.save(ProblemUser(null, user.id!!, it.id!!))
+                problemUserDAO.save(ProblemUser(null, userId, it.id!!))
               }
         }
-        .flatMap { Mono.empty<Void>() }
   }
 
   /**
