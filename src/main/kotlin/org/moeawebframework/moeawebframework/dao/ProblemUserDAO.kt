@@ -42,13 +42,4 @@ class ProblemUserDAO(
     return problemUserRepository.findByUserUsername(username)
   }
 
-//  fun existsByMd5(sha256: String): Boolean {
-////    return problemUserRepository.existsByMd5(sha256)
-//    return true
-//  }
-
-//  fun findBySha256(sha256: String): Mono<ProblemUser> {
-//    return problemUserRepository.findBySha256(sha256)
-//  }
-
 }

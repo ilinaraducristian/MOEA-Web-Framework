@@ -4,7 +4,7 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 
 @Table("algorithms_users")
-data class AlgorithmUser (
+data class AlgorithmUser(
 
     @Id
     var id: Long? = null,

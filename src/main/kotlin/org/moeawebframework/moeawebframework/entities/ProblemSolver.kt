@@ -8,14 +8,24 @@ data class ProblemSolver(
 
     @Id
     var id: Long? = null,
+
     var name: String = "",
+
     var numberOfEvaluations: Int = 0,
+
     var numberOfSeeds: Int = 0,
+
     var status: String = "",
+
     var rabbitId: String = "",
+
     var results: String = "",
+
     var problem: String = "",
+
     var algorithm: String = "",
+
     var userId: Long? = null
+
 
 )

@@ -1,9 +1,7 @@
 package org.moeawebframework.moeawebframework.dao
 
-import org.moeawebframework.moeawebframework.entities.Problem
 import org.moeawebframework.moeawebframework.entities.User
 import org.moeawebframework.moeawebframework.repositories.UserRepository
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono

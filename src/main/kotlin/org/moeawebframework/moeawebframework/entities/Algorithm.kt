@@ -8,7 +8,9 @@ data class Algorithm(
 
     @Id
     var id: Long? = null,
+
     var name: String = "",
+
     var sha256: String = ""
 
 )

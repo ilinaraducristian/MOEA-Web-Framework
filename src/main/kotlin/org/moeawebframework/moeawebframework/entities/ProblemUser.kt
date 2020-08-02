@@ -4,7 +4,7 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 
 @Table("problems_users")
-data class ProblemUser (
+data class ProblemUser(
 
     @Id
     var id: Long? = null,

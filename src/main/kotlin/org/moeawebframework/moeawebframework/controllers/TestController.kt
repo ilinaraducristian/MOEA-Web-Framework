@@ -18,9 +18,4 @@ class TestController(
   private val userRepository: UserRepository
 ) {
 
-  @GetMapping
-  private fun testEndpoint() = mono {
-    return@mono "[ TestController ] testEndpoint()"
-  }
-
 }

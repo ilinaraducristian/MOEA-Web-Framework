@@ -10,7 +10,6 @@ import org.moeawebframework.moeawebframework.exceptions.UserExistsException
 import org.moeawebframework.moeawebframework.exceptions.UserNotFoundException
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import java.io.File
@@ -86,7 +85,7 @@ class UserService(
   fun uploadProblem(userId: Long, name: String, file: File): Mono<ProblemUser> {
     val hash = hasher.digest(file.readBytes())
     val b64Hash = Base64.getEncoder().encodeToString(hash)
-    return problemDAO.findBySha256(b64Hash)
+    return problemDAO.getBySha256(b64Hash)
         .switchIfEmpty {
           // TODO("move problem from tmp folder to permanent storage")
           // TODO("if it's a microservice then check permanent storage as it must be common to all services")
@@ -109,10 +108,10 @@ class UserService(
   /**
    * The user must contain the real id from database.
    * */
-  fun uploadAlgorithm(user: User, name: String, file: File): Mono<Void> {
+  fun uploadAlgorithm(userId: Long, name: String, file: File): Mono<Void> {
     val hash = hasher.digest(file.readBytes())
     val b64Hash = Base64.getEncoder().encodeToString(hash)
-    return algorithmDAO.findBySha256(b64Hash)
+    return algorithmDAO.getBySha256(b64Hash)
         .switchIfEmpty {
           // TODO("move algorithmUser from tmp folder to permanent storage")
           // TODO("if it's a microservice then check permanent storage as it must be common to all services")
@@ -122,12 +121,12 @@ class UserService(
           algorithmDAO.save(newAlgorithm)
         }
         .flatMap {
-          algorithmUserDAO.getByUserId(user.id!!)
+          algorithmUserDAO.getByUserIdAndAlgorithmId(userId, it.id!!)
               .flatMap {
                 Mono.error<AlgorithmUser>(RuntimeException("Algorithm exists"))
               }
               .switchIfEmpty {
-                algorithmUserDAO.save(AlgorithmUser(null, user.id!!, it.id!!))
+                algorithmUserDAO.save(AlgorithmUser(null, userId, it.id!!))
               }
         }
         .flatMap { Mono.empty<Void>() }

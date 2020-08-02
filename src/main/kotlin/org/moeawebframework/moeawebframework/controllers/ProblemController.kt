@@ -11,9 +11,5 @@ class ProblemController(
     private val userService: UserService
 ) {
 
-  @GetMapping
-  fun upload() {
-//    userService.uploadProblem(problem)
-  }
 
 }

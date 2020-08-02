@@ -13,7 +13,6 @@ class SecurityConfig {
    * For authorities the default implementation uses scopes
    * instead of roles, a scope named "user" will match for
    * hasAuthority("SCOPE_user").
-   * @see JwtGrantedAuthoritiesConverter
    * */
   @Bean
   fun springSecurityWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
@@ -28,7 +27,8 @@ class SecurityConfig {
         .pathMatchers("/test/**").permitAll()
         .anyExchange().authenticated()
         .and()
-        .oauth2ResourceServer().authenticationManagerResolver(JwtIssuerReactiveAuthenticationManagerResolver(issuers))
+        .oauth2ResourceServer()
+        .authenticationManagerResolver(JwtIssuerReactiveAuthenticationManagerResolver(issuers))
         .and()
         .build()
   }

@@ -1,10 +1,7 @@
 package org.moeawebframework.moeawebframework.dao
 
 import org.moeawebframework.moeawebframework.entities.AlgorithmUser
-import org.moeawebframework.moeawebframework.entities.ProblemUser
 import org.moeawebframework.moeawebframework.repositories.AlgorithmUserRepository
-import org.moeawebframework.moeawebframework.repositories.ProblemUserRepository
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -33,17 +30,16 @@ class AlgorithmUserDAO(
     return algorithmUserRepository.delete(t)
   }
 
-  fun getByUserId(userId: Long): Mono<AlgorithmUser> {
+  fun getByUserId(userId: Long): Flux<AlgorithmUser> {
     return algorithmUserRepository.findByUserId(userId)
   }
 
-//  fun existsByMd5(sha256: String): Boolean {
-////    return problemUserRepository.existsByMd5(sha256)
-//    return true
-//  }
+  fun getByUserIdAndAlgorithmId(userId: Long, algorithmId: Long): Mono<AlgorithmUser> {
+    return algorithmUserRepository.findByUserIdAndAlgorithmId(userId, algorithmId)
+  }
 
-//  fun findBySha256(sha256: String): Mono<ProblemUser> {
-//    return problemUserRepository.findBySha256(sha256)
-//  }
+  fun getByUserUsername(username: String): Flux<AlgorithmUser> {
+    return algorithmUserRepository.findByUserUsername(username)
+  }
 
 }
