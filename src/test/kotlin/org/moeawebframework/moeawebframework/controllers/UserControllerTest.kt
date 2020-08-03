@@ -38,7 +38,7 @@ fun fetchTokenFromFirstSource(): String {
     return body?.access_token!!
   }
 
-//  @Test
+  @Test
   fun smallTestFirstSource() {
     val token = fetchTokenFromFirstSource()
     val clientResponse: ClientResponse = WebClient.create("http://localhost:8080").post()

@@ -1,4 +1,4 @@
-package org.moeawebframework.moeawebframework.security
+package org.moeawebframework.moeawebframework.configs
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

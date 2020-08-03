@@ -28,13 +28,7 @@ class UserService(
     private val hasher: MessageDigest
 ) {
 
-  fun signup(signupInfoDTO: SignupInfoDTO): Mono<User> {
-    var user = User()
-    user.username = signupInfoDTO.username
-    user.password = encoder.encode(signupInfoDTO.password)
-    user.email = signupInfoDTO.email
-    user.firstName = signupInfoDTO.firstName
-    user.lastName = signupInfoDTO.lastName
+  fun signup(user: User): Mono<User> {
     return userDao.getByUsername(user.username)
         .flatMap {
           Mono.error<User>(RuntimeException(UserExistsException))
@@ -43,7 +37,7 @@ class UserService(
           userDao.save(user)
         }
         .flatMapMany {
-          user = it
+          user.id = it.id
           problemUserDAO.getByUserUsername("moeawebframework")
         }
         .flatMap {

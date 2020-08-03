@@ -1,19 +1,13 @@
 package org.moeawebframework.moeawebframework.controllers
 
-import com.github.fge.jsonpatch.JsonPatch
-import org.moeawebframework.moeawebframework.dto.RegisteredUserDTO
-import org.moeawebframework.moeawebframework.dto.SignupInfoDTO
-import org.moeawebframework.moeawebframework.dto.UserCredentialsDTO
+import org.moeawebframework.moeawebframework.entities.User
 import org.moeawebframework.moeawebframework.services.UserService
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.userdetails.UserDetails
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserService
 import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-import java.util.*
-import javax.validation.Valid
-
 
 @RestController
 @RequestMapping("user")
@@ -22,18 +16,15 @@ class UserController(
 ) {
 
   @PostMapping("signup")
-  fun signup(authentication: Authentication) {
-//    println(Arrays.toString(Thread.currentThread().getStackTrace()).replace( ',', '\n' ))
-    println("""details: ${authentication.details}""")
+  fun signup(authentication: Authentication): Mono<Void> {
     val principal = authentication.principal as Jwt
-    principal.claims.forEach {
-      println("""[ ${it.key} ]: ${it.value}""")
-    }
-  }
-
-  @PostMapping("login")
-  fun login(@RequestBody @Valid userCredentials: UserCredentialsDTO): Mono<RegisteredUserDTO> {
-    return userService.login(userCredentials)
+    val user = User()
+    user.username = principal.claims["preferred_username"] as String
+    user.password = principal.claims["preferred_username"] as String
+    user.email = principal.claims["email"] as String
+    user.firstName = principal.claims["given_name"] as String
+    user.lastName = principal.claims["family_name"] as String
+    return userService.signup(user).flatMap { Mono.empty<Void>() }
   }
 
 //  @PatchMapping("update")
