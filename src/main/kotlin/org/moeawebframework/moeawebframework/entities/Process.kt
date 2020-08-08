@@ -3,8 +3,8 @@ package org.moeawebframework.moeawebframework.entities
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 
-@Table("problem_solvers")
-data class ProblemSolver(
+@Table("processes")
+data class Process(
 
     @Id
     var id: Long? = null,
@@ -15,17 +15,20 @@ data class ProblemSolver(
 
     var numberOfSeeds: Int = 0,
 
-    var status: String = "",
+    var status: String = "waiting",
 
     var rabbitId: String = "",
 
     var results: String = "",
 
-    var problem: String = "",
+    var algorithmSha256: String = "",
 
-    var algorithm: String = "",
+    var problemSha256: String = "",
+
+    var referenceSetSha256: String = "",
 
     var userId: Long? = null
 
 
 )
+

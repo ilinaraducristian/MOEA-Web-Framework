@@ -2,19 +2,17 @@ package org.moeawebframework.moeawebframework.services
 
 import org.junit.jupiter.api.*
 import org.moeawebframework.moeawebframework.dao.ProblemUserDAO
-import org.moeawebframework.moeawebframework.dao.UserDao
-import org.moeawebframework.moeawebframework.dto.SignupInfoDTO
+import org.moeawebframework.moeawebframework.dao.UserDAO
 import org.moeawebframework.moeawebframework.entities.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import java.io.File
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class UserServiceTest {
 
   @Autowired
-  lateinit var userDao: UserDao
+  lateinit var userDAO: UserDAO
 
   @Autowired
   lateinit var problemUserDAO: ProblemUserDAO
@@ -22,7 +20,7 @@ class UserServiceTest {
   @Autowired
   lateinit var userService: UserService
 
-//  @Test
+  //  @Test
   @Order(1)
   fun createMoeawebframeworkuser() {
     val moeawebframeworkuser = User()
@@ -31,28 +29,28 @@ class UserServiceTest {
     moeawebframeworkuser.firstName = "moeawebframework"
     moeawebframeworkuser.lastName = "moeawebframework"
     moeawebframeworkuser.email = "moeawebframework@email.com"
-    userDao.save(moeawebframeworkuser).map {
+    userDAO.save(moeawebframeworkuser).map {
       Assertions.assertEquals("moeawebframework", it.username)
     }.block()
   }
 
-//  @Test
-  @Order(2)
-  fun uploadMoeawebframeworkuserProblems() {
-    val moeawebframeworkuser = userDao.getByUsername("moeawebframework").block()!!
-    val moeawebframeworkuserId = moeawebframeworkuser.id!!
-    val problemUser1 = userService.uploadProblem(moeawebframeworkuserId, "Problem1 name", File("./.gitignore")).block()!!
-    val problemUser2 = userService.uploadProblem(moeawebframeworkuserId, "Problem2 name", File("./build.gradle.kts")).block()!!
-    val problemUser3 = userService.uploadProblem(moeawebframeworkuserId, "Problem3 name", File("./HELP.md")).block()!!
+  //  @Test
+//  @Order(2)
+//  fun uploadMoeawebframeworkuserProblems() {
+//    val moeawebframeworkuser = userDao.getByUsername("moeawebframework").block()!!
+//    val moeawebframeworkuserId = moeawebframeworkuser.id!!
+//    val problemUser1 = userService.uploadProblem(moeawebframeworkuserId, "Problem1 name", File("./.gitignore")).block()!!
+//    val problemUser2 = userService.uploadProblem(moeawebframeworkuserId, "Problem2 name", File("./build.gradle.kts")).block()!!
+//    val problemUser3 = userService.uploadProblem(moeawebframeworkuserId, "Problem3 name", File("./HELP.md")).block()!!
+//
+//    assertAll(
+//        { Assertions.assertEquals(moeawebframeworkuserId, problemUser1.userId) },
+//        { Assertions.assertEquals(moeawebframeworkuserId, problemUser2.userId) },
+//        { Assertions.assertEquals(moeawebframeworkuserId, problemUser3.userId) }
+//    )
+//  }
 
-    assertAll(
-        { Assertions.assertEquals(moeawebframeworkuserId, problemUser1.userId) },
-        { Assertions.assertEquals(moeawebframeworkuserId, problemUser2.userId) },
-        { Assertions.assertEquals(moeawebframeworkuserId, problemUser3.userId) }
-    )
-  }
-
-//  @Test
+  //  @Test
   @Order(3)
   fun signup() {
     val user = User()

@@ -7,9 +7,9 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Repository
-class UserDao(
+class UserDAO(
     private val userRepository: UserRepository
-) : Dao<User> {
+) : DAO<User> {
   override fun get(id: Long): Mono<User> {
     return userRepository.findById(id)
   }

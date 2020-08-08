@@ -3,7 +3,7 @@ package org.moeawebframework.moeawebframework.dao
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-interface Dao<T> {
+interface DAO<T> {
 
   fun get(id: Long): Mono<T>
 

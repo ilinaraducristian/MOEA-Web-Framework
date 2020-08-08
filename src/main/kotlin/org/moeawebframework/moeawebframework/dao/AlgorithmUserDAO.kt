@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono
 @Repository
 class AlgorithmUserDAO(
     private val algorithmUserRepository: AlgorithmUserRepository
-) : Dao<AlgorithmUser> {
+) : DAO<AlgorithmUser> {
   override fun get(id: Long): Mono<AlgorithmUser> {
     return algorithmUserRepository.findById(id)
   }

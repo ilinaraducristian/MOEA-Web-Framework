@@ -1,40 +1,49 @@
 package org.moeawebframework.moeawebframework.services
 
 import org.moeawebframework.moeawebframework.dao.*
+import org.moeawebframework.moeawebframework.dto.ProcessDTO
 import org.moeawebframework.moeawebframework.dto.RegisteredUserDTO
-import org.moeawebframework.moeawebframework.dto.SignupInfoDTO
 import org.moeawebframework.moeawebframework.dto.UserCredentialsDTO
 import org.moeawebframework.moeawebframework.entities.*
-import org.moeawebframework.moeawebframework.exceptions.BadCredentialsException
-import org.moeawebframework.moeawebframework.exceptions.UserExistsException
-import org.moeawebframework.moeawebframework.exceptions.UserNotFoundException
+import org.moeawebframework.moeawebframework.exceptions.*
+import org.springframework.core.io.buffer.DataBufferUtils
+import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.http.codec.multipart.FilePart
+import org.springframework.messaging.rsocket.RSocketRequester
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.web.reactive.function.BodyInserters
+import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
-import java.io.File
 import java.security.MessageDigest
 import java.util.*
 
 @Service
 class UserService(
-    private val userDao: UserDao,
-    private val problemSolverDAO: ProblemSolverDAO,
-    private val problemDAO: ProblemDAO,
+    private val userDAO: UserDAO,
+    private val processDAO: ProcessDAO,
+
     private val algorithmDAO: AlgorithmDAO,
-    private val problemUserDAO: ProblemUserDAO,
+    private val problemDAO: ProblemDAO,
+    private val referenceSetDAO: ReferenceSetDAO,
+
     private val algorithmUserDAO: AlgorithmUserDAO,
+    private val problemUserDAO: ProblemUserDAO,
+    private val referenceSetUserDAO: ReferenceSetUserDAO,
+
     private val encoder: BCryptPasswordEncoder,
-    private val hasher: MessageDigest
+    private val hasher: MessageDigest,
+    private val rSocketRequester: RSocketRequester
 ) {
 
   fun signup(user: User): Mono<User> {
-    return userDao.getByUsername(user.username)
+    return userDAO.getByUsername(user.username)
         .flatMap {
           Mono.error<User>(RuntimeException(UserExistsException))
         }
         .switchIfEmpty {
-          userDao.save(user)
+          userDAO.save(user)
         }
         .flatMapMany {
           user.id = it.id
@@ -51,7 +60,7 @@ class UserService(
   }
 
   fun login(userCredentials: UserCredentialsDTO): Mono<RegisteredUserDTO> {
-    return userDao.getByUsername(userCredentials.username)
+    return userDAO.getByUsername(userCredentials.username)
         .switchIfEmpty {
           Mono.error(RuntimeException(UserNotFoundException))
         }.filter {
@@ -68,62 +77,147 @@ class UserService(
         }
   }
 
-  fun addProblemSolver(user: User, problemSolver: ProblemSolver): Mono<ProblemSolver> {
-    problemSolver.userId = user.id
-    return problemSolverDAO.save(problemSolver)
-  }
-
-  /**
-   * @param user Must contain the real id from database
-   * */
-  fun uploadProblem(userId: Long, name: String, file: File): Mono<ProblemUser> {
-    val hash = hasher.digest(file.readBytes())
-    val b64Hash = Base64.getEncoder().encodeToString(hash)
-    return problemDAO.getBySha256(b64Hash)
+  fun oauth2Login(username: String): Mono<RegisteredUserDTO> {
+    return userDAO.getByUsername(username)
         .switchIfEmpty {
-          // TODO("move problem from tmp folder to permanent storage")
-          // TODO("if it's a microservice then check permanent storage as it must be common to all services")
-          val newProblem = Problem()
-          newProblem.name = name
-          newProblem.sha256 = b64Hash
-          problemDAO.save(newProblem)
-        }
-        .flatMap {
-          problemUserDAO.getByUserIdAndProblemId(userId, it.id!!)
-              .flatMap {
-                Mono.error<ProblemUser>(RuntimeException("Problem exists"))
-              }
-              .switchIfEmpty {
-                problemUserDAO.save(ProblemUser(null, userId, it.id!!))
-              }
+          Mono.error(RuntimeException(UserNotFoundException))
+        }.map {
+          val registeredUserDTO = RegisteredUserDTO()
+          registeredUserDTO.username = it.username
+          registeredUserDTO.email = it.email
+          registeredUserDTO.firstName = it.firstName
+          registeredUserDTO.lastName = it.lastName
+          registeredUserDTO
         }
   }
 
-  /**
-   * The user must contain the real id from database.
-   * */
-  fun uploadAlgorithm(userId: Long, name: String, file: File): Mono<Void> {
-    val hash = hasher.digest(file.readBytes())
-    val b64Hash = Base64.getEncoder().encodeToString(hash)
-    return algorithmDAO.getBySha256(b64Hash)
-        .switchIfEmpty {
-          // TODO("move algorithmUser from tmp folder to permanent storage")
-          // TODO("if it's a microservice then check permanent storage as it must be common to all services")
-          val newAlgorithm = Algorithm()
-          newAlgorithm.name = name
-          newAlgorithm.sha256 = b64Hash
-          algorithmDAO.save(newAlgorithm)
+  fun uploadAlgorithm(userId: Long, name: String, filePart: FilePart): Mono<String> {
+    var b64Hash = ""
+    return filePart.content().last().flatMap {
+      val bytes = ByteArray(it.readableByteCount())
+      it.read(bytes)
+      DataBufferUtils.release(it)
+      val hash = hasher.digest(bytes)
+      b64Hash = Base64.getEncoder().encodeToString(hash)
+      val multipart = MultipartBodyBuilder()
+      multipart.part("data", filePart).filename(b64Hash)
+      algorithmDAO.getBySha256(b64Hash).switchIfEmpty {
+        WebClient.create("http://localhost:8070").post()
+            .uri("/")
+            .body(BodyInserters.fromMultipartData(multipart.build()))
+            .exchange().flatMap {
+              val newAlgorithm = Algorithm()
+              newAlgorithm.name = name
+              newAlgorithm.sha256 = b64Hash
+              algorithmDAO.save(newAlgorithm)
+            }
+      }
+    }.flatMap {
+      algorithmUserDAO.getByUserIdAndAlgorithmId(userId, it.id!!)
+          .flatMap {
+            Mono.error<AlgorithmUser>(RuntimeException("Algorithm exists"))
+          }
+          .switchIfEmpty {
+            algorithmUserDAO.save(AlgorithmUser(null, userId, it.id!!))
+          }
+    }.map { b64Hash }
+  }
+
+  fun uploadProblem(userId: Long, name: String, filePart: FilePart): Mono<String> {
+    var b64Hash = ""
+    return filePart.content().last().flatMap {
+      val bytes = ByteArray(it.readableByteCount())
+      it.read(bytes)
+      DataBufferUtils.release(it)
+      val hash = hasher.digest(bytes)
+      b64Hash = Base64.getEncoder().encodeToString(hash)
+      val multipart = MultipartBodyBuilder()
+      multipart.part("data", filePart).filename(b64Hash)
+      problemDAO.getBySha256(b64Hash).switchIfEmpty {
+        WebClient.create("http://localhost:8070").post()
+            .uri("/")
+            .body(BodyInserters.fromMultipartData(multipart.build()))
+            .exchange().flatMap {
+              val newProblem = Problem()
+              newProblem.name = name
+              newProblem.sha256 = b64Hash
+              problemDAO.save(newProblem)
+            }
+      }
+    }.flatMap {
+      problemUserDAO.getByUserIdAndProblemId(userId, it.id!!)
+          .flatMap {
+            Mono.error<ProblemUser>(RuntimeException("Problem exists"))
+          }
+          .switchIfEmpty {
+            problemUserDAO.save(ProblemUser(null, userId, it.id!!))
+          }
+    }.map { b64Hash }
+  }
+
+  fun uploadReferenceSet(userId: Long, name: String, filePart: FilePart): Mono<String> {
+    var b64Hash = ""
+    return filePart.content().last().flatMap {
+      val bytes = ByteArray(it.readableByteCount())
+      it.read(bytes)
+      DataBufferUtils.release(it)
+      val hash = hasher.digest(bytes)
+      b64Hash = Base64.getEncoder().encodeToString(hash)
+      val multipart = MultipartBodyBuilder()
+      multipart.part("data", filePart).filename(b64Hash)
+      referenceSetDAO.getBySha256(b64Hash).switchIfEmpty {
+        WebClient.create("http://localhost:8070").post()
+            .uri("/")
+            .body(BodyInserters.fromMultipartData(multipart.build()))
+            .exchange().flatMap {
+              val newReferenceSet = ReferenceSet()
+              newReferenceSet.name = name
+              newReferenceSet.sha256 = b64Hash
+              referenceSetDAO.save(newReferenceSet)
+            }
+      }
+    }.flatMap {
+      referenceSetUserDAO.getByUserIdAndReferenceSetId(userId, it.id!!)
+          .flatMap {
+            Mono.error<ReferenceSetUser>(RuntimeException("ReferenceSet exists"))
+          }
+          .switchIfEmpty {
+            referenceSetUserDAO.save(ReferenceSetUser(null, userId, it.id!!))
+          }
+    }.map { b64Hash }
+  }
+
+  fun addProcess(username: String, processDTO: ProcessDTO): Mono<String> {
+    return userDAO.getByUsername(username)
+        .switchIfEmpty(Mono.error(RuntimeException(UserNotFoundException)))
+        .flatMap { user ->
+          if (!problemDAO.existsBySha256(processDTO.problemSha256)) return@flatMap Mono.error<String>(RuntimeException(ProblemNotFoundException))
+          if (!algorithmDAO.existsBySha256(processDTO.algorithmSha256)) return@flatMap Mono.error<String>(RuntimeException(AlgorithmNotFoundException))
+          if (!referenceSetDAO.existsBySha256(processDTO.referenceSetSha256)) return@flatMap Mono.error<String>(RuntimeException(ReferenceSetNotFoundException))
+          val newProcess = Process()
+          newProcess.name = processDTO.name
+          newProcess.userId = user.id!!
+          newProcess.numberOfEvaluations = processDTO.numberOfEvaluations
+          newProcess.numberOfSeeds = processDTO.numberOfSeeds
+          newProcess.problemSha256 = processDTO.problemSha256
+          newProcess.algorithmSha256 = processDTO.algorithmSha256
+          newProcess.referenceSetSha256 = processDTO.referenceSetSha256
+          newProcess.rabbitId = UUID.randomUUID().toString()
+          processDAO.save(newProcess).map { """{"rabbitId": "${newProcess.rabbitId}"}""" }
         }
+  }
+
+  fun process(rabbitId: String): Mono<Unit> {
+    return processDAO.getByRabbitId(rabbitId)
+        .switchIfEmpty(Mono.error(RuntimeException("Process not found")))
         .flatMap {
-          algorithmUserDAO.getByUserIdAndAlgorithmId(userId, it.id!!)
-              .flatMap {
-                Mono.error<AlgorithmUser>(RuntimeException("Algorithm exists"))
-              }
-              .switchIfEmpty {
-                algorithmUserDAO.save(AlgorithmUser(null, userId, it.id!!))
-              }
+          if (it.status == "processing" || it.status == "processed")
+            return@flatMap Mono.error<Unit>(RuntimeException(it.status))
+
+          rSocketRequester.route("process")
+              .data(it)
+              .retrieveMono(Unit::class.java)
         }
-        .flatMap { Mono.empty<Void>() }
   }
 
 }

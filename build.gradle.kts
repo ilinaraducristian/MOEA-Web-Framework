@@ -3,8 +3,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
   id("org.springframework.boot") version "2.3.1.RELEASE"
   id("io.spring.dependency-management") version "1.0.9.RELEASE"
+  id("idea")
+//  id("java")
   kotlin("jvm") version "1.3.72"
   kotlin("plugin.spring") version "1.3.72"
+  id("com.google.protobuf") version "0.8.12"
 }
 
 group = "org.moeawebframework"
@@ -23,16 +26,10 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
-
   implementation("org.springframework.boot:spring-boot-starter-validation")
 
-  // JWT
-  implementation("io.jsonwebtoken:jjwt-api:0.11.2")
-  runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.2")
-  runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.2")
-
-  // Parse JSON patch request
-  implementation("com.github.fge:json-patch:1.9")
+  // RSocket
+  implementation("org.springframework.boot:spring-boot-starter-rsocket")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
@@ -40,6 +37,7 @@ dependencies {
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
   developmentOnly("org.springframework.boot:spring-boot-devtools")
+
   runtimeOnly("com.h2database:h2")
   runtimeOnly("dev.miku:r2dbc-mysql")
   runtimeOnly("io.r2dbc:r2dbc-h2")

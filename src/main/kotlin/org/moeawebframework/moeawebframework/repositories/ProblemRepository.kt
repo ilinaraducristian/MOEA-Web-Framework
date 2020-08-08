@@ -8,4 +8,6 @@ interface ProblemRepository : R2dbcRepository<Problem, Long> {
 
   fun findBySha256(sha256: String): Mono<Problem>
 
+  fun existsBySha256(sha256: String): Boolean
+
 }

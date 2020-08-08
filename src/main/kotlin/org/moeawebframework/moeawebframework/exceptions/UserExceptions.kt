@@ -1,5 +1,5 @@
 package org.moeawebframework.moeawebframework.exceptions
 
-val UserNotFoundException = "User not found"
-val UserExistsException = "User already registered"
-val BadCredentialsException = "Bad credentials"
+const val UserNotFoundException = "User not found"
+const val UserExistsException = "User already registered"
+const val BadCredentialsException = "Bad credentials"

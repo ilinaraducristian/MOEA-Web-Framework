@@ -11,11 +11,12 @@ import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 
 @RestController
-@RequestMapping("algorithm")
-class AlgorithmController(
-    private val userService: UserService,
-    private val userDAO: UserDAO
+@RequestMapping("referenceSet")
+class ReferenceSetController(
+    private val userDAO: UserDAO,
+    private val userService: UserService
 ) {
+
   @PostMapping
   fun upload(authentication: Authentication, @RequestPart("data") filePart: FilePart, @RequestPart("name") name: String): Mono<String> {
     val principal = authentication.principal as Jwt
@@ -23,16 +24,15 @@ class AlgorithmController(
     return userDAO.getByUsername(username)
         .switchIfEmpty(Mono.error(RuntimeException("User not found")))
         .flatMap {
-          userService.uploadAlgorithm(it?.id!!, name, filePart)
+          userService.uploadReferenceSet(it?.id!!, name, filePart)
         }
   }
 
-  @GetMapping("{algorithm_sha256}", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-  fun download(@PathVariable("algorithm_sha256") algorithm_sha256: String): Mono<ByteArray> {
+  @GetMapping("{referenceSet_sha256}", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+  fun download(@PathVariable("referenceSet_sha256") referenceSet_sha256: String): Mono<ByteArray> {
     return WebClient.create("http://localhost:8070").get()
-        .uri("""/$algorithm_sha256""")
+        .uri("""/$referenceSet_sha256""")
         .exchange().flatMap {
-//          it.headers().header("Content-Type")[0] = "application/octet-stream"
           it.bodyToMono(String::class.java)
         }.map {
           it.toByteArray()
@@ -40,9 +40,10 @@ class AlgorithmController(
   }
 
   @DeleteMapping
-  fun delete(authentication: Authentication?, algorithm_sha256: String): Mono<Unit> {
+  fun delete(authentication: Authentication?, referenceSet_sha256: String): Mono<Unit> {
     return WebClient.create("http://localhost:8070").delete()
-        .uri("""/$algorithm_sha256""")
+        .uri("""/$referenceSet_sha256""")
         .exchange().map {}
   }
+
 }

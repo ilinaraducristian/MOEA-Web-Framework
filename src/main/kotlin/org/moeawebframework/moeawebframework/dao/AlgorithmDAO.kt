@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono
 @Repository
 class AlgorithmDAO(
     private val algorithmRepository: AlgorithmRepository
-) : Dao<Algorithm> {
+) : DAO<Algorithm> {
   override fun get(id: Long): Mono<Algorithm> {
     return algorithmRepository.findById(id)
   }
@@ -32,6 +32,10 @@ class AlgorithmDAO(
 
   fun getBySha256(sha256: String): Mono<Algorithm> {
     return algorithmRepository.findBySha256(sha256)
+  }
+
+  fun existsBySha256(sha256: String): Boolean {
+    return algorithmRepository.existsBySha256(sha256)
   }
 
 }

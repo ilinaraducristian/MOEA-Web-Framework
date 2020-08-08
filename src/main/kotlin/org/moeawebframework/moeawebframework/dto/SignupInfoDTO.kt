@@ -2,7 +2,7 @@ package org.moeawebframework.moeawebframework.dto
 
 import javax.validation.constraints.NotEmpty
 
-data class SignupInfoDTO (
+data class SignupInfoDTO(
 
     @NotEmpty
     var username: String = "",
