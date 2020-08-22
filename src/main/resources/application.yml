@@ -8,69 +8,28 @@ spring:
       max-file-size: 128KB
       max-request-size: 128KB
 
-logging:
-  level:
-    org:
-      springframework:
-        data:
-          r2dbc: DEBUG
 ---
 
 spring:
   profiles: dev
-  # RabbitMQ
-  rabbitmq:
-    username: root
-    password: root
-  # MySQL
-  #  jpa:
-  #    show-sql: false
-  #    hibernate:
-  #      ddl-auto: update
-  servlet:
-    multipart:
-      location: ${user.dir}
 
-guest:
-  password: guest
+logging.level.org.springframework.data.r2dbc: DEBUG
 
-jwt:
-  token: "SkdIMUtCM3RaT3YmTW01cDk0QiM2QlVpXk4zdnY0NDk="
-
-#logging:
-#  level:
-#    org:
-#      springframework:
-#        data:
-#          r2dbc: DEBUG
-#        security:
-#          web:
-#            FilterChainProxy: DEBUG
+CDN_URI: 'localhost:8070'
+R2DBC_URI: 'r2dbc:h2:mem:///test?options=DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE'
+RSOCKET_HOST: 'localhost'
+RSOCKET_PORT: 7000
 
 ---
 
 spring:
   profiles: prod
-  # RabbitMQ
-  rabbitmq:
-    host: ${rabbitmq_host}
-    port: ${rabbitmq_port}
-    username: ${rabbitmq_username}
-    password: ${rabbitmq_password}
   #Redis
   redis:
-    host: ${redis_host}
-    port: ${redis_port}
-  # MySQL
-  #  jpa:
-  #    properties:
-  #      hibernate:
-  #        dialect: org.hibernate.dialect.MySQLInnoDBDialect
-  servlet:
-    multipart:
-      location: ${data_location}
-guest:
-  password: ${guest_password}
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
 
-jwt:
-  token: ${jwt}
+CDN_URI: ${CDN_URI}
+R2DBC_URI: ${R2DBC_URI}
+RSOCKET_HOST: ${RSOCKET_HOST}
+RSOCKET_PORT: ${RSOCKET_PORT}

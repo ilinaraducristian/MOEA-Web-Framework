@@ -1,6 +1,7 @@
 package org.moeawebframework.moeawebframework.controllers
 
 import org.moeawebframework.moeawebframework.dao.UserDAO
+import org.moeawebframework.moeawebframework.exceptions.UserNotFoundException
 import org.moeawebframework.moeawebframework.services.UserService
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
@@ -22,7 +23,7 @@ class ProblemController(
     val principal = authentication.principal as Jwt
     val username = principal.claims["preferred_username"] as String
     return userDAO.getByUsername(username)
-        .switchIfEmpty(Mono.error(RuntimeException("User not found")))
+        .switchIfEmpty(Mono.error(RuntimeException(UserNotFoundException)))
         .flatMap {
           userService.uploadProblem(it?.id!!, name, filePart)
         }

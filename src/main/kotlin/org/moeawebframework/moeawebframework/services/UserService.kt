@@ -6,6 +6,7 @@ import org.moeawebframework.moeawebframework.dto.RegisteredUserDTO
 import org.moeawebframework.moeawebframework.dto.UserCredentialsDTO
 import org.moeawebframework.moeawebframework.entities.*
 import org.moeawebframework.moeawebframework.exceptions.*
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.http.codec.multipart.FilePart
@@ -36,6 +37,9 @@ class UserService(
     private val hasher: MessageDigest,
     private val rSocketRequester: RSocketRequester
 ) {
+
+  @Value("CDN_URI")
+  lateinit var CDN_URI: String
 
   fun signup(user: User): Mono<User> {
     return userDAO.getByUsername(user.username)
@@ -102,7 +106,7 @@ class UserService(
       val multipart = MultipartBodyBuilder()
       multipart.part("data", filePart).filename(b64Hash)
       algorithmDAO.getBySha256(b64Hash).switchIfEmpty {
-        WebClient.create("http://localhost:8070").post()
+        WebClient.create(CDN_URI).post()
             .uri("/")
             .body(BodyInserters.fromMultipartData(multipart.build()))
             .exchange().flatMap {
@@ -115,7 +119,7 @@ class UserService(
     }.flatMap {
       algorithmUserDAO.getByUserIdAndAlgorithmId(userId, it.id!!)
           .flatMap {
-            Mono.error<AlgorithmUser>(RuntimeException("Algorithm exists"))
+            Mono.error<AlgorithmUser>(RuntimeException(AlgorithmExistsException))
           }
           .switchIfEmpty {
             algorithmUserDAO.save(AlgorithmUser(null, userId, it.id!!))
@@ -134,7 +138,7 @@ class UserService(
       val multipart = MultipartBodyBuilder()
       multipart.part("data", filePart).filename(b64Hash)
       problemDAO.getBySha256(b64Hash).switchIfEmpty {
-        WebClient.create("http://localhost:8070").post()
+        WebClient.create(CDN_URI).post()
             .uri("/")
             .body(BodyInserters.fromMultipartData(multipart.build()))
             .exchange().flatMap {
@@ -147,7 +151,7 @@ class UserService(
     }.flatMap {
       problemUserDAO.getByUserIdAndProblemId(userId, it.id!!)
           .flatMap {
-            Mono.error<ProblemUser>(RuntimeException("Problem exists"))
+            Mono.error<ProblemUser>(RuntimeException(ProblemExistsException))
           }
           .switchIfEmpty {
             problemUserDAO.save(ProblemUser(null, userId, it.id!!))
@@ -166,7 +170,7 @@ class UserService(
       val multipart = MultipartBodyBuilder()
       multipart.part("data", filePart).filename(b64Hash)
       referenceSetDAO.getBySha256(b64Hash).switchIfEmpty {
-        WebClient.create("http://localhost:8070").post()
+        WebClient.create(CDN_URI).post()
             .uri("/")
             .body(BodyInserters.fromMultipartData(multipart.build()))
             .exchange().flatMap {
@@ -179,7 +183,7 @@ class UserService(
     }.flatMap {
       referenceSetUserDAO.getByUserIdAndReferenceSetId(userId, it.id!!)
           .flatMap {
-            Mono.error<ReferenceSetUser>(RuntimeException("ReferenceSet exists"))
+            Mono.error<ReferenceSetUser>(RuntimeException(ReferenceSetExistsException))
           }
           .switchIfEmpty {
             referenceSetUserDAO.save(ReferenceSetUser(null, userId, it.id!!))
@@ -209,7 +213,7 @@ class UserService(
 
   fun process(rabbitId: String): Mono<Unit> {
     return processDAO.getByRabbitId(rabbitId)
-        .switchIfEmpty(Mono.error(RuntimeException("Process not found")))
+        .switchIfEmpty(Mono.error(RuntimeException(ProcessNotFoundException)))
         .flatMap {
           if (it.status == "processing" || it.status == "processed")
             return@flatMap Mono.error<Unit>(RuntimeException(it.status))

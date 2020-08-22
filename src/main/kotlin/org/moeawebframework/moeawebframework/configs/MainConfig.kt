@@ -1,5 +1,6 @@
 package org.moeawebframework.moeawebframework.configs
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -11,11 +12,15 @@ import org.springframework.messaging.rsocket.RSocketStrategies
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.util.MimeTypeUtils
 import java.security.MessageDigest
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 @Configuration
 class MainConfig {
+
+  @Value("RSOCKET_HOST")
+  lateinit var RSOCKET_HOST: String
+
+  @Value("RSOCKET_PORT")
+  var RSOCKET_PORT: Int = 0
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -40,7 +45,7 @@ class MainConfig {
                 .build()
         )
         .dataMimeType(MimeTypeUtils.APPLICATION_JSON)
-        .connectTcp("localhost", 7000)
+        .connectTcp(RSOCKET_HOST, RSOCKET_PORT)
         .block()!!
   }
 

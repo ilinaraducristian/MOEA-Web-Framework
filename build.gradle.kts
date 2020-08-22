@@ -1,13 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-  id("org.springframework.boot") version "2.3.1.RELEASE"
-  id("io.spring.dependency-management") version "1.0.9.RELEASE"
-  id("idea")
-//  id("java")
+  id("org.springframework.boot") version "2.3.3.RELEASE"
+  id("io.spring.dependency-management") version "1.0.10.RELEASE"
+  idea
   kotlin("jvm") version "1.3.72"
   kotlin("plugin.spring") version "1.3.72"
-  id("com.google.protobuf") version "0.8.12"
 }
 
 group = "org.moeawebframework"
@@ -21,27 +19,30 @@ repositories {
 dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+
   implementation("org.springframework.boot:spring-boot-starter-amqp")
+  implementation("org.springframework.boot:spring-boot-starter-rsocket")
+
   implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
   implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
+
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-validation")
 
-  // RSocket
-  implementation("org.springframework.boot:spring-boot-starter-rsocket")
-
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-  implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
   implementation("org.jetbrains.kotlin:kotlin-reflect")
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-  developmentOnly("org.springframework.boot:spring-boot-devtools")
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 
   runtimeOnly("com.h2database:h2")
-  runtimeOnly("dev.miku:r2dbc-mysql")
+  runtimeOnly("org.postgresql:postgresql")
   runtimeOnly("io.r2dbc:r2dbc-h2")
-  runtimeOnly("mysql:mysql-connector-java")
+  runtimeOnly("io.r2dbc:r2dbc-postgresql")
+
+  developmentOnly("org.springframework.boot:spring-boot-devtools")
+
   testImplementation("org.springframework.boot:spring-boot-starter-test") {
     exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
   }
