@@ -3,6 +3,7 @@ package org.moeawebframework.moeawebframework.controllers
 import org.moeawebframework.moeawebframework.dao.UserDAO
 import org.moeawebframework.moeawebframework.exceptions.UserNotFoundException
 import org.moeawebframework.moeawebframework.services.UserService
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.security.core.Authentication
@@ -17,6 +18,10 @@ class AlgorithmController(
     private val userService: UserService,
     private val userDAO: UserDAO
 ) {
+
+  @Value("\${CDN_URI}")
+  lateinit var CDN_URI: String
+
   @PostMapping
   fun upload(authentication: Authentication, @RequestPart("data") filePart: FilePart, @RequestPart("name") name: String): Mono<String> {
     val principal = authentication.principal as Jwt
@@ -30,7 +35,7 @@ class AlgorithmController(
 
   @GetMapping("{algorithm_sha256}", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
   fun download(@PathVariable("algorithm_sha256") algorithm_sha256: String): Mono<ByteArray> {
-    return WebClient.create("http://localhost:8070").get()
+    return WebClient.create(CDN_URI).get()
         .uri("""/$algorithm_sha256""")
         .exchange().flatMap {
 //          it.headers().header("Content-Type")[0] = "application/octet-stream"
@@ -42,7 +47,7 @@ class AlgorithmController(
 
   @DeleteMapping
   fun delete(authentication: Authentication?, algorithm_sha256: String): Mono<Unit> {
-    return WebClient.create("http://localhost:8070").delete()
+    return WebClient.create(CDN_URI).delete()
         .uri("""/$algorithm_sha256""")
         .exchange().map {}
   }

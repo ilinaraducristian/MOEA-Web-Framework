@@ -1,42 +1,45 @@
 package org.moeawebframework.moeawebframework.controllers
 
 import org.moeawebframework.moeawebframework.dao.UserDAO
-import org.moeawebframework.moeawebframework.dto.RegisteredUserDTO
-import org.moeawebframework.moeawebframework.dto.UserCredentialsDTO
 import org.moeawebframework.moeawebframework.entities.User
+import org.moeawebframework.moeawebframework.exceptions.UserExistsException
+import org.moeawebframework.moeawebframework.exceptions.UserNotFoundException
 import org.moeawebframework.moeawebframework.services.UserService
 import org.springframework.security.core.Authentication
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 @RestController
 @RequestMapping("user")
 class UserController(
     private val userService: UserService,
-    private val userDAO: UserDAO,
-    private val encoder: BCryptPasswordEncoder
+    private val userDAO: UserDAO
 ) {
 
   @PostMapping("signup")
-  fun signup(@RequestBody password: String, authentication: Authentication): Mono<Void> {
+  fun signup(authentication: Authentication): Mono<Unit> {
     val principal = authentication.principal as Jwt
-    val user = User()
-    user.username = principal.claims["preferred_username"] as String
-    user.password = encoder.encode(password)
-    user.email = principal.claims["email"] as String
-    user.firstName = principal.claims["given_name"] as String
-    user.lastName = principal.claims["family_name"] as String
-    return userService.signup(user).flatMap { Mono.empty<Void>() }
+    val username = principal.claims["preferred_username"] as String
+    return userDAO.getByUsername(username)
+        .flatMap { Mono.error<User>(RuntimeException(UserExistsException)) }
+        .switchIfEmpty {
+          val user = User(username = username)
+          userService.signup(user)
+        }
+        .map {}
   }
 
-  @PostMapping("login")
-  fun login(userCredentialsDTO: UserCredentialsDTO, authentication: Authentication?): Mono<RegisteredUserDTO> {
-    return if (authentication == null)
-      userService.login(userCredentialsDTO)
-    else
-      userService.oauth2Login((authentication.principal as Jwt).claims["preferred_username"] as String)
+  @GetMapping("getAlgorithmsAndProblems")
+  fun getAlgorithmsAndProblems(authentication: Authentication): Mono<HashMap<String, List<Any>>> {
+    val principal = authentication.principal as Jwt
+    return userDAO.getByUsername(principal.claims["preferred_username"] as String)
+        .switchIfEmpty(Mono.error(RuntimeException(UserNotFoundException)))
+        .flatMap { userService.getAlgorithmsAndProblems(it.id!!) }
   }
 
 //  @PatchMapping("update")

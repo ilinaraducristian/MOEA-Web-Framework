@@ -12,8 +12,6 @@ data class ProcessDTO(
 
     var numberOfEvaluations: Int = 0,
 
-    var numberOfSeeds: Int = 0,
-
-    var rabbitId: String = ""
+    var numberOfSeeds: Int = 0
 
 )

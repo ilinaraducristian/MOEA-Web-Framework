@@ -12,13 +12,19 @@ spring:
 
 spring:
   profiles: dev
+  main:
+    lazy-initialization: true
 
 logging.level.org.springframework.data.r2dbc: DEBUG
 
 CDN_URI: 'localhost:8070'
-R2DBC_URI: 'r2dbc:h2:mem:///test?options=DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE'
+#R2DBC_URI: 'r2dbc:h2:mem:///test?options=DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE'
+R2DBC_URI: "r2dbc:postgresql://localhost:5432/moeawebframework"
 RSOCKET_HOST: 'localhost'
 RSOCKET_PORT: 7000
+AUTHENTICATION_ISSUERS:
+  - "http://localhost:8180/auth/realms/MOEA-Web-Framework"
+  - "http://localhost:8280/auth/realms/MOEA-Web-Framework"
 
 ---
 

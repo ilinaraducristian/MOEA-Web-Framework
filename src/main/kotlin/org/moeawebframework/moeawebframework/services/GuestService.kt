@@ -3,7 +3,6 @@ package org.moeawebframework.moeawebframework.services
 import org.moeawebframework.moeawebframework.configs.redisType
 import org.moeawebframework.moeawebframework.dao.AlgorithmDAO
 import org.moeawebframework.moeawebframework.dao.ProblemDAO
-import org.moeawebframework.moeawebframework.dao.ReferenceSetDAO
 import org.moeawebframework.moeawebframework.dao.UserDAO
 import org.moeawebframework.moeawebframework.dto.ProcessDTO
 import org.moeawebframework.moeawebframework.entities.Process
@@ -19,7 +18,6 @@ class GuestService(
     private val userDAO: UserDAO,
     private val problemDAO: ProblemDAO,
     private val algorithmDAO: AlgorithmDAO,
-    private val referenceSetDAO: ReferenceSetDAO,
     private val redisTemplate: ReactiveRedisTemplate<String, redisType>,
     private val rSocketRequester: RSocketRequester
 ) {
@@ -27,7 +25,6 @@ class GuestService(
   fun addProcess(processDTO: ProcessDTO): Mono<String> {
     if (!problemDAO.existsBySha256(processDTO.problemSha256)) return Mono.error<String>(RuntimeException(ProblemNotFoundException))
     if (!algorithmDAO.existsBySha256(processDTO.algorithmSha256)) return Mono.error<String>(RuntimeException(AlgorithmNotFoundException))
-    if (!referenceSetDAO.existsBySha256(processDTO.referenceSetSha256)) return Mono.error<String>(RuntimeException(ReferenceSetNotFoundException))
     val newProcess = Process()
     newProcess.name = processDTO.name
     newProcess.numberOfEvaluations = processDTO.numberOfEvaluations

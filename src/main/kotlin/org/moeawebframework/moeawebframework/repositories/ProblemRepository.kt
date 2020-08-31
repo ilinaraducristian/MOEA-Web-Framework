@@ -6,8 +6,8 @@ import reactor.core.publisher.Mono
 
 interface ProblemRepository : R2dbcRepository<Problem, Long> {
 
-  fun findBySha256(sha256: String): Mono<Problem>
+  fun findByProblemSha256(problemSha256: String): Mono<Problem>
 
-  fun existsBySha256(sha256: String): Boolean
+  fun existsByProblemSha256(problemSha256: String): Boolean
 
 }

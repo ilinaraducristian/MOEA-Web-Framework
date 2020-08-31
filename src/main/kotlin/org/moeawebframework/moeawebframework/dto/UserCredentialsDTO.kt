@@ -6,6 +6,8 @@ data class UserCredentialsDTO(
 
     @NotEmpty
     var username: String = "",
+
     @NotEmpty
     var password: String = ""
+
 )

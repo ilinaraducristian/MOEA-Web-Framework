@@ -11,6 +11,8 @@ data class Problem(
 
     var name: String = "",
 
-    var sha256: String = ""
+    var problemSha256: String = "",
+
+    var referenceSetSha256: String = ""
 
 )

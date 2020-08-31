@@ -9,15 +9,6 @@ data class User(
     @Id
     var id: Long? = null,
 
-    var username: String = "",
-
-    var password: String = "",
-
-    var email: String = "",
-
-    var firstName: String = "",
-
-    var lastName: String? = null
-
+    var username: String = ""
 
 )

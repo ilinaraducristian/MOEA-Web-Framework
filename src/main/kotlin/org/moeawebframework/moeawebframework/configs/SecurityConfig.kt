@@ -9,6 +9,9 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 @Configuration
 class SecurityConfig {
 
+//  @Value("\${AUTHENTICATION_ISSUERS}")
+//  lateinit var AUTHENTICATION_ISSUERS: List<String>
+
   /**
    * For authorities the default implementation uses scopes
    * instead of roles, a scope named "user" will match for
@@ -17,8 +20,7 @@ class SecurityConfig {
   @Bean
   fun springSecurityWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
     val issuers = listOf(
-        "http://localhost:8180/auth/realms/MOEA-Web-Framework",
-        "http://localhost:8280/auth/realms/MOEA-Web-Framework"
+        "http://localhost:8180/auth/realms/MOEA-Web-Framework"
     )
     return http
         .csrf().disable()
@@ -26,10 +28,10 @@ class SecurityConfig {
 //        .pathMatchers("/queue/**").permitAll()
 //        .pathMatchers("/test/**").permitAll()
 //        .pathMatchers("/user/**").permitAll()
-        .pathMatchers("/user/signup").permitAll()
-        .pathMatchers("/user/login").permitAll()
-        .pathMatchers("/algorithm/**").permitAll()
-        .pathMatchers("/test/**").permitAll()
+//        .pathMatchers("/user/signup").permitAll()
+//        .pathMatchers("/user/login").permitAll()
+//        .pathMatchers("/algorithm/**").permitAll()
+//        .pathMatchers("/test/**").permitAll()
         .anyExchange().authenticated()
 //        .anyExchange().permitAll()
         .and()

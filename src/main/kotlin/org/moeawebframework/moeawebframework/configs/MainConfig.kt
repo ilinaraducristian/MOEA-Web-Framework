@@ -16,10 +16,10 @@ import java.security.MessageDigest
 @Configuration
 class MainConfig {
 
-  @Value("RSOCKET_HOST")
+  @Value("\${RSOCKET_HOST}")
   lateinit var RSOCKET_HOST: String
 
-  @Value("RSOCKET_PORT")
+  @Value("\${RSOCKET_PORT}")
   var RSOCKET_PORT: Int = 0
 
   @Bean

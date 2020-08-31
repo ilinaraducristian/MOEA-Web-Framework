@@ -31,11 +31,11 @@ class ProblemDAO(
   }
 
   fun getBySha256(sha256: String): Mono<Problem> {
-    return problemRepository.findBySha256(sha256)
+    return problemRepository.findByProblemSha256(sha256)
   }
 
   fun existsBySha256(sha256: String): Boolean {
-    return problemRepository.existsBySha256(sha256)
+    return problemRepository.existsByProblemSha256(sha256)
   }
 
 }
