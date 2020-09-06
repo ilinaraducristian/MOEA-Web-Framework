@@ -16,11 +16,8 @@ import java.security.MessageDigest
 @Configuration
 class MainConfig {
 
-  @Value("\${RSOCKET_HOST}")
-  lateinit var RSOCKET_HOST: String
-
-  @Value("\${RSOCKET_PORT}")
-  var RSOCKET_PORT: Int = 0
+  @Value("\${rsocket_url}")
+  lateinit var rsocket_url: String
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -36,6 +33,7 @@ class MainConfig {
 
   @Bean
   fun rSocketRequester(): RSocketRequester {
+    val values = rsocket_url.split(":", ignoreCase = false, limit = 2)
     return RSocketRequester
         .builder()
         .rsocketStrategies(
@@ -45,7 +43,7 @@ class MainConfig {
                 .build()
         )
         .dataMimeType(MimeTypeUtils.APPLICATION_JSON)
-        .connectTcp(RSOCKET_HOST, RSOCKET_PORT)
+        .connectTcp(values[0], Integer.parseInt(values[1]))
         .block()!!
   }
 

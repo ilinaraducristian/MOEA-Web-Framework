@@ -1,5 +1,7 @@
 package org.moeawebframework.moeawebframework.configs
 
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.web.server.ServerHttpSecurity
@@ -9,8 +11,12 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 @Configuration
 class SecurityConfig {
 
-//  @Value("\${AUTHENTICATION_ISSUERS}")
-//  lateinit var AUTHENTICATION_ISSUERS: List<String>
+  lateinit var authentication_issuers: List<String>
+
+  @Autowired
+  fun setAuthentication_issuers(@Value("\${authentication_issuers}") authenticationIssuers: String) {
+    authentication_issuers = authenticationIssuers.split(",")
+  }
 
   /**
    * For authorities the default implementation uses scopes
@@ -19,9 +25,6 @@ class SecurityConfig {
    * */
   @Bean
   fun springSecurityWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
-    val issuers = listOf(
-        "http://localhost:8180/auth/realms/MOEA-Web-Framework"
-    )
     return http
         .csrf().disable()
         .authorizeExchange()
@@ -36,7 +39,7 @@ class SecurityConfig {
 //        .anyExchange().permitAll()
         .and()
         .oauth2ResourceServer()
-        .authenticationManagerResolver(JwtIssuerReactiveAuthenticationManagerResolver(issuers))
+        .authenticationManagerResolver(JwtIssuerReactiveAuthenticationManagerResolver(authentication_issuers))
         .and()
         .build()
   }

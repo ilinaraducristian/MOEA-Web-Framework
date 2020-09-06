@@ -34,8 +34,8 @@ class UserService(
     private val rSocketRequester: RSocketRequester
 ) {
 
-  @Value("\${CDN_URI}")
-  lateinit var CDN_URI: String
+  @Value("\${cdn_url}")
+  lateinit var cdn_url: String
 
   fun signup(user: User): Mono<User> {
     return userDAO.getByUsername(user.username)
@@ -86,7 +86,7 @@ class UserService(
       val multipart = MultipartBodyBuilder()
       multipart.part("data", filePart).filename(b64Hash)
       algorithmDAO.getBySha256(b64Hash).switchIfEmpty {
-        WebClient.create(CDN_URI).post()
+        WebClient.create(cdn_url).post()
             .uri("/")
             .body(BodyInserters.fromMultipartData(multipart.build()))
             .exchange().flatMap {
@@ -135,11 +135,11 @@ class UserService(
           problemMultipart.part("data", problemFilePart).filename(problemB64Hash)
           referenceSetMultipart.part("data", referenceSetFilePart).filename(referenceSetB64Hash)
           return@switchIfEmpty Mono.zip(
-              WebClient.create(CDN_URI).post()
+              WebClient.create(cdn_url).post()
                   .uri("/")
                   .body(BodyInserters.fromMultipartData(problemMultipart.build()))
                   .exchange(),
-              WebClient.create(CDN_URI).post()
+              WebClient.create(cdn_url).post()
                   .uri("/")
                   .body(BodyInserters.fromMultipartData(referenceSetMultipart.build()))
                   .exchange()

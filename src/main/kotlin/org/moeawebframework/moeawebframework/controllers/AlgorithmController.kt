@@ -19,8 +19,8 @@ class AlgorithmController(
     private val userDAO: UserDAO
 ) {
 
-  @Value("\${CDN_URI}")
-  lateinit var CDN_URI: String
+  @Value("\${cdn_url}")
+  lateinit var cdn_url: String
 
   @PostMapping
   fun upload(authentication: Authentication, @RequestPart("data") filePart: FilePart, @RequestPart("name") name: String): Mono<String> {
@@ -35,7 +35,7 @@ class AlgorithmController(
 
   @GetMapping("{algorithm_sha256}", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
   fun download(@PathVariable("algorithm_sha256") algorithm_sha256: String): Mono<ByteArray> {
-    return WebClient.create(CDN_URI).get()
+    return WebClient.create(cdn_url).get()
         .uri("""/$algorithm_sha256""")
         .exchange().flatMap {
 //          it.headers().header("Content-Type")[0] = "application/octet-stream"
@@ -47,7 +47,7 @@ class AlgorithmController(
 
   @DeleteMapping
   fun delete(authentication: Authentication?, algorithm_sha256: String): Mono<Unit> {
-    return WebClient.create(CDN_URI).delete()
+    return WebClient.create(cdn_url).delete()
         .uri("""/$algorithm_sha256""")
         .exchange().map {}
   }

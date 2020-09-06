@@ -21,6 +21,14 @@ class UserController(
     private val userDAO: UserDAO
 ) {
 
+  init {
+    Thread {
+//      userService.signup(User(username = "Marian")).block()
+      Thread.sleep(2000)
+      println(userDAO.getByUsername("username").block())
+    }//.start()
+  }
+
   @PostMapping("signup")
   fun signup(authentication: Authentication): Mono<Unit> {
     val principal = authentication.principal as Jwt

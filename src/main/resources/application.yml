@@ -12,30 +12,27 @@ spring:
 
 spring:
   profiles: dev
+  r2dbc:
+    # R2DBC_URI: 'r2dbc:h2:mem:///test?options=DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE'
+    url: "r2dbc:postgresql://localhost/moeawebframework"
+    username: "postgres"
+    password: "postgres"
   main:
     lazy-initialization: true
 
+
 logging.level.org.springframework.data.r2dbc: DEBUG
 
-CDN_URI: 'localhost:8070'
-#R2DBC_URI: 'r2dbc:h2:mem:///test?options=DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE'
-R2DBC_URI: "r2dbc:postgresql://localhost:5432/moeawebframework"
-RSOCKET_HOST: 'localhost'
-RSOCKET_PORT: 7000
-AUTHENTICATION_ISSUERS:
-  - "http://localhost:8180/auth/realms/MOEA-Web-Framework"
-  - "http://localhost:8280/auth/realms/MOEA-Web-Framework"
+cdn_url: 'localhost:8070'
+rsocket_url: 'localhost:7000'
+authentication_issuers: "http://localhost:8180/auth/realms/MOEA-Web-Framework"
 
 ---
 
 spring:
   profiles: prod
-  #Redis
-  redis:
-    host: ${REDIS_HOST}
-    port: ${REDIS_PORT}
+  main:
+    lazy-initialization: true
 
-CDN_URI: ${CDN_URI}
-R2DBC_URI: ${R2DBC_URI}
-RSOCKET_HOST: ${RSOCKET_HOST}
-RSOCKET_PORT: ${RSOCKET_PORT}
+cdn_url: ${CDN_URL}
+rsocket_url: ${RSOCKET_URL}

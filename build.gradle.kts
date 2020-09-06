@@ -39,7 +39,7 @@ dependencies {
   runtimeOnly("com.h2database:h2")
   runtimeOnly("org.postgresql:postgresql")
   runtimeOnly("io.r2dbc:r2dbc-h2")
-  runtimeOnly("io.r2dbc:r2dbc-postgresql")
+  implementation("io.r2dbc:r2dbc-postgresql")
 
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
