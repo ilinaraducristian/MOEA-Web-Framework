@@ -1,8 +1,7 @@
 package org.moeawebframework.moeawebframework.services
 
 import org.moeawebframework.moeawebframework.dao.*
-import org.moeawebframework.moeawebframework.dto.ProcessDTO
-import org.moeawebframework.moeawebframework.dto.RegisteredUserDTO
+import org.moeawebframework.moeawebframework.dto.*
 import org.moeawebframework.moeawebframework.entities.*
 import org.moeawebframework.moeawebframework.exceptions.*
 import org.springframework.beans.factory.annotation.Value
@@ -37,13 +36,47 @@ class UserService(
   @Value("\${cdn_url}")
   lateinit var cdn_url: String
 
-  fun signup(user: User): Mono<User> {
-    return userDAO.getByUsername(user.username)
+  @Value("\${keycloak_signup_url}")
+  lateinit var keycloak_signup_url: String
+
+  @Value("\${keycloak_login_url}")
+  lateinit var keycloak_login_url: String
+
+  fun signup(signupInfoDTO: SignupInfoDTO): Mono<User> {
+    // TODO what happens if userDAO.save(user) when user exists
+    return userDAO.getByUsername(signupInfoDTO.username)
         .flatMap {
           Mono.error<User>(RuntimeException(UserExistsException))
         }
         .switchIfEmpty {
-          userDAO.save(user)
+          val multipartBodyBuilder = MultipartBodyBuilder()
+          multipartBodyBuilder.part("client_id", "moeawebframework")
+          multipartBodyBuilder.part("grant_type", "password")
+          multipartBodyBuilder.part("username", signupInfoDTO.username)
+          multipartBodyBuilder.part("password", signupInfoDTO.password)
+          multipartBodyBuilder.part("first_name", signupInfoDTO.firstName)
+          if(signupInfoDTO.lastName != null)
+            multipartBodyBuilder.part("last_name", signupInfoDTO.lastName!!)
+          multipartBodyBuilder.part("email", signupInfoDTO.email)
+          return@switchIfEmpty WebClient.create(keycloak_signup_url).post()
+              .uri("/")
+              .body(BodyInserters.fromMultipartData(multipartBodyBuilder.build()))
+              .exchange()
+              .flatMap {
+                userDAO.save(User(username = signupInfoDTO.username))
+              }
+        }
+  }
+
+  fun login(userCredentialsDTO: UserCredentialsDTO): Mono<AccessTokenDTO> {
+    val multipartBodyBuilder = MultipartBodyBuilder()
+    multipartBodyBuilder.part("username", userCredentialsDTO.username)
+    multipartBodyBuilder.part("password", userCredentialsDTO.password)
+    return WebClient.create(keycloak_login_url).post()
+        .uri("/")
+        .body(BodyInserters.fromMultipartData(multipartBodyBuilder.build()))
+        .exchange().flatMap {clientResponse ->
+          clientResponse.bodyToMono(AccessTokenDTO::class.java)
         }
   }
 

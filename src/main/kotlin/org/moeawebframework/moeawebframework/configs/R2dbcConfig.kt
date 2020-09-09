@@ -30,6 +30,7 @@ class R2dbcConfig {
     populator.addPopulators(ResourceDatabasePopulator(ClassPathResource("data.sql")))
     initializer.setDatabasePopulator(populator)
     return initializer
+
   }
 
 }

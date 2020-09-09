@@ -1,8 +1,9 @@
 package org.moeawebframework.moeawebframework.controllers
 
 import org.moeawebframework.moeawebframework.dao.UserDAO
-import org.moeawebframework.moeawebframework.entities.User
-import org.moeawebframework.moeawebframework.exceptions.UserExistsException
+import org.moeawebframework.moeawebframework.dto.AccessTokenDTO
+import org.moeawebframework.moeawebframework.dto.SignupInfoDTO
+import org.moeawebframework.moeawebframework.dto.UserCredentialsDTO
 import org.moeawebframework.moeawebframework.exceptions.UserNotFoundException
 import org.moeawebframework.moeawebframework.services.UserService
 import org.springframework.security.core.Authentication
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
+import javax.validation.Valid
 
 @RestController
 @RequestMapping("user")
@@ -30,16 +31,13 @@ class UserController(
   }
 
   @PostMapping("signup")
-  fun signup(authentication: Authentication): Mono<Unit> {
-    val principal = authentication.principal as Jwt
-    val username = principal.claims["preferred_username"] as String
-    return userDAO.getByUsername(username)
-        .flatMap { Mono.error<User>(RuntimeException(UserExistsException)) }
-        .switchIfEmpty {
-          val user = User(username = username)
-          userService.signup(user)
-        }
-        .map {}
+  fun signup(@Valid signupInfo: SignupInfoDTO): Mono<Unit> {
+    return userService.signup(signupInfo).map {}
+  }
+
+  @PostMapping("login")
+  fun login(userCredentialsDTO: UserCredentialsDTO): Mono<AccessTokenDTO> {
+    return userService.login(userCredentialsDTO)
   }
 
   @GetMapping("getAlgorithmsAndProblems")

@@ -1,6 +1,8 @@
 spring:
   profiles:
     active: dev
+  main:
+    lazy-initialization: true
   # Uploading files
   servlet:
     multipart:
@@ -17,9 +19,6 @@ spring:
     url: "r2dbc:postgresql://localhost/moeawebframework"
     username: "postgres"
     password: "postgres"
-  main:
-    lazy-initialization: true
-
 
 logging.level.org.springframework.data.r2dbc: DEBUG
 
@@ -31,8 +30,6 @@ authentication_issuers: "http://localhost:8180/auth/realms/MOEA-Web-Framework"
 
 spring:
   profiles: prod
-  main:
-    lazy-initialization: true
 
 cdn_url: ${CDN_URL}
 rsocket_url: ${RSOCKET_URL}
