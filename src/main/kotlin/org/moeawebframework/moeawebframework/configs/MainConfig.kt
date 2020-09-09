@@ -33,7 +33,7 @@ class MainConfig {
 
   @Bean
   fun rSocketRequester(): RSocketRequester {
-    val values = rsocket_url.split(":", ignoreCase = false, limit = 2)
+    val values = rsocket_url.split(":")
     return RSocketRequester
         .builder()
         .rsocketStrategies(
