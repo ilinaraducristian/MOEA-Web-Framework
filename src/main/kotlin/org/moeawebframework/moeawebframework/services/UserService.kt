@@ -43,7 +43,6 @@ class UserService(
   lateinit var keycloak_login_url: String
 
   fun signup(signupInfoDTO: SignupInfoDTO): Mono<User> {
-    // TODO what happens if userDAO.save(user) when user exists
     return userDAO.getByUsername(signupInfoDTO.username)
         .flatMap {
           Mono.error<User>(RuntimeException(UserExistsException))
@@ -62,6 +61,8 @@ class UserService(
               .uri("/")
               .body(BodyInserters.fromMultipartData(multipartBodyBuilder.build()))
               .exchange()
+              // TODO if user exists in Keycloak return user exists exception
+              // TODO don't check if it exists in DB because if it is then it should be in both places
               .flatMap {
                 userDAO.save(User(username = signupInfoDTO.username))
               }
@@ -98,6 +99,7 @@ class UserService(
   }
 
   fun oauth2Login(username: String): Mono<RegisteredUserDTO> {
+    // TODO if user doesn't exist, it should be created
     return userDAO.getByUsername(username)
         .switchIfEmpty {
           Mono.error(RuntimeException(UserNotFoundException))
@@ -202,15 +204,8 @@ class UserService(
         .flatMap { user ->
           if (!algorithmDAO.existsBySha256(processDTO.algorithmSha256)) return@flatMap Mono.error<String>(RuntimeException(AlgorithmNotFoundException))
           if (!problemDAO.existsBySha256(processDTO.problemSha256)) return@flatMap Mono.error<String>(RuntimeException(ProblemNotFoundException))
-          val newProcess = Process()
-          newProcess.name = processDTO.name
+          val newProcess = Process(processDTO, UUID.randomUUID().toString())
           newProcess.userId = user.id!!
-          newProcess.numberOfEvaluations = processDTO.numberOfEvaluations
-          newProcess.numberOfSeeds = processDTO.numberOfSeeds
-          newProcess.problemSha256 = processDTO.problemSha256
-          newProcess.algorithmSha256 = processDTO.algorithmSha256
-          newProcess.referenceSetSha256 = processDTO.referenceSetSha256
-          newProcess.rabbitId = UUID.randomUUID().toString()
           processDAO.save(newProcess).map { """{"rabbitId": "${newProcess.rabbitId}"}""" }
         }
   }
