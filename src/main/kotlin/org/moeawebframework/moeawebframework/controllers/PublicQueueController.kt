@@ -1,5 +1,6 @@
 package org.moeawebframework.moeawebframework.controllers
 
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitLast
 import org.moeawebframework.moeawebframework.dto.ProcessDTO
 import org.moeawebframework.moeawebframework.entities.Process
@@ -26,42 +27,32 @@ class PublicQueueController(
     while (process != null) {
       if (++count == 100) break
       newUUID = UUID.randomUUID().toString()
-      try {
-        process = redisTemplate.opsForValue().get(newUUID).awaitLast()
-      } catch (ignored: NoSuchElementException) {
-      }
+      process = redisTemplate.opsForValue().get(newUUID).awaitFirstOrNull()
     }
     if (process == null) {
       redisTemplate.opsForValue().set(newUUID, Process(processDTO, newUUID)).awaitLast()
       return """{"rabbitId": "$newUUID"}"""
-    } else {
-      // error too many retries ( > 100 )
-      System.err.println("Too many retries, something went wrong")
-      throw RuntimeException("""{"error": "Internal error"}""")
     }
+    // error too many retries ( > 100 )
+    System.err.println("Too many retries, something went wrong")
+    throw RuntimeException("""{"error": "Internal error"}""")
   }
 
 
   @PostMapping("process/{rabbitId}")
   suspend fun process(@PathVariable rabbitId: String) {
-    val process: Process?
-    try {
-      process = redisTemplate.opsForValue().get(rabbitId).awaitLast()
-    } catch (e: NoSuchElementException) {
-      throw RuntimeException(ProcessNotFoundException)
-    }
+    val process = redisTemplate.opsForValue().get(rabbitId).awaitFirstOrNull()
+        ?: throw RuntimeException(ProcessNotFoundException)
     if (process.status == "processing" || process.status == "processed")
       throw RuntimeException(process.status)
     try {
-      println("so?")
       rSocketRequester.route("process")
           .data(process)
           .retrieveMono(Unit::class.java)
-          .awaitLast()
-      println("so?22")
+          .awaitFirstOrNull()
     } catch (e: Exception) {
       e.printStackTrace()
-//      throw RuntimeException("Internal error")
+      println("Exception in process, should never happen")
     }
   }
 
