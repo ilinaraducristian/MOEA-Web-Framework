@@ -17,4 +17,5 @@ data class SignupInfoDTO(
     var firstName: String = "",
 
     var lastName: String? = null
+
 )

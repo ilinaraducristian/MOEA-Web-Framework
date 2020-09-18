@@ -38,8 +38,4 @@ class ProblemUserDAO(
     return problemUserRepository.findByUserIdAndProblemId(userId, problemId)
   }
 
-  fun getByUserUsername(username: String): Flux<ProblemUser> {
-    return problemUserRepository.findByUserUsername(username)
-  }
-
 }

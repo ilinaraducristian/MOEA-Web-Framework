@@ -30,7 +30,6 @@ data class Process(
 
     var userId: Long? = null
 
-
 ) {
 
   constructor(processDTO: ProcessDTO, uuid: String) : this(

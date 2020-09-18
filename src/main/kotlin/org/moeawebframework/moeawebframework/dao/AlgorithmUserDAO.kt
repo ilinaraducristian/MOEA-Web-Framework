@@ -38,8 +38,4 @@ class AlgorithmUserDAO(
     return algorithmUserRepository.findByUserIdAndAlgorithmId(userId, algorithmId)
   }
 
-  fun getByUserUsername(username: String): Flux<AlgorithmUser> {
-    return algorithmUserRepository.findByUserUsername(username)
-  }
-
 }

@@ -28,6 +28,7 @@ class SecurityConfig {
     return http
         .csrf().disable()
         .authorizeExchange()
+        .pathMatchers("/test").permitAll()
         .pathMatchers("/queue").permitAll()
         .pathMatchers("/queue/process/**").permitAll()
 //        .pathMatchers("/test/**").permitAll()
