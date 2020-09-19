@@ -4,14 +4,12 @@ import org.moeawebframework.moeawebframework.dao.*
 import org.moeawebframework.moeawebframework.dto.*
 import org.moeawebframework.moeawebframework.entities.*
 import org.moeawebframework.moeawebframework.exceptions.*
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.messaging.rsocket.RSocketRequester
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
-import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import java.security.MessageDigest
@@ -30,17 +28,9 @@ class UserService(
     private val problemUserDAO: ProblemUserDAO,
 
     private val hasher: MessageDigest,
-    private val rSocketRequester: RSocketRequester
+    private val rSocketRequester: RSocketRequester,
+    private val httpService: HttpService
 ) {
-
-  @Value("\${cdn_url}")
-  lateinit var cdn_url: String
-
-  @Value("\${keycloak_signup_url}")
-  lateinit var keycloak_signup_url: String
-
-  @Value("\${keycloak_login_url}")
-  lateinit var keycloak_login_url: String
 
   fun signup(signupInfoDTO: SignupInfoDTO): Mono<User> {
     return userDAO.getByUsername(signupInfoDTO.username)
@@ -54,13 +44,10 @@ class UserService(
           multipartBodyBuilder.part("username", signupInfoDTO.username)
           multipartBodyBuilder.part("password", signupInfoDTO.password)
           multipartBodyBuilder.part("first_name", signupInfoDTO.firstName)
-          if(signupInfoDTO.lastName != null)
+          if (signupInfoDTO.lastName != null)
             multipartBodyBuilder.part("last_name", signupInfoDTO.lastName!!)
           multipartBodyBuilder.part("email", signupInfoDTO.email)
-          return@switchIfEmpty WebClient.create(keycloak_signup_url).post()
-              .uri("/")
-              .body(BodyInserters.fromMultipartData(multipartBodyBuilder.build()))
-              .exchange()
+          return@switchIfEmpty httpService.keycloakSignup(BodyInserters.fromMultipartData(multipartBodyBuilder.build()))
               // TODO if user exists in Keycloak return user exists exception
               // TODO don't check if it exists in DB because if it is then it should be in both places
               .flatMap {
@@ -73,10 +60,8 @@ class UserService(
     val multipartBodyBuilder = MultipartBodyBuilder()
     multipartBodyBuilder.part("username", userCredentialsDTO.username)
     multipartBodyBuilder.part("password", userCredentialsDTO.password)
-    return WebClient.create(keycloak_login_url).post()
-        .uri("/")
-        .body(BodyInserters.fromMultipartData(multipartBodyBuilder.build()))
-        .exchange().flatMap {clientResponse ->
+    return httpService.keycloakLogin(BodyInserters.fromMultipartData(multipartBodyBuilder.build()))
+        .flatMap { clientResponse ->
           clientResponse.bodyToMono(AccessTokenDTO::class.java)
         }
   }
@@ -121,10 +106,8 @@ class UserService(
       val multipart = MultipartBodyBuilder()
       multipart.part("data", filePart).filename(b64Hash)
       algorithmDAO.getBySha256(b64Hash).switchIfEmpty {
-        WebClient.create(cdn_url).post()
-            .uri("/")
-            .body(BodyInserters.fromMultipartData(multipart.build()))
-            .exchange().flatMap {
+        httpService.uploadToCDN(BodyInserters.fromMultipartData(multipart.build()))
+            .flatMap {
               val newAlgorithm = Algorithm()
               newAlgorithm.name = name
               newAlgorithm.sha256 = b64Hash
@@ -170,14 +153,8 @@ class UserService(
           problemMultipart.part("data", problemFilePart).filename(problemB64Hash)
           referenceSetMultipart.part("data", referenceSetFilePart).filename(referenceSetB64Hash)
           return@switchIfEmpty Mono.zip(
-              WebClient.create(cdn_url).post()
-                  .uri("/")
-                  .body(BodyInserters.fromMultipartData(problemMultipart.build()))
-                  .exchange(),
-              WebClient.create(cdn_url).post()
-                  .uri("/")
-                  .body(BodyInserters.fromMultipartData(referenceSetMultipart.build()))
-                  .exchange()
+              httpService.uploadToCDN(BodyInserters.fromMultipartData(problemMultipart.build())),
+              httpService.uploadToCDN(BodyInserters.fromMultipartData(referenceSetMultipart.build()))
           ).flatMap {
             val newProblem = Problem()
             newProblem.name = name

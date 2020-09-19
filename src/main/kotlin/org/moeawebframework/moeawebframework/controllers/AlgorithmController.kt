@@ -2,10 +2,10 @@ package org.moeawebframework.moeawebframework.controllers
 
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitLast
-import org.moeawebframework.moeawebframework.configs.MainConfig
 import org.moeawebframework.moeawebframework.dao.UserDAO
 import org.moeawebframework.moeawebframework.exceptions.AlgorithmNotFoundException
 import org.moeawebframework.moeawebframework.exceptions.UserNotFoundException
+import org.moeawebframework.moeawebframework.services.HttpService
 import org.moeawebframework.moeawebframework.services.UserService
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("algorithm")
 class AlgorithmController(
     private val userService: UserService,
-    private val userDAO: UserDAO
+    private val userDAO: UserDAO,
+    private val httpService: HttpService
 ) {
 
   @PostMapping
@@ -30,14 +31,13 @@ class AlgorithmController(
 
   @GetMapping("{algorithm_sha256}", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
   suspend fun download(@PathVariable("algorithm_sha256") algorithm_sha256: String): ByteArray {
-
-    val response = MainConfig.getFromCDN(algorithm_sha256).awaitFirstOrNull()
+    val response = httpService.getFromCDN(algorithm_sha256).awaitFirstOrNull()
         ?: throw RuntimeException(AlgorithmNotFoundException)
     return response.bodyToMono(ByteArray::class.java).awaitLast()
   }
 
   @DeleteMapping
   suspend fun delete(authentication: Authentication?, algorithm_sha256: String) {
-    MainConfig.deleteFromCDN(algorithm_sha256).awaitFirstOrNull()
+    httpService.deleteFromCDN(algorithm_sha256).awaitFirstOrNull()
   }
 }
