@@ -1,5 +1,6 @@
 package org.moeawebframework.moeawebframework.controllers
 
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.moeawebframework.moeawebframework.dao.UserDAO
 import org.moeawebframework.moeawebframework.dto.AccessTokenDTO
 import org.moeawebframework.moeawebframework.dto.SignupInfoDTO
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import reactor.core.publisher.Mono
 import javax.validation.Valid
 
 @RestController
@@ -23,21 +23,21 @@ class UserController(
 ) {
 
   @PostMapping("signup")
-  fun signup(@Valid signupInfo: SignupInfoDTO): Mono<Unit> {
-    return userService.signup(signupInfo).map {}
+  suspend fun signup(@Valid signupInfo: SignupInfoDTO) {
+    userService.signup(signupInfo)
   }
 
   @PostMapping("login")
-  fun login(userCredentialsDTO: UserCredentialsDTO): Mono<AccessTokenDTO> {
+  suspend fun login(userCredentialsDTO: UserCredentialsDTO): AccessTokenDTO {
     return userService.login(userCredentialsDTO)
   }
 
   @GetMapping("getAlgorithmsAndProblems")
-  fun getAlgorithmsAndProblems(authentication: Authentication): Mono<HashMap<String, List<Any>>> {
+  suspend fun getAlgorithmsAndProblems(authentication: Authentication): HashMap<String, List<Any>> {
     val principal = authentication.principal as Jwt
-    return userDAO.getByUsername(principal.claims["preferred_username"] as String)
-        .switchIfEmpty(Mono.error(RuntimeException(UserNotFoundException)))
-        .flatMap { userService.getAlgorithmsAndProblems(it.id!!) }
+    val user = userDAO.getByUsername(principal.claims["preferred_username"] as String).awaitFirstOrNull()
+        ?: throw RuntimeException(UserNotFoundException)
+    return userService.getAlgorithmsAndProblems(user.id!!)
   }
 
 //  @PatchMapping("update")

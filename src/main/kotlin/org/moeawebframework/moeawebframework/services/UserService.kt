@@ -1,5 +1,9 @@
 package org.moeawebframework.moeawebframework.services
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitLast
+import kotlinx.coroutines.withContext
 import org.moeawebframework.moeawebframework.dao.*
 import org.moeawebframework.moeawebframework.dto.*
 import org.moeawebframework.moeawebframework.entities.*
@@ -8,8 +12,10 @@ import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.messaging.rsocket.RSocketRequester
+import org.springframework.messaging.rsocket.retrieveAndAwait
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
+import org.springframework.web.reactive.function.client.awaitBody
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import java.security.MessageDigest
@@ -32,55 +38,45 @@ class UserService(
     private val httpService: HttpService
 ) {
 
-  fun signup(signupInfoDTO: SignupInfoDTO): Mono<User> {
-    return userDAO.getByUsername(signupInfoDTO.username)
-        .flatMap {
-          Mono.error<User>(RuntimeException(UserExistsException))
-        }
-        .switchIfEmpty {
-          val multipartBodyBuilder = MultipartBodyBuilder()
-          multipartBodyBuilder.part("client_id", "moeawebframework")
-          multipartBodyBuilder.part("grant_type", "password")
-          multipartBodyBuilder.part("username", signupInfoDTO.username)
-          multipartBodyBuilder.part("password", signupInfoDTO.password)
-          multipartBodyBuilder.part("first_name", signupInfoDTO.firstName)
-          if (signupInfoDTO.lastName != null)
-            multipartBodyBuilder.part("last_name", signupInfoDTO.lastName!!)
-          multipartBodyBuilder.part("email", signupInfoDTO.email)
-          return@switchIfEmpty httpService.keycloakSignup(BodyInserters.fromMultipartData(multipartBodyBuilder.build()))
-              // TODO if user exists in Keycloak return user exists exception
-              // TODO don't check if it exists in DB because if it is then it should be in both places
-              .flatMap {
-                userDAO.save(User(username = signupInfoDTO.username))
-              }
-        }
+  suspend fun signup(signupInfoDTO: SignupInfoDTO) {
+    val user = userDAO.getByUsername(signupInfoDTO.username).awaitFirstOrNull()
+    if (user != null) throw RuntimeException(UserExistsException)
+    val multipartBodyBuilder = MultipartBodyBuilder()
+    multipartBodyBuilder.part("client_id", "moeawebframework")
+    multipartBodyBuilder.part("grant_type", "password")
+    multipartBodyBuilder.part("username", signupInfoDTO.username)
+    multipartBodyBuilder.part("password", signupInfoDTO.password)
+    multipartBodyBuilder.part("first_name", signupInfoDTO.firstName)
+    if (signupInfoDTO.lastName != null)
+      multipartBodyBuilder.part("last_name", signupInfoDTO.lastName!!)
+    multipartBodyBuilder.part("email", signupInfoDTO.email)
+    // TODO if user exists in Keycloak return user exists exception
+    // TODO don't check if it exists in DB because if it is then it should be in both places
+    httpService.keycloakSignup(BodyInserters.fromMultipartData(multipartBodyBuilder.build()))
+    userDAO.save(User(username = signupInfoDTO.username)).awaitLast()
   }
 
-  fun login(userCredentialsDTO: UserCredentialsDTO): Mono<AccessTokenDTO> {
+  suspend fun login(userCredentialsDTO: UserCredentialsDTO): AccessTokenDTO {
     val multipartBodyBuilder = MultipartBodyBuilder()
     multipartBodyBuilder.part("username", userCredentialsDTO.username)
     multipartBodyBuilder.part("password", userCredentialsDTO.password)
-    return httpService.keycloakLogin(BodyInserters.fromMultipartData(multipartBodyBuilder.build()))
-        .flatMap { clientResponse ->
-          clientResponse.bodyToMono(AccessTokenDTO::class.java)
-        }
+    val clientResponse = httpService.keycloakLogin(BodyInserters.fromMultipartData(multipartBodyBuilder.build()))
+    return clientResponse.awaitBody()
   }
 
-  fun getAlgorithmsAndProblems(userId: Long): Mono<HashMap<String, List<Any>>> {
-    return Mono.zip(
+  suspend fun getAlgorithmsAndProblems(userId: Long): HashMap<String, List<Any>> {
+    val algorithmsAndProblems1 = Mono.zip(
         algorithmUserDAO.getByUserId(userId)
             .flatMap { algorithmDAO.get(it.algorithmId) }
             .collectList(),
         problemUserDAO.getByUserId(userId)
             .flatMap { problemDAO.get(it.problemId) }
             .collectList()
-    )
-        .map {
-          val algorithmsAndProblems = HashMap<String, List<Any>>()
-          algorithmsAndProblems["algorithms"] = it.t1
-          algorithmsAndProblems["problems"] = it.t2
-          algorithmsAndProblems
-        }
+    ).awaitLast()
+    val algorithmsAndProblems = HashMap<String, List<Any>>()
+    algorithmsAndProblems["algorithms"] = algorithmsAndProblems1.t1
+    algorithmsAndProblems["problems"] = algorithmsAndProblems1.t2
+    return algorithmsAndProblems
   }
 
   fun oauth2Login(username: String): Mono<RegisteredUserDTO> {
@@ -95,42 +91,37 @@ class UserService(
         }
   }
 
-  fun uploadAlgorithm(userId: Long, name: String, filePart: FilePart): Mono<String> {
+  suspend fun uploadAlgorithm(userId: Long, name: String, filePart: FilePart): String {
     var b64Hash = ""
-    return filePart.content().last().flatMap {
-      val bytes = ByteArray(it.readableByteCount())
-      it.read(bytes)
-      DataBufferUtils.release(it)
-      val hash = hasher.digest(bytes)
-      b64Hash = Base64.getEncoder().encodeToString(hash)
-      val multipart = MultipartBodyBuilder()
-      multipart.part("data", filePart).filename(b64Hash)
-      algorithmDAO.getBySha256(b64Hash).switchIfEmpty {
-        httpService.uploadToCDN(BodyInserters.fromMultipartData(multipart.build()))
-            .flatMap {
-              val newAlgorithm = Algorithm()
-              newAlgorithm.name = name
-              newAlgorithm.sha256 = b64Hash
-              algorithmDAO.save(newAlgorithm)
-            }
-      }
-    }.flatMap {
-      algorithmUserDAO.getByUserIdAndAlgorithmId(userId, it.id!!)
-          .flatMap {
-            Mono.error<AlgorithmUser>(RuntimeException(AlgorithmExistsException))
-          }
-          .switchIfEmpty {
-            algorithmUserDAO.save(AlgorithmUser(null, userId, it.id!!))
-          }
-    }.map { b64Hash }
+    val dataBuffer = filePart.content().last().awaitLast()
+    val bytes = ByteArray(dataBuffer.readableByteCount())
+    dataBuffer.read(bytes)
+    DataBufferUtils.release(dataBuffer)
+    val hash = hasher.digest(bytes)
+    b64Hash = Base64.getEncoder().encodeToString(hash)
+    val multipart = MultipartBodyBuilder()
+    multipart.part("data", filePart).filename(b64Hash)
+    var algorithm = algorithmDAO.getBySha256(b64Hash).awaitFirstOrNull()
+    if (algorithm == null) {
+      httpService.uploadToCDN(BodyInserters.fromMultipartData(multipart.build()))
+      val newAlgorithm = Algorithm()
+      newAlgorithm.name = name
+      newAlgorithm.sha256 = b64Hash
+      algorithm = algorithmDAO.save(newAlgorithm).awaitLast()
+    }
+    val algorithm2 = algorithmUserDAO.getByUserIdAndAlgorithmId(userId, algorithm?.id!!).awaitFirstOrNull()
+        if(algorithm2 != null) throw RuntimeException(AlgorithmExistsException)
+    algorithmUserDAO.save(AlgorithmUser(null, userId, algorithm.id!!)).awaitLast()
+    return b64Hash
   }
 
-  fun uploadProblem(userId: Long, name: String, problemFilePart: FilePart, referenceSetFilePart: FilePart): Mono<String> {
+  suspend fun uploadProblem(userId: Long, name: String, problemFilePart: FilePart, referenceSetFilePart: FilePart): String {
     var problemB64Hash = ""
     var referenceSetB64Hash = ""
     var problemBytes: ByteArray = byteArrayOf()
     var referenceSetBytes: ByteArray = byteArrayOf()
-    return Mono.zip(
+
+    Mono.zip(
         problemFilePart.content().last().map {
           val bytes = ByteArray(it.readableByteCount())
           it.read(bytes)
@@ -143,61 +134,50 @@ class UserService(
           DataBufferUtils.release(it)
           referenceSetBytes = bytes
         }
-    )
-        .then(problemDAO.getBySha256(problemB64Hash))
-        .switchIfEmpty {
-          problemB64Hash = Base64.getEncoder().encodeToString(hasher.digest(problemBytes))
-          referenceSetB64Hash = Base64.getEncoder().encodeToString(hasher.digest(referenceSetBytes))
-          val problemMultipart = MultipartBodyBuilder()
-          val referenceSetMultipart = MultipartBodyBuilder()
-          problemMultipart.part("data", problemFilePart).filename(problemB64Hash)
-          referenceSetMultipart.part("data", referenceSetFilePart).filename(referenceSetB64Hash)
-          return@switchIfEmpty Mono.zip(
-              httpService.uploadToCDN(BodyInserters.fromMultipartData(problemMultipart.build())),
-              httpService.uploadToCDN(BodyInserters.fromMultipartData(referenceSetMultipart.build()))
-          ).flatMap {
-            val newProblem = Problem()
-            newProblem.name = name
-            newProblem.problemSha256 = problemB64Hash
-            newProblem.referenceSetSha256 = referenceSetB64Hash
-            problemDAO.save(newProblem)
-          }
-        }
-        .flatMap {
-          problemUserDAO.getByUserIdAndProblemId(userId, it.id!!)
-              .flatMap {
-                Mono.error<ProblemUser>(RuntimeException(ProblemExistsException))
-              }
-              .switchIfEmpty {
-                problemUserDAO.save(ProblemUser(null, userId, it.id!!))
-              }
-        }
-        .map { """{"problemB64Hash": "$problemB64Hash", "referenceSetB64Hash": "$referenceSetB64Hash"}""" }
+    ).awaitLast()
+    var problem = problemDAO.getBySha256(problemB64Hash).awaitFirstOrNull()
+    if (problem == null) {
+      problemB64Hash = Base64.getEncoder().encodeToString(hasher.digest(problemBytes))
+      referenceSetB64Hash = Base64.getEncoder().encodeToString(hasher.digest(referenceSetBytes))
+      val problemMultipart = MultipartBodyBuilder()
+      val referenceSetMultipart = MultipartBodyBuilder()
+      problemMultipart.part("data", problemFilePart).filename(problemB64Hash)
+      referenceSetMultipart.part("data", referenceSetFilePart).filename(referenceSetB64Hash)
+      withContext(Dispatchers.Default) {
+        httpService.uploadToCDN(BodyInserters.fromMultipartData(problemMultipart.build()))
+        httpService.uploadToCDN(BodyInserters.fromMultipartData(referenceSetMultipart.build()))
+      }
+      val newProblem = Problem()
+      newProblem.name = name
+      newProblem.problemSha256 = problemB64Hash
+      newProblem.referenceSetSha256 = referenceSetB64Hash
+      problem = problemDAO.save(newProblem).awaitLast()
+    }
+    val problem2 = problemUserDAO.getByUserIdAndProblemId(userId, problem?.id!!).awaitFirstOrNull()
+    if (problem2 != null) throw RuntimeException(ProblemExistsException)
+    problemUserDAO.save(ProblemUser(null, userId, problem.id!!)).awaitLast()
+    return """{"problemB64Hash": "$problemB64Hash", "referenceSetB64Hash": "$referenceSetB64Hash"}"""
   }
 
-  fun addProcess(username: String, processDTO: ProcessDTO): Mono<String> {
-    return userDAO.getByUsername(username)
-        .switchIfEmpty(Mono.error(RuntimeException(UserNotFoundException)))
-        .flatMap { user ->
-          if (!algorithmDAO.existsBySha256(processDTO.algorithmSha256)) return@flatMap Mono.error<String>(RuntimeException(AlgorithmNotFoundException))
-          if (!problemDAO.existsBySha256(processDTO.problemSha256)) return@flatMap Mono.error<String>(RuntimeException(ProblemNotFoundException))
-          val newProcess = Process(processDTO, UUID.randomUUID().toString())
-          newProcess.userId = user.id!!
-          processDAO.save(newProcess).map { """{"rabbitId": "${newProcess.rabbitId}"}""" }
-        }
+  suspend fun addProcess(username: String, processDTO: ProcessDTO): String {
+    val user = userDAO.getByUsername(username).awaitFirstOrNull() ?: throw RuntimeException(UserNotFoundException)
+    if (!algorithmDAO.existsBySha256(processDTO.algorithmSha256)) throw (RuntimeException(AlgorithmNotFoundException))
+    if (!problemDAO.existsBySha256(processDTO.problemSha256)) throw (RuntimeException(ProblemNotFoundException))
+    val newProcess = Process(processDTO, UUID.randomUUID().toString())
+    newProcess.userId = user.id!!
+    processDAO.save(newProcess).awaitLast()
+    return """{"rabbitId": "${newProcess.rabbitId}"}"""
   }
 
-  fun process(rabbitId: String): Mono<Unit> {
-    return processDAO.getByRabbitId(rabbitId)
-        .switchIfEmpty(Mono.error(RuntimeException(ProcessNotFoundException)))
-        .flatMap {
-          if (it.status == "processing" || it.status == "processed")
-            return@flatMap Mono.error<Unit>(RuntimeException(it.status))
+  suspend fun process(rabbitId: String) {
+    val process = processDAO.getByRabbitId(rabbitId).awaitFirstOrNull()
+        ?: throw RuntimeException(ProcessNotFoundException)
+    if (process.status == "processing" || process.status == "processed")
+      throw RuntimeException(process.status)
 
-          rSocketRequester.route("process")
-              .data(it)
-              .retrieveMono(Unit::class.java)
-        }
+    rSocketRequester.route("process")
+        .data(process)
+        .retrieveAndAwait<Unit>()
   }
 
 }
