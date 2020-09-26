@@ -42,8 +42,9 @@ class UserService(
     val user = userDAO.getByUsername(signupInfoDTO.username).awaitFirstOrNull()
     if (user != null) throw RuntimeException(UserExistsException)
     val multipartBodyBuilder = MultipartBodyBuilder()
-    multipartBodyBuilder.part("client_id", "moeawebframework")
-    multipartBodyBuilder.part("grant_type", "password")
+    if(httpService.keycloak_access_token == null) {
+      httpService.adminLogin()
+    }
     multipartBodyBuilder.part("username", signupInfoDTO.username)
     multipartBodyBuilder.part("password", signupInfoDTO.password)
     multipartBodyBuilder.part("first_name", signupInfoDTO.firstName)
@@ -52,7 +53,7 @@ class UserService(
     multipartBodyBuilder.part("email", signupInfoDTO.email)
     // TODO if user exists in Keycloak return user exists exception
     // TODO don't check if it exists in DB because if it is then it should be in both places
-    httpService.keycloakSignup(BodyInserters.fromMultipartData(multipartBodyBuilder.build()))
+    httpService.keycloakRegister(signupInfoDTO)
     userDAO.save(User(username = signupInfoDTO.username)).awaitLast()
   }
 

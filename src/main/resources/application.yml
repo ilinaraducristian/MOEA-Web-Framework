@@ -25,6 +25,7 @@ logging.level.org.springframework.data.r2dbc: DEBUG
 cdn_url: 'localhost:8070'
 rsocket_url: 'localhost:7000'
 authentication_issuers: "http://localhost:8180/auth/realms/MOEA-Web-Framework"
+keycloak_url: "http://localhost:8180/auth/realms/MOEA-Web-Framework/protocol/openid-connect/token"
 
 ---
 

@@ -18,4 +18,10 @@ data class SignupInfoDTO(
 
     var lastName: String? = null
 
-)
+) {
+
+    fun toJSON(): String {
+        return """{"username": "$username", "password": "$password", "email": "$email", "firstName": "$firstName"${lastName == null ?: """, "lastName": "$lastName"""}}"""
+    }
+
+}

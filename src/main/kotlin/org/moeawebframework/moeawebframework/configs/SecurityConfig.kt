@@ -28,6 +28,8 @@ class SecurityConfig {
     return http
         .csrf().disable()
         .authorizeExchange()
+        .pathMatchers("/user/signup").permitAll()
+        .pathMatchers("/user/login").permitAll()
         .pathMatchers("/test").permitAll()
         .pathMatchers("/queue").permitAll()
         .pathMatchers("/queue/process/**").permitAll()
