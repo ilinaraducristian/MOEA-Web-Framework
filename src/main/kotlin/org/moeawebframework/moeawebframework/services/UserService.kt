@@ -9,6 +9,7 @@ import org.moeawebframework.moeawebframework.dto.*
 import org.moeawebframework.moeawebframework.entities.*
 import org.moeawebframework.moeawebframework.exceptions.*
 import org.springframework.core.io.buffer.DataBufferUtils
+import org.springframework.http.HttpStatus
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.messaging.rsocket.RSocketRequester
@@ -41,27 +42,13 @@ class UserService(
   suspend fun signup(signupInfoDTO: SignupInfoDTO) {
     val user = userDAO.getByUsername(signupInfoDTO.username).awaitFirstOrNull()
     if (user != null) throw RuntimeException(UserExistsException)
-    val multipartBodyBuilder = MultipartBodyBuilder()
-    if(httpService.keycloak_access_token == null) {
-      httpService.adminLogin()
-    }
-    multipartBodyBuilder.part("username", signupInfoDTO.username)
-    multipartBodyBuilder.part("password", signupInfoDTO.password)
-    multipartBodyBuilder.part("first_name", signupInfoDTO.firstName)
-    if (signupInfoDTO.lastName != null)
-      multipartBodyBuilder.part("last_name", signupInfoDTO.lastName!!)
-    multipartBodyBuilder.part("email", signupInfoDTO.email)
-    // TODO if user exists in Keycloak return user exists exception
-    // TODO don't check if it exists in DB because if it is then it should be in both places
     httpService.keycloakRegister(signupInfoDTO)
     userDAO.save(User(username = signupInfoDTO.username)).awaitLast()
   }
 
   suspend fun login(userCredentialsDTO: UserCredentialsDTO): AccessTokenDTO {
-    val multipartBodyBuilder = MultipartBodyBuilder()
-    multipartBodyBuilder.part("username", userCredentialsDTO.username)
-    multipartBodyBuilder.part("password", userCredentialsDTO.password)
-    val clientResponse = httpService.keycloakLogin(BodyInserters.fromMultipartData(multipartBodyBuilder.build()))
+    val clientResponse = httpService.keycloakLogin(userCredentialsDTO)
+    if (clientResponse.statusCode() != HttpStatus.OK) throw RuntimeException(BadCredentialsException)
     return clientResponse.awaitBody()
   }
 
@@ -78,18 +65,6 @@ class UserService(
     algorithmsAndProblems["algorithms"] = algorithmsAndProblems1.t1
     algorithmsAndProblems["problems"] = algorithmsAndProblems1.t2
     return algorithmsAndProblems
-  }
-
-  fun oauth2Login(username: String): Mono<RegisteredUserDTO> {
-    // TODO if user doesn't exist, it should be created
-    return userDAO.getByUsername(username)
-        .switchIfEmpty {
-          Mono.error(RuntimeException(UserNotFoundException))
-        }.map {
-          val registeredUserDTO = RegisteredUserDTO()
-          registeredUserDTO.username = it.username
-          registeredUserDTO
-        }
   }
 
   suspend fun uploadAlgorithm(userId: Long, name: String, filePart: FilePart): String {
@@ -111,7 +86,7 @@ class UserService(
       algorithm = algorithmDAO.save(newAlgorithm).awaitLast()
     }
     val algorithm2 = algorithmUserDAO.getByUserIdAndAlgorithmId(userId, algorithm?.id!!).awaitFirstOrNull()
-        if(algorithm2 != null) throw RuntimeException(AlgorithmExistsException)
+    if (algorithm2 != null) throw RuntimeException(AlgorithmExistsException)
     algorithmUserDAO.save(AlgorithmUser(null, userId, algorithm.id!!)).awaitLast()
     return b64Hash
   }

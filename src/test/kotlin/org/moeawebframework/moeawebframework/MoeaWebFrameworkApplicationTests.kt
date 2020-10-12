@@ -1,107 +1,81 @@
 package org.moeawebframework.moeawebframework
 
-import org.moeawebframework.moeawebframework.repositories.ProblemRepository
-import org.moeawebframework.moeawebframework.repositories.ProblemUserRepository
-import org.moeawebframework.moeawebframework.repositories.UserRepository
-import org.moeawebframework.moeawebframework.services.UserService
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Test
+import org.moeawebframework.moeawebframework.dto.AccessTokenDTO
+import org.moeawebframework.moeawebframework.dto.UserCredentialsDTO
+import org.moeawebframework.moeawebframework.services.HttpService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
-import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.web.reactive.function.BodyInserters
-import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
-import java.io.File
-import javax.mail.Multipart
+import org.springframework.web.reactive.function.client.awaitBody
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 class MoeaWebFrameworkApplicationTests {
 
   @Autowired
-  lateinit var problemRepository: ProblemRepository
+  lateinit var httpService: HttpService
 
-  @Autowired
-  lateinit var problemUserRepository: ProblemUserRepository
-
-  @Autowired
-  lateinit var userService: UserService
-
-  @Autowired
-  lateinit var userRepository: UserRepository
-
-  fun fetchToken(): String {
-    val clientResponse: ClientResponse = WebClient.create("http://localhost:8180").post()
-        .uri("/auth/realms/MOEA-Web-Framework/protocol/openid-connect/token")
-        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-        .body(BodyInserters
-            .fromFormData("username", "foobar")
-            .with("password", "foobar")
-            .with("client_id", "obtain-token")
-            .with("grant_type", "password"))
-        .exchange().block()
-        ?: throw RuntimeException()
-
-    val body = clientResponse.bodyToMono(AccessDTO::class.java).block()
-    return body?.access_token!!
+//  @Test
+  fun test() {
+    val clientResponse1 = WebClient.create("http://localhost:8180/auth/realms/MOEA-Web-Framework/protocol/openid-connect/token")
+        .post()
+        .body(BodyInserters.fromFormData("client_id", "admin-cli")
+            .with("grant_type", "client_credentials")
+            .with("client_secret", "e622400c-01d7-4cd3-9409-1b5e569170a2")
+        )
+        .exchange()
+        .block()!!
+    println("Login admin status code: ${clientResponse1.statusCode()}")
+    val accessTokenDTO = clientResponse1.bodyToMono(AccessTokenDTO::class.java).block()!!
+    val clientResponse2 = WebClient.create("http://localhost:8180/auth/admin/realms/MOEA-Web-Framework/users")
+        .post()
+        .contentType(MediaType.APPLICATION_JSON)
+        .header("Authorization", "Bearer ${accessTokenDTO.access_token}")
+        .bodyValue("""{"enabled":true,"attributes":{},"username":"marian","emailVerified":"","email":"use3r@email.com","firstName":"User","lastName":"Name"}""")
+        .exchange()
+        .block()!!
+    println("Create user status code: ${clientResponse2.statusCode()}")
+    val response = clientResponse2.bodyToMono(String::class.java).block()
+    println(response)
   }
 
 //  @Test
-  fun uploadAlgorithm() {
-    val token = fetchToken()
-    val multipart = MultipartBodyBuilder()
-    multipart.part("data", File("/home/reydw/asd").readBytes()).header("Content-Disposition", "form-data; name=data; filename=asd")
-    multipart.part("name", "Algorithm nou")
-    val clientResponse: ClientResponse = WebClient.create("http://localhost:8080").post()
-        .uri("/algorithm")
-        .contentType(MediaType.MULTIPART_FORM_DATA)
-        .header("Authorization", """Bearer $token""")
-//        .body(BodyInserters.fromMultipartData(multipart.build()))
-                .body(BodyInserters.fromMultipartData(multipart.build()))
-        .exchange().block()
-        ?: return assert(false)
+  fun refresh_token_test() {
+    val clientResponse1 = WebClient.create("http://localhost:8180/auth/realms/MOEA-Web-Framework/protocol/openid-connect/token")
+        .post()
+        .body(BodyInserters.fromFormData("client_id", "admin-cli")
+            .with("grant_type", "client_credentials")
+            .with("client_secret", "e622400c-01d7-4cd3-9409-1b5e569170a2")
+        )
+        .exchange()
+        .block()!!
+    println("Login admin status code: ${clientResponse1.statusCode()}")
+    val accessTokenDTO = clientResponse1.bodyToMono(AccessTokenDTO::class.java).block()!!
 
-    val body = clientResponse.bodyToMono(String::class.java).block()
-    println(clientResponse.statusCode())
-    println(body)
+    val clientResponse2 = WebClient.create("http://localhost:8180/auth/realms/MOEA-Web-Framework/protocol/openid-connect/token")
+        .post()
+        .body(BodyInserters.fromFormData("client_id", "admin-cli")
+            .with("grant_type", "refresh_token")
+            .with("refresh_token", accessTokenDTO.refresh_token)
+            .with("client_secret", "e622400c-01d7-4cd3-9409-1b5e569170a2")
+        )
+        .exchange()
+        .block()!!
+    println("Login admin status code: ${clientResponse2.statusCode()}")
+    println(clientResponse2.bodyToMono(String::class.java).block()!!)
   }
 
-//  @Test
-  fun downloadAlgorithm() {
-    val token = fetchToken()
-    val clientResponse: ClientResponse = WebClient.create("http://localhost:8080").get()
-        .uri("""/algorithm/j1tiIUfghLmwW1rcPeGMIupxBmXWvOEbJUNXOapDMG8=""")
-        .header("Authorization", """Bearer $token""")
-        .exchange().block()
-        ?: return assert(false)
-
-    val body = clientResponse.bodyToMono(Multipart::class.java).block()
-    println(clientResponse.statusCode())
-    println(body)
+  @Test
+  fun login_user_test() {
+    val userCredentialsDTO = UserCredentialsDTO(username = "user", password = "password")
+    runBlocking {
+      val clientResponse = httpService.keycloakLogin(userCredentialsDTO)
+      println(clientResponse.awaitBody<String>())
+    }
   }
-
-//  @Test
-//  fun signup() {
-//    val token = fetchTokenFromFirstSource()
-//    val clientResponse: ClientResponse = WebClient.create("http://localhost:8080").post()
-//        .uri("/user/signup")
-//        .header("Authorization", """Bearer $token""")
-//        .bodyValue("foobar")
-//        .exchange().block()
-//        ?: return assert(false)
-//
-//    val body = clientResponse.bodyToMono(String::class.java).block()
-//    println(clientResponse.statusCode())
-//    println(body)
-//  }
-
-  class AccessDTO {
-    val access_token: String? = null
-  }
-
-  class CredentialPassword(
-      val password: String
-  )
-
 
 }
