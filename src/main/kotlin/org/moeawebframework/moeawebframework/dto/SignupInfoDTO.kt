@@ -20,8 +20,16 @@ data class SignupInfoDTO(
 
 ) {
 
-    fun toJSON(): String {
-        return """{"username": "$username", "password": "$password", "email": "$email", "firstName": "$firstName"${lastName == null ?: """, "lastName": "$lastName"""}}"""
+  fun toKeycloakCredentialRepresentation(): String {
+    var signupInfoJSON = """{"username": "$username", """
+    signupInfoJSON += """"credentials": [{"type": "password", "value": "$password", "temporary": false}], """
+    signupInfoJSON += """"email": "$email", """
+    signupInfoJSON += """"firstName": "$firstName""""
+    if (lastName != null) {
+      signupInfoJSON += """, "lastName": "$lastName""""
     }
+    signupInfoJSON += "}"
+    return signupInfoJSON
+  }
 
 }

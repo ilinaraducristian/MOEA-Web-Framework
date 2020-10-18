@@ -5,7 +5,10 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitLast
 import kotlinx.coroutines.withContext
 import org.moeawebframework.moeawebframework.dao.*
-import org.moeawebframework.moeawebframework.dto.*
+import org.moeawebframework.moeawebframework.dto.KeycloakTokenDTO
+import org.moeawebframework.moeawebframework.dto.ProcessDTO
+import org.moeawebframework.moeawebframework.dto.SignupInfoDTO
+import org.moeawebframework.moeawebframework.dto.UserCredentialsDTO
 import org.moeawebframework.moeawebframework.entities.*
 import org.moeawebframework.moeawebframework.exceptions.*
 import org.springframework.core.io.buffer.DataBufferUtils
@@ -16,9 +19,9 @@ import org.springframework.messaging.rsocket.RSocketRequester
 import org.springframework.messaging.rsocket.retrieveAndAwait
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
+import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.awaitBody
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 import java.security.MessageDigest
 import java.util.*
 import kotlin.collections.HashMap
@@ -41,15 +44,20 @@ class UserService(
 
   suspend fun signup(signupInfoDTO: SignupInfoDTO) {
     val user = userDAO.getByUsername(signupInfoDTO.username).awaitFirstOrNull()
-    if (user != null) throw RuntimeException(UserExistsException)
-    httpService.keycloakRegister(signupInfoDTO)
+    if (user != null) throw RuntimeException(UsernameTakenException)
+    if (user?.email == signupInfoDTO.email) throw RuntimeException(EmailTakenException)
+    httpService.keycloakSignup(signupInfoDTO)
     userDAO.save(User(username = signupInfoDTO.username)).awaitLast()
   }
 
-  suspend fun login(userCredentialsDTO: UserCredentialsDTO): AccessTokenDTO {
+  suspend fun login(userCredentialsDTO: UserCredentialsDTO): KeycloakTokenDTO {
     val clientResponse = httpService.keycloakLogin(userCredentialsDTO)
     if (clientResponse.statusCode() != HttpStatus.OK) throw RuntimeException(BadCredentialsException)
     return clientResponse.awaitBody()
+  }
+
+  suspend fun delete(id: String): ClientResponse {
+    return httpService.keycloakDelete(id)
   }
 
   suspend fun getAlgorithmsAndProblems(userId: Long): HashMap<String, List<Any>> {

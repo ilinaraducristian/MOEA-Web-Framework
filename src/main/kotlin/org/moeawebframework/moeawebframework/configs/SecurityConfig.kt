@@ -14,7 +14,7 @@ class SecurityConfig {
   lateinit var authentication_issuers: List<String>
 
   @Autowired
-  fun setAuthentication_issuers(@Value("\${authentication_issuers}") authenticationIssuers: String) {
+  fun setAuthentication_issuers(@Value("\${keycloak.authentication_issuers}") authenticationIssuers: String) {
     authentication_issuers = authenticationIssuers.split(",")
   }
 

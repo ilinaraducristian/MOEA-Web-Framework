@@ -1,9 +1,10 @@
 package org.moeawebframework.moeawebframework.services
 
 import kotlinx.coroutines.reactive.awaitLast
-import org.moeawebframework.moeawebframework.dto.AccessTokenDTO
+import org.moeawebframework.moeawebframework.dto.KeycloakTokenDTO
 import org.moeawebframework.moeawebframework.dto.SignupInfoDTO
 import org.moeawebframework.moeawebframework.dto.UserCredentialsDTO
+import org.moeawebframework.moeawebframework.exceptions.UsernameTakenException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -18,43 +19,47 @@ import org.springframework.web.reactive.function.client.awaitExchange
 class HttpService {
 
   @Value("\${cdn_url}")
-  lateinit var cdn_url: String
+  private lateinit var cdn_url: String
 
   @Value("\${keycloak.auth.url}")
-  lateinit var keycloak_auth_url: String
+  private lateinit var keycloak_auth_url: String
 
   @Value("\${keycloak.auth.client}")
-  lateinit var keycloak_auth_client: String
+  private lateinit var keycloak_auth_client: String
 
   @Value("\${keycloak.admin.url}")
-  lateinit var keycloak_admin_url: String
+  private lateinit var keycloak_admin_url: String
 
   @Value("\${keycloak.admin.client}")
-  lateinit var keycloak_admin_client: String
+  private lateinit var keycloak_admin_client: String
 
   @Value("\${keycloak.admin.secret}")
-  lateinit var keycloak_admin_secret: String
+  private lateinit var keycloak_admin_secret: String
 
-  private var accessTokenDTO: AccessTokenDTO? = null
+  private var keycloakTokenDTO: KeycloakTokenDTO? = null
+
+  fun mustErrorFcn() {
+    throw RuntimeException(UsernameTakenException)
+  }
 
   suspend fun getFromCDN(sha256: String): ClientResponse {
-    return WebClient.create("""${cdn_url}/$sha256""").get().exchange().awaitLast()
+    return WebClient.create("$cdn_url/$sha256").get().exchange().awaitLast()
   }
 
   suspend fun deleteFromCDN(sha256: String): ClientResponse {
-    return WebClient.create("""${cdn_url}/$sha256""").delete().exchange().awaitLast()
+    return WebClient.create("$cdn_url/$sha256").delete().exchange().awaitLast()
   }
 
   suspend fun uploadToCDN(body: BodyInserters.MultipartInserter): ClientResponse {
     return WebClient.create(cdn_url).post().body(body).exchange().awaitLast()
   }
 
-  suspend fun keycloakRegister(signupInfoDTO: SignupInfoDTO): ClientResponse {
-    if (accessTokenDTO == null) {
+  suspend fun keycloakSignup(signupInfoDTO: SignupInfoDTO): ClientResponse {
+    if (keycloakTokenDTO == null) {
       adminLogin()
     }
     var response = signup(signupInfoDTO)
-    if (response.statusCode() != HttpStatus.OK) {
+    if (response.statusCode() != HttpStatus.CREATED) {
       adminLogin()
       response = signup(signupInfoDTO)
     }
@@ -71,17 +76,41 @@ class HttpService {
         .awaitExchange()
   }
 
+  suspend fun keycloakFindByEmail(email: String): ClientResponse {
+    if (keycloakTokenDTO == null) {
+      adminLogin()
+    }
+    var response = findByEmail(email)
+    if (response.statusCode() != HttpStatus.OK) {
+      adminLogin()
+      response = findByEmail(email)
+    }
+    return response
+  }
+
+  suspend fun keycloakDelete(id: String): ClientResponse {
+    if (keycloakTokenDTO == null) {
+      adminLogin()
+    }
+    var response = delete(id)
+    if (response.statusCode() != HttpStatus.NO_CONTENT) {
+      adminLogin()
+      response = delete(id)
+    }
+    return response
+  }
+
   private suspend fun adminLogin() {
-    if (accessTokenDTO == null) {
+    if (keycloakTokenDTO == null) {
       val response = login(false)
-      accessTokenDTO = response.awaitBody()
+      keycloakTokenDTO = response.awaitBody()
       return
     }
     var response = login(true)
     if (response.statusCode() != HttpStatus.OK) {
       response = login(false)
     }
-    accessTokenDTO = response.awaitBody()
+    keycloakTokenDTO = response.awaitBody()
 
   }
 
@@ -89,8 +118,8 @@ class HttpService {
     return WebClient.create(keycloak_admin_url)
         .post()
         .contentType(MediaType.APPLICATION_JSON)
-        .header("Authorization", "Bearer ${accessTokenDTO?.access_token}")
-        .bodyValue(signupInfoDTO.toJSON())
+        .header("Authorization", "Bearer ${keycloakTokenDTO?.access_token}")
+        .bodyValue(signupInfoDTO.toKeycloakCredentialRepresentation())
         .awaitExchange()
   }
 
@@ -99,13 +128,27 @@ class HttpService {
         .with("client_secret", keycloak_admin_secret)
     if (hasRefreshToken) {
       bodyInserter.with("grant_type", "refresh_token")
-      bodyInserter.with("refresh_token", accessTokenDTO!!.refresh_token)
-    }else {
+      bodyInserter.with("refresh_token", keycloakTokenDTO!!.refresh_token)
+    } else {
       bodyInserter.with("grant_type", "client_credentials")
     }
     return WebClient.create(keycloak_auth_url)
         .post()
         .body(bodyInserter)
+        .awaitExchange()
+  }
+
+  private suspend fun findByEmail(email: String): ClientResponse {
+    return WebClient.create("${keycloak_admin_url}/?email=$email")
+        .get()
+        .header("Authorization", "Bearer ${keycloakTokenDTO?.access_token}")
+        .awaitExchange()
+  }
+
+  private suspend fun delete(id: String): ClientResponse {
+    return WebClient.create("${keycloak_admin_url}/$id")
+        .delete()
+        .header("Authorization", "Bearer ${keycloakTokenDTO?.access_token}")
         .awaitExchange()
   }
 

@@ -2,7 +2,7 @@ package org.moeawebframework.moeawebframework.controllers
 
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.moeawebframework.moeawebframework.dao.UserDAO
-import org.moeawebframework.moeawebframework.dto.AccessTokenDTO
+import org.moeawebframework.moeawebframework.dto.KeycloakTokenDTO
 import org.moeawebframework.moeawebframework.dto.SignupInfoDTO
 import org.moeawebframework.moeawebframework.dto.UserCredentialsDTO
 import org.moeawebframework.moeawebframework.exceptions.UserNotFoundException
@@ -28,7 +28,7 @@ class UserController(
   }
 
   @PostMapping("login")
-  suspend fun login(userCredentialsDTO: UserCredentialsDTO): AccessTokenDTO {
+  suspend fun login(userCredentialsDTO: UserCredentialsDTO): KeycloakTokenDTO {
     return userService.login(userCredentialsDTO)
   }
 

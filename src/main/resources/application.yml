@@ -9,7 +9,7 @@ spring:
       enabled: true
       max-file-size: 128KB
       max-request-size: 128KB
-
+  mvc.servlet.path: "/v1"
 ---
 
 spring:
