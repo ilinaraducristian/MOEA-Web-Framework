@@ -12,7 +12,6 @@ CREATE TABLE algorithms
     sha256 TEXT               NOT NULL
 );
 
-
 CREATE TABLE algorithms_users
 (
     id           SERIAL PRIMARY KEY NOT NULL,

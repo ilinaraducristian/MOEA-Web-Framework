@@ -1,14 +1,14 @@
 package org.moeawebframework.moeawebframework.dto
 
-data class ProcessDTO(
+data class QueueItemDTO(
 
     var name: String = "",
 
-    var algorithmSha256: String = "",
+    var algorithmMD5: String = "",
 
-    var problemSha256: String = "",
+    var problemMD5: String = "",
 
-    var referenceSetSha256: String = "",
+    var referenceSetMD5: String = "",
 
     var numberOfEvaluations: Int = 0,
 

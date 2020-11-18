@@ -2,8 +2,8 @@ package org.moeawebframework.moeawebframework.controllers
 
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitLast
-import org.moeawebframework.moeawebframework.dto.ProcessDTO
-import org.moeawebframework.moeawebframework.entities.Process
+import org.moeawebframework.moeawebframework.dto.QueueItemDTO
+import org.moeawebframework.moeawebframework.entities.QueueItem
 import org.moeawebframework.moeawebframework.exceptions.ProcessNotFoundException
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.http.MediaType
@@ -14,23 +14,23 @@ import java.util.*
 @RestController
 @RequestMapping("queue")
 class PublicQueueController(
-    private val redisTemplate: ReactiveRedisTemplate<String, Process>,
+    private val redisTemplate: ReactiveRedisTemplate<String, QueueItem>,
     private val rSocketRequester: RSocketRequester
 ) {
 
   @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
-  suspend fun addProcess(@RequestBody processDTO: ProcessDTO): String {
+  suspend fun addProcess(@RequestBody queueItemDTO: QueueItemDTO): String {
     var newUUID = UUID.randomUUID().toString()
-    var process: Process? = null
+    var queueItem: QueueItem? = null
     var count = 0
 
-    while (process != null) {
+    while (queueItem != null) {
       if (++count == 100) break
       newUUID = UUID.randomUUID().toString()
-      process = redisTemplate.opsForValue().get(newUUID).awaitFirstOrNull()
+      queueItem = redisTemplate.opsForValue().get(newUUID).awaitFirstOrNull()
     }
-    if (process == null) {
-      redisTemplate.opsForValue().set(newUUID, Process(processDTO, newUUID)).awaitLast()
+    if (queueItem == null) {
+      redisTemplate.opsForValue().set(newUUID, QueueItem(queueItemDTO, newUUID)).awaitLast()
       return """{"rabbitId": "$newUUID"}"""
     }
     // error too many retries ( > 100 )

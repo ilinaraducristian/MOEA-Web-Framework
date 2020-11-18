@@ -1,11 +1,11 @@
 package org.moeawebframework.moeawebframework.entities
 
-import org.moeawebframework.moeawebframework.dto.ProcessDTO
+import org.moeawebframework.moeawebframework.dto.QueueItemDTO
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 
-@Table("processes")
-data class Process(
+@Table("queue_items")
+data class QueueItem(
 
     @Id
     var id: Long? = null,
@@ -22,17 +22,17 @@ data class Process(
 
     var results: String = "",
 
-    var algorithmSha256: String = "",
+    var algorithmMD5: String = "",
 
-    var problemSha256: String = "",
+    var problemMD5: String = "",
 
-    var referenceSetSha256: String = "",
+    var referenceSetMD5: String = "",
 
     var userId: Long? = null
 
 ) {
 
-  constructor(processDTO: ProcessDTO, uuid: String) : this(
+  constructor(processDTO: QueueItemDTO, uuid: String) : this(
       null,
       processDTO.name,
       processDTO.numberOfEvaluations,
@@ -40,9 +40,9 @@ data class Process(
       "waiting",
       uuid,
       "",
-      processDTO.algorithmSha256,
-      processDTO.problemSha256,
-      processDTO.referenceSetSha256
+      processDTO.algorithmMD5,
+      processDTO.problemMD5,
+      processDTO.referenceSetMD5
   )
 
 }

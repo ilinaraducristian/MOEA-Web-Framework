@@ -10,7 +10,8 @@ import reactor.core.publisher.Mono
 class AlgorithmDAO(
     private val algorithmRepository: AlgorithmRepository
 ) : DAO<Algorithm> {
-  override fun get(id: Long): Mono<Algorithm> {
+
+  override fun get(id: Any): Mono<Algorithm> {
     return algorithmRepository.findById(id)
   }
 
@@ -30,12 +31,12 @@ class AlgorithmDAO(
     return algorithmRepository.delete(t)
   }
 
-  fun getBySha256(sha256: String): Mono<Algorithm> {
-    return algorithmRepository.findBySha256(sha256)
+  suspend fun getByUserId(userId: String): Array<Algorithm> {
+    return algorithmRepository.findByUserId(userId)
   }
 
-  fun existsBySha256(sha256: String): Boolean {
-    return algorithmRepository.existsBySha256(sha256)
+  suspend fun getByUserIdAndMD5(userId: String, md5: String): Algorithm? {
+    return algorithmRepository.findByUserIdAndMD5(userId, md5)
   }
 
 }

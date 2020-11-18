@@ -1,22 +1,12 @@
 package org.moeawebframework.moeawebframework.configs
 
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.web.server.ServerHttpSecurity
-import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerReactiveAuthenticationManagerResolver
 import org.springframework.security.web.server.SecurityWebFilterChain
 
 @Configuration
 class SecurityConfig {
-
-  lateinit var authentication_issuers: List<String>
-
-  @Autowired
-  fun setAuthentication_issuers(@Value("\${keycloak.authentication_issuers}") authenticationIssuers: String) {
-    authentication_issuers = authenticationIssuers.split(",")
-  }
 
   /**
    * For authorities the default implementation uses scopes
@@ -28,22 +18,17 @@ class SecurityConfig {
     return http
         .csrf().disable()
         .authorizeExchange()
-        .pathMatchers("/user/signup").permitAll()
-        .pathMatchers("/user/login").permitAll()
-        .pathMatchers("/test").permitAll()
-        .pathMatchers("/queue").permitAll()
-        .pathMatchers("/queue/process/**").permitAll()
-//        .pathMatchers("/test/**").permitAll()
-//        .pathMatchers("/user/**").permitAll()
-//        .pathMatchers("/user/signup").permitAll()
-//        .pathMatchers("/user/login").permitAll()
-//        .pathMatchers("/algorithm/**").permitAll()
-//        .pathMatchers("/test/**").permitAll()
-//        .anyExchange().authenticated()
-        .anyExchange().denyAll()
+//        .pathMatchers("/v1/user/signup").permitAll()
+//        .pathMatchers("/v1/user/login").permitAll()
+//        .pathMatchers("/v1/test").permitAll()
+//        .pathMatchers("/v1/queue").permitAll()
+//        .pathMatchers("/v1/queue/process/**").permitAll()
+        .anyExchange().permitAll()
         .and()
         .oauth2ResourceServer()
-        .authenticationManagerResolver(JwtIssuerReactiveAuthenticationManagerResolver(authentication_issuers))
+//        .authenticationManagerResolver(JwtIssuerReactiveAuthenticationManagerResolver(authentication_issuers))
+        .jwt()
+        .and()
         .and()
         .build()
   }

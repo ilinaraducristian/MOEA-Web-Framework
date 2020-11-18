@@ -9,7 +9,6 @@ spring:
       enabled: true
       max-file-size: 128KB
       max-request-size: 128KB
-  mvc.servlet.path: "/v1"
 ---
 
 spring:
@@ -19,6 +18,11 @@ spring:
     url: "r2dbc:postgresql://localhost/moeawebframework"
     username: "postgres"
     password: "postgres"
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: "http://localhost:8180/auth/realms/MOEA-Web-Framework"
 
 logging.level.org.springframework.data.r2dbc: DEBUG
 

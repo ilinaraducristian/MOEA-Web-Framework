@@ -4,8 +4,8 @@ import org.moeawebframework.moeawebframework.entities.User
 import org.springframework.data.r2dbc.repository.R2dbcRepository
 import reactor.core.publisher.Mono
 
-interface UserRepository : R2dbcRepository<User, Long> {
+interface UserRepository : R2dbcRepository<User, Any> {
 
-  fun findByUsername(username: String): Mono<User>
+  fun findById(id: String): Mono<User>
 
 }

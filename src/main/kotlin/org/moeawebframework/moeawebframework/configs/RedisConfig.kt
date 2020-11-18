@@ -1,6 +1,6 @@
 package org.moeawebframework.moeawebframework.configs
 
-import org.moeawebframework.moeawebframework.entities.Process
+import org.moeawebframework.moeawebframework.entities.QueueItem
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
@@ -9,7 +9,7 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializationContext
 import org.springframework.data.redis.serializer.StringRedisSerializer
 
-typealias redisType = Process
+typealias redisType = QueueItem
 
 @Configuration
 class RedisConfig {

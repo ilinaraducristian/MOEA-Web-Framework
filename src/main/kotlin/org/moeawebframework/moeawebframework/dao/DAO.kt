@@ -5,7 +5,7 @@ import reactor.core.publisher.Mono
 
 interface DAO<T> {
 
-  fun get(id: Long): Mono<T>
+  fun get(id: Any): Mono<T>
 
   fun getAll(): Flux<T>
 

@@ -11,6 +11,6 @@ data class Algorithm(
 
     var name: String = "",
 
-    var sha256: String = ""
+    var md5: String = ""
 
 )

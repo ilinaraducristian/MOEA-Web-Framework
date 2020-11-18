@@ -1,13 +1,15 @@
 package org.moeawebframework.moeawebframework.repositories
 
 import org.moeawebframework.moeawebframework.entities.Problem
+import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.r2dbc.repository.R2dbcRepository
-import reactor.core.publisher.Mono
 
-interface ProblemRepository : R2dbcRepository<Problem, Long> {
+interface ProblemRepository : R2dbcRepository<Problem, Any> {
 
-  fun findByProblemSha256(problemSha256: String): Mono<Problem>
+  @Query("SELECT problems.id, problems.name, problems.md5 FROM problems LEFT JOIN problem_user ON (problem_user.problem_id=problems.id) WHERE user_entity_id=$1 AND md5=$2")
+  suspend fun findByUserIdAndMD5(userId: String, md5: String): Problem?
 
-  fun existsByProblemSha256(problemSha256: String): Boolean
+  @Query("SELECT problems.id, problems.name, problems.md5 FROM problems LEFT JOIN problem_user ON (problem_user.problem_id=problems.id) WHERE user_entity_id=$1")
+  suspend fun findByUserId(userId: String): Array<Problem>
 
 }

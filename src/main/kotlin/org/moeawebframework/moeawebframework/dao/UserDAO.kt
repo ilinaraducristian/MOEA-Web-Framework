@@ -10,8 +10,9 @@ import reactor.core.publisher.Mono
 class UserDAO(
     private val userRepository: UserRepository
 ) : DAO<User> {
-  override fun get(id: Long): Mono<User> {
-    return userRepository.findById(id)
+
+  override fun get(id: Any): Mono<User> {
+    return userRepository.findById(id as String)
   }
 
   override fun getAll(): Flux<User> {
@@ -28,10 +29,6 @@ class UserDAO(
 
   override fun delete(t: User): Mono<Void> {
     return userRepository.delete(t)
-  }
-
-  fun getByUsername(username: String): Mono<User> {
-    return userRepository.findByUsername(username)
   }
 
 }
