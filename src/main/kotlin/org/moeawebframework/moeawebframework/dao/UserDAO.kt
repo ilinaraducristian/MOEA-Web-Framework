@@ -1,5 +1,8 @@
 package org.moeawebframework.moeawebframework.dao
 
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitLast
+import kotlinx.coroutines.reactive.awaitSingle
 import org.moeawebframework.moeawebframework.entities.User
 import org.moeawebframework.moeawebframework.repositories.UserRepository
 import org.springframework.stereotype.Repository
@@ -11,24 +14,24 @@ class UserDAO(
     private val userRepository: UserRepository
 ) : DAO<User> {
 
-  override fun get(id: Any): Mono<User> {
-    return userRepository.findById(id as String)
+  override suspend fun get(id: Any): User? {
+    return userRepository.findById(id as String).awaitFirstOrNull()
   }
 
-  override fun getAll(): Flux<User> {
-    return userRepository.findAll()
+  override suspend fun getAll(): List<User> {
+    return userRepository.findAll().collectList().awaitSingle()
   }
 
-  override fun save(t: User): Mono<User> {
-    return userRepository.save(t)
+  override suspend fun save(t: User): User? {
+    return userRepository.save(t).awaitFirstOrNull()
   }
 
-  override fun update(t: User, fields: HashMap<String, Any?>): Mono<Void> {
-    return Mono.empty()
+  override suspend fun update(t: User, fields: HashMap<String, Any?>) {
+
   }
 
-  override fun delete(t: User): Mono<Void> {
-    return userRepository.delete(t)
+  override suspend fun delete(t: User) {
+    userRepository.delete(t).awaitSingle()
   }
 
 }

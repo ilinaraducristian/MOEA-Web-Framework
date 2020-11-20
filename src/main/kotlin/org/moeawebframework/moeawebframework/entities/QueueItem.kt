@@ -28,7 +28,7 @@ data class QueueItem(
 
     var referenceSetMD5: String = "",
 
-    var userId: Long? = null
+    var userEntityId: String? = null
 
 ) {
 

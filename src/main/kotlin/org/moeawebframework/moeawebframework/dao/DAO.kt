@@ -1,18 +1,15 @@
 package org.moeawebframework.moeawebframework.dao
 
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
-
 interface DAO<T> {
 
-  fun get(id: Any): Mono<T>
+  suspend fun get(id: Any): T?
 
-  fun getAll(): Flux<T>
+  suspend fun getAll(): List<T>
 
-  fun save(t: T): Mono<T>
+  suspend fun save(t: T): T?
 
-  fun update(t: T, fields: HashMap<String, Any?>): Mono<Void>
+  suspend fun update(t: T, fields: HashMap<String, Any?>)
 
-  fun delete(t: T): Mono<Void>
+  suspend fun delete(t: T)
 
 }

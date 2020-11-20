@@ -2,10 +2,5 @@ package org.moeawebframework.moeawebframework.repositories
 
 import org.moeawebframework.moeawebframework.entities.User
 import org.springframework.data.r2dbc.repository.R2dbcRepository
-import reactor.core.publisher.Mono
 
-interface UserRepository : R2dbcRepository<User, Any> {
-
-  fun findById(id: String): Mono<User>
-
-}
+interface UserRepository : R2dbcRepository<User, String>

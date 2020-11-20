@@ -1,42 +1,43 @@
 package org.moeawebframework.moeawebframework.dao
 
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitLast
+import kotlinx.coroutines.reactive.awaitSingle
 import org.moeawebframework.moeawebframework.entities.Problem
 import org.moeawebframework.moeawebframework.repositories.ProblemRepository
 import org.springframework.stereotype.Repository
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 
 @Repository
 class ProblemDAO(
     private val problemRepository: ProblemRepository
 ) : DAO<Problem> {
 
-  override fun get(id: Any): Mono<Problem> {
-    return problemRepository.findById(id)
+  override suspend fun get(id: Any): Problem? {
+    return problemRepository.findById(id as Long).awaitFirstOrNull()
   }
 
-  override fun getAll(): Flux<Problem> {
-    return problemRepository.findAll()
+  override suspend fun getAll(): List<Problem> {
+    return problemRepository.findAll().collectList().awaitSingle()
   }
 
-  override fun save(t: Problem): Mono<Problem> {
-    return problemRepository.save(t)
+  override suspend fun save(t: Problem): Problem? {
+    return problemRepository.save(t).awaitFirstOrNull()
   }
 
-  override fun update(t: Problem, fields: HashMap<String, Any?>): Mono<Void> {
-    return Mono.empty()
+  override suspend fun update(t: Problem, fields: HashMap<String, Any?>) {
+
   }
 
-  override fun delete(t: Problem): Mono<Void> {
-    return problemRepository.delete(t)
+  override suspend fun delete(t: Problem) {
+    problemRepository.delete(t).awaitSingle()
   }
 
-  suspend fun getByUserId(userId: String): Array<Problem> {
-    return problemRepository.findByUserId(userId)
+  suspend fun getByUserEntityId(userId: String): List<Problem> {
+    return problemRepository.findByUserEntityId(userId).collectList().awaitSingle()
   }
 
-  suspend fun getByUserIdAndMD5(userId: String, md5: String): Problem? {
-    return problemRepository.findByUserIdAndMD5(userId, md5)
+  suspend fun getByUserEntityIdAndMD5(userId: String, md5: String): Problem? {
+    return problemRepository.findByUserEntityIdAndMD5(userId, md5)
   }
 
 }

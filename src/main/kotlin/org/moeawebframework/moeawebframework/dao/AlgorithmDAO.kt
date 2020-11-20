@@ -1,42 +1,44 @@
 package org.moeawebframework.moeawebframework.dao
 
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitLast
+import kotlinx.coroutines.reactive.awaitSingle
 import org.moeawebframework.moeawebframework.entities.Algorithm
 import org.moeawebframework.moeawebframework.repositories.AlgorithmRepository
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 
 @Repository
 class AlgorithmDAO(
     private val algorithmRepository: AlgorithmRepository
 ) : DAO<Algorithm> {
 
-  override fun get(id: Any): Mono<Algorithm> {
-    return algorithmRepository.findById(id)
+  override suspend fun get(id: Any): Algorithm? {
+    return algorithmRepository.findById(id as Long).awaitFirstOrNull()
   }
 
-  override fun getAll(): Flux<Algorithm> {
-    return algorithmRepository.findAll()
+  override suspend fun getAll(): List<Algorithm> {
+    return algorithmRepository.findAll().collectList().awaitSingle()
   }
 
-  override fun save(t: Algorithm): Mono<Algorithm> {
-    return algorithmRepository.save(t)
+  override suspend fun save(t: Algorithm): Algorithm? {
+    return algorithmRepository.save(t).awaitFirstOrNull()
   }
 
-  override fun update(t: Algorithm, fields: HashMap<String, Any?>): Mono<Void> {
-    return Mono.empty()
+  override suspend fun update(t: Algorithm, fields: HashMap<String, Any?>) {
+
   }
 
-  override fun delete(t: Algorithm): Mono<Void> {
-    return algorithmRepository.delete(t)
+  override suspend fun delete(t: Algorithm) {
+    algorithmRepository.delete(t).awaitSingle()
   }
 
-  suspend fun getByUserId(userId: String): Array<Algorithm> {
-    return algorithmRepository.findByUserId(userId)
+  suspend fun getByUserEntityId(userId: String): List<Algorithm> {
+    return algorithmRepository.findByUserEntityId(userId).collectList().awaitSingle()
   }
 
-  suspend fun getByUserIdAndMD5(userId: String, md5: String): Algorithm? {
-    return algorithmRepository.findByUserIdAndMD5(userId, md5)
+  suspend fun getByUserEntityIdAndMD5(userId: String, md5: String): Algorithm? {
+    return algorithmRepository.findByUserEntityIdAndMD5(userId, md5)
   }
 
 }

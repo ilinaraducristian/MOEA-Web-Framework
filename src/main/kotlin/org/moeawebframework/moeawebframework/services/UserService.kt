@@ -1,6 +1,5 @@
 package org.moeawebframework.moeawebframework.services
 
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.moeawebframework.moeawebframework.dao.AlgorithmDAO
 import org.moeawebframework.moeawebframework.dao.ProblemDAO
 import org.moeawebframework.moeawebframework.dao.QueueItemDAO
@@ -27,21 +26,23 @@ class UserService(
     private val rSocketRequester: RSocketRequester
 ) {
 
-  suspend fun getUserData(id: String): Map<String, Array<out Any>> {
-    val algorithms = algorithmDAO.getByUserId(id)
-    val problems = problemDAO.getByUserId(id)
-    val referenceSets = referenceSetDAO.getByUserId(id)
-
-    return mapOf(Pair("algorithms", algorithms), Pair("problems", problems), Pair("referenceSets", referenceSets))
-  }
+//  suspend fun getUserData(id: String): Map<String, Array<out Any>?> {
+//    val algorithms = algorithmDAO.getByUserEntityId(id)
+//    val problems = problemDAO.getByUserEntityId(id)
+//    val referenceSets = referenceSetDAO.getByUserEntityId(id)
+//  println(algorithms?.size)
+//    println(problems?.size)
+//    println(referenceSets?.size)
+//    return mapOf(Pair("algorithms", algorithms), Pair("problems", problems), Pair("referenceSets", referenceSets))
+//  }
 
   suspend fun addQueueItem(id: String, queueItemDTO: QueueItemDTO): String {
-    if (algorithmDAO.getByUserIdAndMD5(id, queueItemDTO.algorithmMD5) == null) throw RuntimeException(AlgorithmNotFoundOrAccessDeniedException)
-    if (problemDAO.getByUserIdAndMD5(id, queueItemDTO.problemMD5) == null) throw RuntimeException(ProblemNotFoundOrAccessDeniedException)
-    if (referenceSetDAO.getByUserIdAndMD5(id, queueItemDTO.referenceSetMD5) == null) throw RuntimeException(ReferenceSetNotFoundOrAccessDeniedException)
+    if (algorithmDAO.getByUserEntityIdAndMD5(id, queueItemDTO.algorithmMD5) == null) throw RuntimeException(AlgorithmNotFoundOrAccessDeniedException)
+    if (problemDAO.getByUserEntityIdAndMD5(id, queueItemDTO.problemMD5) == null) throw RuntimeException(ProblemNotFoundOrAccessDeniedException)
+    if (referenceSetDAO.getByUserEntityIdAndMD5(id, queueItemDTO.referenceSetMD5) == null) throw RuntimeException(ReferenceSetNotFoundOrAccessDeniedException)
     val uuid = UUID.randomUUID().toString()
     val queueItem = QueueItem(queueItemDTO, uuid)
-    queueItemDAO.save(queueItem).awaitFirstOrNull()
+    queueItemDAO.save(queueItem)
     return uuid
   }
 

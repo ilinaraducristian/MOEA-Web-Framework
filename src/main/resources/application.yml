@@ -3,12 +3,7 @@ spring:
     active: dev
   main:
     lazy-initialization: true
-  # Uploading files
-  servlet:
-    multipart:
-      enabled: true
-      max-file-size: 128KB
-      max-request-size: 128KB
+
 ---
 
 spring:

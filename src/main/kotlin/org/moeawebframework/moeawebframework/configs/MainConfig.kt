@@ -3,6 +3,7 @@ package org.moeawebframework.moeawebframework.configs
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.http.codec.json.Jackson2JsonDecoder
 import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.messaging.rsocket.RSocketRequester
@@ -14,7 +15,7 @@ import java.security.MessageDigest
 @Configuration
 class MainConfig {
 
-  @Value("\${rsocket_url}")
+  @Value("\${rsocket_url:}")
   lateinit var rsocket_url: String
 
   @Bean
@@ -28,6 +29,7 @@ class MainConfig {
   }
 
   @Bean
+  @Profile("!test")
   fun rSocketRequester(): RSocketRequester {
     val values = rsocket_url.split(":")
     return RSocketRequester

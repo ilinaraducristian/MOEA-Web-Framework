@@ -3,12 +3,13 @@ spring:
     active: dev
   main:
     lazy-initialization: true
-  # Uploading files
-  servlet:
-    multipart:
-      enabled: true
-      max-file-size: 128KB
-      max-request-size: 128KB
+
+---
+
+spring:
+  profiles: test
+#  r2dbc:
+#    url: "r2dbc:h2:mem:///test?options=DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE"
 
 ---
 
@@ -16,9 +17,10 @@ spring:
   profiles: dev
   r2dbc:
     # R2DBC_URI: "r2dbc:h2:mem:///test?options=DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE"
-    url: "r2dbc:postgresql://localhost/moeawebframework"
-    username: "postgres"
-    password: "postgres"
+#    url: "r2dbc:postgresql://localhost/moeawebframework"
+#    username: "postgres"
+#    password: "postgres"
+    url: "r2dbc:h2:mem:///test?options=DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE"
 
 logging.level.org.springframework.data.r2dbc: DEBUG
 

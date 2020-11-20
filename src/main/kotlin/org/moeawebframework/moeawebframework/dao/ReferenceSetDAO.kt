@@ -1,42 +1,43 @@
 package org.moeawebframework.moeawebframework.dao
 
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitLast
+import kotlinx.coroutines.reactive.awaitSingle
 import org.moeawebframework.moeawebframework.entities.ReferenceSet
 import org.moeawebframework.moeawebframework.repositories.ReferenceSetRepository
 import org.springframework.stereotype.Repository
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 
 @Repository
 class ReferenceSetDAO(
     private val referenceSetRepository: ReferenceSetRepository
 ) : DAO<ReferenceSet> {
 
-  override fun get(id: Any): Mono<ReferenceSet> {
-    return referenceSetRepository.findById(id)
+  override suspend fun get(id: Any): ReferenceSet? {
+    return referenceSetRepository.findById(id as Long).awaitFirstOrNull()
   }
 
-  override fun getAll(): Flux<ReferenceSet> {
-    return referenceSetRepository.findAll()
+  override suspend fun getAll(): List<ReferenceSet> {
+    return referenceSetRepository.findAll().collectList().awaitSingle()
   }
 
-  override fun save(t: ReferenceSet): Mono<ReferenceSet> {
-    return referenceSetRepository.save(t)
+  override suspend fun save(t: ReferenceSet): ReferenceSet? {
+    return referenceSetRepository.save(t).awaitFirstOrNull()
   }
 
-  override fun update(t: ReferenceSet, fields: HashMap<String, Any?>): Mono<Void> {
-    return Mono.empty()
+  override suspend fun update(t: ReferenceSet, fields: HashMap<String, Any?>) {
+
   }
 
-  override fun delete(t: ReferenceSet): Mono<Void> {
-    return referenceSetRepository.delete(t)
+  override suspend fun delete(t: ReferenceSet) {
+    referenceSetRepository.delete(t).awaitSingle()
   }
 
-  suspend fun getByUserId(userId: String): Array<ReferenceSet> {
-    return referenceSetRepository.findByUserId(userId)
+  suspend fun getByUserEntityId(userId: String): List<ReferenceSet> {
+    return referenceSetRepository.findByUserEntityId(userId).collectList().awaitSingle()
   }
 
-  suspend fun getByUserIdAndMD5(userId: String, md5: String): ReferenceSet? {
-    return referenceSetRepository.findByUserIdAndMD5(userId, md5)
+  suspend fun getByUserEntityIdAndMD5(userId: String, md5: String): ReferenceSet? {
+    return referenceSetRepository.findByUserEntityIdAndMD5(userId, md5)
   }
 
 }
