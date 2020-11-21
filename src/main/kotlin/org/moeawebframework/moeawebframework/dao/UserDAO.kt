@@ -9,4 +9,5 @@ class UserDAO(
     private val userRepository: UserRepository
 ) : DAO<User, String>(userRepository) {
 
+
 }

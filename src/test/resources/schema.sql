@@ -1,6 +1,6 @@
 CREATE TABLE user_entity
 (
-    id                      VARCHAR(255)
+    id                      VARCHAR(36)
 );
 
 CREATE TABLE algorithms
@@ -27,25 +27,25 @@ CREATE TABLE reference_sets
 CREATE TABLE algorithm_user_entity
 (
     id                      INT IDENTITY,
-    user_entity_id          VARCHAR(255) NOT NULL,
+    user_entity_id          VARCHAR(36) NOT NULL,
     algorithm_id            INT NOT NULL
 );
 
 CREATE TABLE problem_user_entity
 (
     id                      INT IDENTITY,
-    user_entity_id          VARCHAR(255) NOT NULL,
+    user_entity_id          VARCHAR(36) NOT NULL,
     problem_id              INT NOT NULL
 );
 
 CREATE TABLE reference_set_user_entity
 (
     id                      INT IDENTITY,
-    user_entity_id          VARCHAR(255) NOT NULL,
+    user_entity_id          VARCHAR(36) NOT NULL,
     reference_set_id        INT NOT NULL
 );
 
-CREATE TABLE processes
+CREATE TABLE queue_items
 (
     id                      INT IDENTITY,
     name                    VARCHAR(255),
@@ -57,5 +57,5 @@ CREATE TABLE processes
     algorithm_md5           VARCHAR(255) NOT NULL,
     problem_md5             VARCHAR(255) NOT NULL,
     reference_set_md5       VARCHAR(255) NOT NULL,
-    user_entity_id          INT NOT NULL
+    user_entity_id          VARCHAR(36) NOT NULL
 );

@@ -20,13 +20,15 @@ class TestConfig {
   fun getRSocketRequester(): RSocketRequester {
     val rSocketRequester = Mockito.mock(RSocketRequester::class.java)
     Mockito.`when`(rSocketRequester.route(Mockito.anyString(), Mockito.any()))
-        .thenReturn(TestRequestSpec())
+        .then {
+          TestRequestSpec(it.arguments[0] as String)
+        }
     return rSocketRequester
   }
 
 }
 
-class TestRequestSpec : RSocketRequester.RequestSpec {
+class TestRequestSpec(private val route: String) : RSocketRequester.RequestSpec {
   override fun metadata(p0: Consumer<RSocketRequester.MetadataSpec<*>>): RSocketRequester.RequestSpec {
     TODO("Not yet implemented")
   }
@@ -36,10 +38,20 @@ class TestRequestSpec : RSocketRequester.RequestSpec {
   }
 
   override fun <T : Any?> retrieveMono(p0: Class<T>): Mono<T> {
+    if(route == "startProcessing") {
+      return Mono.empty()
+    }else if(route == "cancelProcessing"){
+      return Mono.empty()
+    }
     return Mono.just("String" as T)
   }
 
   override fun <T : Any?> retrieveMono(p0: ParameterizedTypeReference<T>): Mono<T> {
+    if(route == "startProcessing") {
+      return Mono.empty()
+    }else if(route == "cancelProcessing"){
+      return Mono.empty()
+    }
     return Mono.just("String" as T)
   }
 
@@ -52,11 +64,11 @@ class TestRequestSpec : RSocketRequester.RequestSpec {
   }
 
   override fun data(p0: Any): RSocketRequester.RetrieveSpec {
-    TODO("Not yet implemented")
+      return this
   }
 
   override fun data(p0: Any, p1: Class<*>): RSocketRequester.RetrieveSpec {
-    TODO("Not yet implemented")
+    return this
   }
 
   override fun data(p0: Any, p1: ParameterizedTypeReference<*>): RSocketRequester.RetrieveSpec {

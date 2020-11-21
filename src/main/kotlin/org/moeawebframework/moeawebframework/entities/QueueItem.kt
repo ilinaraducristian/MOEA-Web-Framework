@@ -32,17 +32,18 @@ data class QueueItem(
 
 ) {
 
-  constructor(processDTO: QueueItemDTO, uuid: String) : this(
+  constructor(queueItemDTO: QueueItemDTO, uuid: String, userEntityId: String) : this(
       null,
-      processDTO.name,
-      processDTO.numberOfEvaluations,
-      processDTO.numberOfSeeds,
+      queueItemDTO.name,
+      queueItemDTO.numberOfEvaluations,
+      queueItemDTO.numberOfSeeds,
       "waiting",
       uuid,
       "",
-      processDTO.algorithmMD5,
-      processDTO.problemMD5,
-      processDTO.referenceSetMD5
+      queueItemDTO.algorithmMD5,
+      queueItemDTO.problemMD5,
+      queueItemDTO.referenceSetMD5,
+      userEntityId
   )
 
 }

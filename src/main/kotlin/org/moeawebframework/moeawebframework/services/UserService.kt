@@ -11,7 +11,7 @@ import org.moeawebframework.moeawebframework.exceptions.ProblemNotFoundOrAccessD
 import org.moeawebframework.moeawebframework.exceptions.QueueItemNotFoundException
 import org.moeawebframework.moeawebframework.exceptions.ReferenceSetNotFoundOrAccessDeniedException
 import org.springframework.messaging.rsocket.RSocketRequester
-import org.springframework.messaging.rsocket.retrieveAndAwait
+import org.springframework.messaging.rsocket.retrieveAndAwaitOrNull
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -26,32 +26,30 @@ class UserService(
     private val rSocketRequester: RSocketRequester
 ) {
 
-//  suspend fun getUserData(id: String): Map<String, Array<out Any>?> {
-//    val algorithms = algorithmDAO.getByUserEntityId(id)
-//    val problems = problemDAO.getByUserEntityId(id)
-//    val referenceSets = referenceSetDAO.getByUserEntityId(id)
-//  println(algorithms?.size)
-//    println(problems?.size)
-//    println(referenceSets?.size)
-//    return mapOf(Pair("algorithms", algorithms), Pair("problems", problems), Pair("referenceSets", referenceSets))
-//  }
+  suspend fun getUserData(userEntityId: String): Map<String, List<Any>> {
+    val algorithms = algorithmDAO.getByUserEntityId(userEntityId)
+    val problems = problemDAO.getByUserEntityId(userEntityId)
+    val referenceSets = referenceSetDAO.getByUserEntityId(userEntityId)
+    val queueItems = queueItemDAO.getByUserEntityId(userEntityId)
+    return mapOf(Pair("algorithms", algorithms), Pair("problems", problems), Pair("referenceSets", referenceSets), Pair("queueItems", queueItems))
+  }
 
-  suspend fun addQueueItem(id: String, queueItemDTO: QueueItemDTO): String {
-    if (algorithmDAO.getByUserEntityIdAndMD5(id, queueItemDTO.algorithmMD5) == null) throw RuntimeException(AlgorithmNotFoundOrAccessDeniedException)
-    if (problemDAO.getByUserEntityIdAndMD5(id, queueItemDTO.problemMD5) == null) throw RuntimeException(ProblemNotFoundOrAccessDeniedException)
-    if (referenceSetDAO.getByUserEntityIdAndMD5(id, queueItemDTO.referenceSetMD5) == null) throw RuntimeException(ReferenceSetNotFoundOrAccessDeniedException)
+  suspend fun addQueueItem(userEntityId: String, queueItemDTO: QueueItemDTO): String {
+    if (algorithmDAO.getByUserEntityIdAndMD5(userEntityId, queueItemDTO.algorithmMD5) == null) throw RuntimeException(AlgorithmNotFoundOrAccessDeniedException)
+    if (problemDAO.getByUserEntityIdAndMD5(userEntityId, queueItemDTO.problemMD5) == null) throw RuntimeException(ProblemNotFoundOrAccessDeniedException)
+    if (referenceSetDAO.getByUserEntityIdAndMD5(userEntityId, queueItemDTO.referenceSetMD5) == null) throw RuntimeException(ReferenceSetNotFoundOrAccessDeniedException)
     val uuid = UUID.randomUUID().toString()
-    val queueItem = QueueItem(queueItemDTO, uuid)
+    val queueItem = QueueItem(queueItemDTO, uuid, userEntityId)
     queueItemDAO.save(queueItem)
     return uuid
   }
 
-  suspend fun getQueueItem(id: String, rabbitId: String): QueueItem? {
-    return queueItemDAO.getByRabbitIdAndUserId(rabbitId, id)
+  suspend fun getQueueItem(userEntityId: String, rabbitId: String): QueueItem? {
+    return queueItemDAO.getByUserEntityIdAndRabbitId(userEntityId, rabbitId)
   }
 
-  suspend fun deleteQueueItem(id: String, rabbitId: String) {
-    val queueItem = queueItemDAO.getByRabbitIdAndUserId(rabbitId, id)
+  suspend fun deleteQueueItem(userEntityId: String, rabbitId: String) {
+    val queueItem = queueItemDAO.getByUserEntityIdAndRabbitId(userEntityId, rabbitId)
         ?: throw RuntimeException(QueueItemNotFoundException)
     if (queueItem.status == "working") {
       cancelQueueItemProcessing(rabbitId)
@@ -59,10 +57,18 @@ class UserService(
     queueItemDAO.delete(queueItem)
   }
 
+  suspend fun startProcessing(userEntityId: String, rabbitId: String) {
+    val queueItem = queueItemDAO.getByUserEntityIdAndRabbitId(userEntityId, rabbitId)
+        ?: throw RuntimeException(QueueItemNotFoundException)
+    rSocketRequester.route("startProcessing")
+        .data(queueItem.rabbitId)
+        .retrieveAndAwaitOrNull<Unit>()
+  }
+
   private suspend fun cancelQueueItemProcessing(rabbitId: String) {
-    rSocketRequester.route("cancel")
+    rSocketRequester.route("cancelProcessing")
         .data(rabbitId)
-        .retrieveAndAwait<Unit>()
+        .retrieveAndAwaitOrNull<Unit>()
   }
 
 }

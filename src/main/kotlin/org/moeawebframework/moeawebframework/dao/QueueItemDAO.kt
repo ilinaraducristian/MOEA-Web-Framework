@@ -1,5 +1,6 @@
 package org.moeawebframework.moeawebframework.dao
 
+import kotlinx.coroutines.reactive.awaitSingle
 import org.moeawebframework.moeawebframework.entities.QueueItem
 import org.moeawebframework.moeawebframework.repositories.QueueItemRepository
 import org.springframework.stereotype.Repository
@@ -9,8 +10,12 @@ class QueueItemDAO(
     private val queueItemRepository: QueueItemRepository
 ) : DAO<QueueItem, Long>(queueItemRepository) {
 
-  suspend fun getByRabbitIdAndUserId(rabbitId: String, userId: String): QueueItem? {
-    return queueItemRepository.findByRabbitIdAndUserEntityId(rabbitId, userId)
+  suspend fun getByUserEntityId(userEntityId: String): List<QueueItem> {
+    return queueItemRepository.findByUserEntityId(userEntityId).collectList().awaitSingle()
+  }
+
+  suspend fun getByUserEntityIdAndRabbitId(userEntityId: String, rabbitId: String): QueueItem? {
+    return queueItemRepository.findByUserEntityIdAndRabbitId(userEntityId, rabbitId)
   }
 
 }

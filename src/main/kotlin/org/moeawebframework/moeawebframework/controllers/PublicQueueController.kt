@@ -18,26 +18,25 @@ class PublicQueueController(
     private val rSocketRequester: RSocketRequester
 ) {
 
-  @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
-  suspend fun addProcess(@RequestBody queueItemDTO: QueueItemDTO): String {
-    var newUUID = UUID.randomUUID().toString()
-    var queueItem: QueueItem? = null
-    var count = 0
-
-    while (queueItem != null) {
-      if (++count == 100) break
-      newUUID = UUID.randomUUID().toString()
-      queueItem = redisTemplate.opsForValue().get(newUUID).awaitFirstOrNull()
-    }
-    if (queueItem == null) {
-      redisTemplate.opsForValue().set(newUUID, QueueItem(queueItemDTO, newUUID)).awaitLast()
-      return """{"rabbitId": "$newUUID"}"""
-    }
-    // error too many retries ( > 100 )
-    System.err.println("Too many retries, something went wrong")
-    throw RuntimeException("""{"error": "Internal error"}""")
-  }
-
+//  @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
+//  suspend fun addProcess(@RequestBody queueItemDTO: QueueItemDTO): String {
+//    var newUUID = UUID.randomUUID().toString()
+//    var queueItem: QueueItem? = null
+//    var count = 0
+//
+//    while (queueItem != null) {
+//      if (++count == 100) break
+//      newUUID = UUID.randomUUID().toString()
+//      queueItem = redisTemplate.opsForValue().get(newUUID).awaitFirstOrNull()
+//    }
+//    if (queueItem == null) {
+//      redisTemplate.opsForValue().set(newUUID, QueueItem(queueItemDTO, newUUID)).awaitLast()
+//      return """{"rabbitId": "$newUUID"}"""
+//    }
+//    // error too many retries ( > 100 )
+//    System.err.println("Too many retries, something went wrong")
+//    throw RuntimeException("""{"error": "Internal error"}""")
+//  }
 
   @PostMapping("process/{rabbitId}")
   suspend fun process(@PathVariable rabbitId: String) {
