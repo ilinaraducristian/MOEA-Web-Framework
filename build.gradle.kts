@@ -46,6 +46,7 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-test") {
     exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
   }
+  testImplementation("com.github.kstyrc:embedded-redis:0.6")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.springframework.amqp:spring-rabbit-test")
   testImplementation("org.springframework.security:spring-security-test")

@@ -1,19 +1,37 @@
 package org.moeawebframework.moeawebframework
 
 import org.mockito.Mockito
+import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
-import org.springframework.context.annotation.Profile
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.messaging.rsocket.RSocketRequester
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import redis.embedded.RedisServer
 import java.util.function.Consumer
+import javax.annotation.PreDestroy
 
-@Configuration
-@Profile("test")
+@TestConfiguration
 class TestConfig {
+
+  private final val redisServer = RedisServer(6370)
+
+  init {
+    try {
+      redisServer.start()
+
+    } catch (e: Exception) {
+    }
+  }
+
+  @PreDestroy
+  fun preDestroy() {
+    try {
+      redisServer.stop()
+    } catch (e: Exception) {
+    }
+  }
 
   @Bean
   @Primary
@@ -38,21 +56,21 @@ class TestRequestSpec(private val route: String) : RSocketRequester.RequestSpec 
   }
 
   override fun <T : Any?> retrieveMono(p0: Class<T>): Mono<T> {
-    if(route == "startProcessing") {
+    if (route == "startProcessing") {
       return Mono.empty()
-    }else if(route == "cancelProcessing"){
+    } else if (route == "cancelProcessing") {
       return Mono.empty()
     }
-    return Mono.just("String" as T)
+    return Mono.empty()
   }
 
   override fun <T : Any?> retrieveMono(p0: ParameterizedTypeReference<T>): Mono<T> {
-    if(route == "startProcessing") {
+    if (route == "startProcessing") {
       return Mono.empty()
-    }else if(route == "cancelProcessing"){
+    } else if (route == "cancelProcessing") {
       return Mono.empty()
     }
-    return Mono.just("String" as T)
+    return Mono.empty()
   }
 
   override fun <T : Any?> retrieveFlux(p0: Class<T>): Flux<T> {
@@ -64,7 +82,7 @@ class TestRequestSpec(private val route: String) : RSocketRequester.RequestSpec 
   }
 
   override fun data(p0: Any): RSocketRequester.RetrieveSpec {
-      return this
+    return this
   }
 
   override fun data(p0: Any, p1: Class<*>): RSocketRequester.RetrieveSpec {

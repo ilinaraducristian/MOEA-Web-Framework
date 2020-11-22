@@ -3,3 +3,5 @@ spring:
     active: test
   main:
     lazy-initialization: true
+  redis:
+    port: 6370
