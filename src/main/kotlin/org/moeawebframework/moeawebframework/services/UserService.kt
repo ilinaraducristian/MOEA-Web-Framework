@@ -58,11 +58,17 @@ class UserService(
   }
 
   suspend fun startProcessing(userEntityId: String, rabbitId: String) {
-    val queueItem = queueItemDAO.getByUserEntityIdAndRabbitId(userEntityId, rabbitId)
+    queueItemDAO.getByUserEntityIdAndRabbitId(userEntityId, rabbitId)
         ?: throw RuntimeException(QueueItemNotFoundException)
     rSocketRequester.route("startProcessing")
-        .data(queueItem.rabbitId)
+        .data(rabbitId)
         .retrieveAndAwaitOrNull<Unit>()
+  }
+
+  suspend fun cancelProcessing(userEntityId: String, rabbitId: String) {
+    queueItemDAO.getByUserEntityIdAndRabbitId(userEntityId, rabbitId)
+        ?: throw RuntimeException(QueueItemNotFoundException)
+    cancelQueueItemProcessing(rabbitId)
   }
 
   private suspend fun cancelQueueItemProcessing(rabbitId: String) {

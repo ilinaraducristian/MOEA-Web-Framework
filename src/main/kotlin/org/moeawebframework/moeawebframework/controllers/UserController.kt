@@ -13,10 +13,10 @@ class UserController(
     private val userService: UserService
 ) {
 
-//  @GetMapping
-//  suspend fun getUserData(authentication: Authentication): Map<String, Any> {
-//    val principal = authentication.principal as Jwt
-//    return userService.getUserData(principal.getClaim("sub"))
-//  }
+  @GetMapping
+  suspend fun getUserData(authentication: Authentication): Map<String, List<Any>> {
+    val principal = authentication.principal as Jwt
+    return userService.getUserData(principal.getClaim("sub"))
+  }
 
 }
