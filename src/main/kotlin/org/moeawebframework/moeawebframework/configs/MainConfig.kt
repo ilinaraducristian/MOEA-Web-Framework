@@ -8,25 +8,13 @@ import org.springframework.http.codec.json.Jackson2JsonDecoder
 import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.messaging.rsocket.RSocketRequester
 import org.springframework.messaging.rsocket.RSocketStrategies
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.util.MimeTypeUtils
-import java.security.MessageDigest
 
 @Configuration
 class MainConfig {
 
   @Value("\${rsocket_url:}")
   lateinit var rsocket_url: String
-
-  @Bean
-  fun encoder(): BCryptPasswordEncoder {
-    return BCryptPasswordEncoder()
-  }
-
-  @Bean
-  fun hasher(): MessageDigest {
-    return MessageDigest.getInstance("SHA-256")
-  }
 
   @Bean
   @Profile("!test")

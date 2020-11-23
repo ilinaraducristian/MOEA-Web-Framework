@@ -8,30 +8,10 @@ import org.springframework.core.ParameterizedTypeReference
 import org.springframework.messaging.rsocket.RSocketRequester
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import redis.embedded.RedisServer
 import java.util.function.Consumer
-import javax.annotation.PreDestroy
 
 @TestConfiguration
 class TestConfig {
-
-  private final val redisServer = RedisServer(6370)
-
-  init {
-    try {
-      redisServer.start()
-
-    } catch (e: Exception) {
-    }
-  }
-
-  @PreDestroy
-  fun preDestroy() {
-    try {
-      redisServer.stop()
-    } catch (e: Exception) {
-    }
-  }
 
   @Bean
   @Primary
