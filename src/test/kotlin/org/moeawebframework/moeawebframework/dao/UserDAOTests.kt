@@ -1,15 +1,17 @@
-package org.moeawebframework.moeawebframework
+package org.moeawebframework.moeawebframework.dao
 
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
-import org.moeawebframework.moeawebframework.dao.UserDAO
+import org.moeawebframework.moeawebframework.configs.R2dbcTestConfig
 import org.moeawebframework.moeawebframework.entities.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 
 @SpringBootTest
+@Import(R2dbcTestConfig::class)
 class UserDAOTests {
 
   @Autowired

@@ -5,13 +5,14 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.moeawebframework.moeawebframework.configs.RSocketTestConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import redis.embedded.RedisServer
 
-@Import(TestConfig::class)
+@Import(RSocketTestConfig::class)
 @SpringBootTest
 class RedisTest {
 

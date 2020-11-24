@@ -1,14 +1,16 @@
-package org.moeawebframework.moeawebframework
+package org.moeawebframework.moeawebframework.dao
 
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.moeawebframework.moeawebframework.dao.ReferenceSetDAO
+import org.moeawebframework.moeawebframework.configs.R2dbcTestConfig
 import org.moeawebframework.moeawebframework.entities.ReferenceSet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 
 @SpringBootTest
+@Import(R2dbcTestConfig::class)
 class ReferenceSetDAOTests {
 
   @Autowired

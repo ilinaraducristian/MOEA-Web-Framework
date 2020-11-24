@@ -1,1 +1,0 @@
-INSERT INTO user_entity (id) VALUES ('cdd36e48-f1c5-474e-abc3-ac7a17909878')

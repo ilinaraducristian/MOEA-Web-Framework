@@ -1,58 +1,42 @@
 package org.moeawebframework.moeawebframework.controllers
 
-import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.reactive.awaitLast
 import org.moeawebframework.moeawebframework.dto.QueueItemDTO
-import org.moeawebframework.moeawebframework.entities.QueueItem
-import org.moeawebframework.moeawebframework.exceptions.ProcessNotFoundException
-import org.springframework.data.redis.core.ReactiveRedisTemplate
-import org.springframework.http.MediaType
-import org.springframework.messaging.rsocket.RSocketRequester
+import org.moeawebframework.moeawebframework.dto.QueueItemResponseDTO
+import org.moeawebframework.moeawebframework.exceptions.QueueItemNotFoundException
+import org.moeawebframework.moeawebframework.services.PublicService
 import org.springframework.web.bind.annotation.*
-import java.util.*
 
 @RestController
-@RequestMapping("queue")
+@RequestMapping("public/queue")
 class PublicQueueController(
-    private val redisTemplate: ReactiveRedisTemplate<String, QueueItem>,
-    private val rSocketRequester: RSocketRequester
+    private val publicService: PublicService
 ) {
 
-//  @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
-//  suspend fun addProcess(@RequestBody queueItemDTO: QueueItemDTO): String {
-//    var newUUID = UUID.randomUUID().toString()
-//    var queueItem: QueueItem? = null
-//    var count = 0
-//
-//    while (queueItem != null) {
-//      if (++count == 100) break
-//      newUUID = UUID.randomUUID().toString()
-//      queueItem = redisTemplate.opsForValue().get(newUUID).awaitFirstOrNull()
-//    }
-//    if (queueItem == null) {
-//      redisTemplate.opsForValue().set(newUUID, QueueItem(queueItemDTO, newUUID)).awaitLast()
-//      return """{"rabbitId": "$newUUID"}"""
-//    }
-//    // error too many retries ( > 100 )
-//    System.err.println("Too many retries, something went wrong")
-//    throw RuntimeException("""{"error": "Internal error"}""")
-//  }
+  @PostMapping
+  suspend fun addQueueItem(queueItemDTO: QueueItemDTO): String {
+    return publicService.addQueueItem(queueItemDTO)
+  }
 
-  @PostMapping("process/{rabbitId}")
-  suspend fun process(@PathVariable rabbitId: String) {
-    val process = redisTemplate.opsForValue().get(rabbitId).awaitFirstOrNull()
-        ?: throw RuntimeException(ProcessNotFoundException)
-    if (process.status == "processing" || process.status == "processed")
-      throw RuntimeException(process.status)
-    try {
-      rSocketRequester.route("process")
-          .data(process)
-          .retrieveMono(Unit::class.java)
-          .awaitFirstOrNull()
-    } catch (e: Exception) {
-      e.printStackTrace()
-      println("Exception in process, should never happen")
-    }
+  @GetMapping("{rabbitId}")
+  suspend fun getQueueItem(@PathVariable rabbitId: String): QueueItemResponseDTO {
+    val queueItem = publicService.getQueueItem(rabbitId)
+        ?: throw RuntimeException(QueueItemNotFoundException)
+    return QueueItemResponseDTO(queueItem)
+  }
+
+  @PostMapping("{rabbitId}")
+  suspend fun startQueueItemProcessing(@PathVariable rabbitId: String) {
+    publicService.startProcessing(rabbitId)
+  }
+
+  @PostMapping("cancel/{rabbitId}")
+  suspend fun cancelQueueItemProcessing(@PathVariable rabbitId: String) {
+    publicService.cancelProcessing(rabbitId)
+  }
+
+  @DeleteMapping("{rabbitId}")
+  suspend fun deleteQueueItem(@PathVariable rabbitId: String) {
+    publicService.deleteQueueItem(rabbitId)
   }
 
 }

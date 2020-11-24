@@ -9,7 +9,6 @@ spring:
 spring:
   profiles: dev
   r2dbc:
-    # R2DBC_URI: "r2dbc:h2:mem:///test?options=DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE"
     url: "r2dbc:postgresql://localhost/moeawebframework"
     username: "postgres"
     password: "postgres"
@@ -21,32 +20,11 @@ spring:
 
 logging.level.org.springframework.data.r2dbc: DEBUG
 
-cdn_url: "localhost:8070"
 rsocket_url: "localhost:7000"
 
-keycloak:
-  authentication_issuers: "http://localhost:8180/auth/realms/MOEA-Web-Framework"
-  auth:
-    url: "http://localhost:8180/auth/realms/MOEA-Web-Framework/protocol/openid-connect/token"
-    client: "moea-web-framework"
-  admin:
-    url: "http://localhost:8180/auth/admin/realms/MOEA-Web-Framework/users"
-    client: "admin-cli"
-    secret: "e622400c-01d7-4cd3-9409-1b5e569170a2"
 ---
 
 spring:
   profiles: prod
 
-cdn_url: ${CDN_URL}
 rsocket_url: ${RSOCKET_URL}
-
-keycloak:
-  authentication_issuers: ${KEYCLOAK_AUTHENTICATION_ISSUERS}
-  auth:
-    url: ${KEYCLOAK_AUTH_URL}
-    client: ${KEYCLOAK_AUTH_CLIENT}
-  admin:
-    url: ${KEYCLOAK_ADMIN_URL}
-    client: ${KEYCLOAK_ADMIN_CLIENT}
-    secret: ${KEYCLOAK_ADMIN_SECRET}

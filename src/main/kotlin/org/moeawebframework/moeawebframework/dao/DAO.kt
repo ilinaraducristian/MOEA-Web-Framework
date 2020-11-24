@@ -28,5 +28,4 @@ open class DAO<T, ID>(
     r2dbcRepository.delete(t).awaitFirstOrNull()
   }
 
-
 }

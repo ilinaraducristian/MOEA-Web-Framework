@@ -1,4 +1,4 @@
-package org.moeawebframework.moeawebframework
+package org.moeawebframework.moeawebframework.services
 
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test

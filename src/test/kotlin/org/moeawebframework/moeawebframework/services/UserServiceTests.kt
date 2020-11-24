@@ -1,21 +1,22 @@
-package org.moeawebframework.moeawebframework
+package org.moeawebframework.moeawebframework.services
 
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import org.moeawebframework.moeawebframework.configs.R2dbcTestConfig
+import org.moeawebframework.moeawebframework.configs.RSocketTestConfig
 import org.moeawebframework.moeawebframework.dto.QueueItemDTO
 import org.moeawebframework.moeawebframework.entities.Algorithm
 import org.moeawebframework.moeawebframework.entities.Problem
 import org.moeawebframework.moeawebframework.entities.ReferenceSet
-import org.moeawebframework.moeawebframework.services.UserService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 
 @SpringBootTest
-@Import(TestConfig::class)
+@Import(value = [RSocketTestConfig::class, R2dbcTestConfig::class])
 class UserServiceTests {
 
   @Autowired

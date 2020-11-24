@@ -27,9 +27,9 @@ class UserService(
 ) {
 
   suspend fun getUserData(userEntityId: String): Map<String, List<Any>> {
-    val algorithms = algorithmDAO.getByUserEntityId(userEntityId)
-    val problems = problemDAO.getByUserEntityId(userEntityId)
-    val referenceSets = referenceSetDAO.getByUserEntityId(userEntityId)
+    val algorithms = algorithmDAO.getByUserEntityId(userEntityId).map { mapOf(Pair("name", it.name), Pair("md5", it.md5)) }
+    val problems = problemDAO.getByUserEntityId(userEntityId).map { mapOf(Pair("name", it.name), Pair("md5", it.md5)) }
+    val referenceSets = referenceSetDAO.getByUserEntityId(userEntityId).map { mapOf(Pair("name", it.name), Pair("md5", it.md5)) }
     val queueItems = queueItemDAO.getByUserEntityId(userEntityId)
     return mapOf(Pair("algorithms", algorithms), Pair("problems", problems), Pair("referenceSets", referenceSets), Pair("queueItems", queueItems))
   }
@@ -58,10 +58,10 @@ class UserService(
   }
 
   suspend fun startProcessing(userEntityId: String, rabbitId: String) {
-    queueItemDAO.getByUserEntityIdAndRabbitId(userEntityId, rabbitId)
+    val queueItem = queueItemDAO.getByUserEntityIdAndRabbitId(userEntityId, rabbitId)
         ?: throw RuntimeException(QueueItemNotFoundException)
     rSocketRequester.route("startProcessing")
-        .data(rabbitId)
+        .data(queueItem)
         .retrieveAndAwaitOrNull<Unit>()
   }
 
