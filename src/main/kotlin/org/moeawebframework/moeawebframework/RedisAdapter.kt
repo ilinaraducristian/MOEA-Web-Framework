@@ -1,9 +1,10 @@
 package org.moeawebframework.moeawebframework
 
-import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.reactive.awaitSingle
 import org.moeawebframework.moeawebframework.configs.redisType
 import org.springframework.data.redis.core.ReactiveRedisTemplate
+import org.springframework.data.redis.core.deleteAndAwait
+import org.springframework.data.redis.core.getAndAwait
+import org.springframework.data.redis.core.setAndAwait
 import org.springframework.stereotype.Component
 
 @Component
@@ -12,11 +13,15 @@ class RedisAdapter(
 ) {
 
   suspend fun set(key: String, t: redisType): Boolean {
-    return redisTemplate.opsForValue().set(key, t).awaitSingle()
+    return redisTemplate.opsForValue().setAndAwait(key, t)
   }
 
   suspend fun get(key: String): redisType? {
-    return redisTemplate.opsForValue().get(key).awaitFirstOrNull()
+    return redisTemplate.opsForValue().getAndAwait(key)
+  }
+
+  suspend fun delete(key: String): Long {
+    return redisTemplate.deleteAndAwait(key)
   }
 
 }

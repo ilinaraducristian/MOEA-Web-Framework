@@ -1,14 +1,11 @@
 package org.moeawebframework.moeawebframework.services
 
-import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.reactive.awaitSingle
+import org.moeawebframework.moeawebframework.RedisAdapter
 import org.moeawebframework.moeawebframework.configs.default_algorithms
 import org.moeawebframework.moeawebframework.configs.default_problems
-import org.moeawebframework.moeawebframework.configs.redisType
 import org.moeawebframework.moeawebframework.dto.QueueItemDTO
 import org.moeawebframework.moeawebframework.entities.QueueItem
 import org.moeawebframework.moeawebframework.exceptions.QueueItemNotFoundException
-import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.messaging.rsocket.RSocketRequester
 import org.springframework.messaging.rsocket.retrieveAndAwaitOrNull
 import org.springframework.stereotype.Service
@@ -16,7 +13,7 @@ import java.util.*
 
 @Service
 class PublicService(
-    private val redisTemplate: ReactiveRedisTemplate<String, redisType>,
+    private val redisAdapter: RedisAdapter,
     private val rSocketRequester: RSocketRequester
 ) {
 
@@ -33,23 +30,23 @@ class PublicService(
     newQueueItem.algorithmMD5 = queueItemDTO.algorithmMD5
     newQueueItem.referenceSetMD5 = queueItemDTO.referenceSetMD5
     newQueueItem.rabbitId = UUID.randomUUID().toString()
-    return redisTemplate.opsForValue().set(newQueueItem.rabbitId, newQueueItem)
-        .map { newQueueItem.rabbitId }.awaitSingle()
+    redisAdapter.set(newQueueItem.rabbitId, newQueueItem)
+    return newQueueItem.rabbitId
   }
 
   suspend fun getQueueItem(rabbitId: String): QueueItem? {
-    return redisTemplate.opsForValue().get(rabbitId).awaitFirstOrNull()
+    return redisAdapter.get(rabbitId)
   }
 
   suspend fun deleteQueueItem(rabbitId: String) {
-    redisTemplate.opsForValue().get(rabbitId).awaitFirstOrNull()
+    redisAdapter.get(rabbitId)
         ?: throw RuntimeException(QueueItemNotFoundException)
     cancelQueueItemProcessing(rabbitId)
-    redisTemplate.opsForValue().delete(rabbitId).awaitFirstOrNull()
+    redisAdapter.delete(rabbitId)
   }
 
   suspend fun startProcessing(rabbitId: String) {
-    val queueItem = redisTemplate.opsForValue().get(rabbitId).awaitFirstOrNull()
+    val queueItem = redisAdapter.get(rabbitId)
         ?: throw RuntimeException(QueueItemNotFoundException)
     rSocketRequester.route("startProcessing")
         .data(queueItem)
@@ -57,7 +54,7 @@ class PublicService(
   }
 
   suspend fun cancelProcessing(rabbitId: String) {
-    redisTemplate.opsForValue().get(rabbitId).awaitFirstOrNull()
+    redisAdapter.get(rabbitId)
         ?: throw RuntimeException(QueueItemNotFoundException)
     cancelQueueItemProcessing(rabbitId)
   }
