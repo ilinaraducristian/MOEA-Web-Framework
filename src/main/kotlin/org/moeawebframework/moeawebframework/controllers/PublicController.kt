@@ -12,7 +12,7 @@ class PublicController(
 ) {
 
   @GetMapping
-  suspend fun getUserData(): Map<String, List<Any>> {
+  suspend fun getDefaultData(): Map<String, List<Any>> {
     return publicService.getDefaultData()
   }
 
