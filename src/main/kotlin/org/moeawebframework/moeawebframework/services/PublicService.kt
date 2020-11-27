@@ -20,10 +20,8 @@ class PublicService(
     private val rSocketRequester: RSocketRequester
 ) {
 
-  suspend fun getDefaultData(): Map<String, List<Any>> {
-    val algorithms = default_algorithms.map { mapOf(Pair("name", it), Pair("md5", it)) }
-    val problems = default_problems.map { mapOf(Pair("name", it), Pair("md5", it)) }
-    return mapOf(Pair("algorithms", algorithms), Pair("problems", problems))
+  suspend fun getDefaultData(): Map<String, List<String>> {
+    return mapOf(Pair("algorithms", default_algorithms), Pair("problems", default_problems))
   }
 
   suspend fun addQueueItem(queueItemDTO: QueueItemDTO): String {
