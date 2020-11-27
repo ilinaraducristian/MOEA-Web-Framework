@@ -1,6 +1,6 @@
 package org.moeawebframework.moeawebframework.dto
 
-data class ProcessStatusDTO (
+data class ProcessStatusDTO(
 
     var status: String,
 

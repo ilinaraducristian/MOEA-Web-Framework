@@ -15,7 +15,7 @@ class UserQueueController(
 ) {
 
   @PostMapping
-  suspend fun addQueueItem(authentication: Authentication, queueItemDTO: QueueItemDTO): String {
+  suspend fun addQueueItem(authentication: Authentication, @RequestBody queueItemDTO: QueueItemDTO): String {
     val principal = authentication.principal as Jwt
     return userService.addQueueItem(principal.getClaim("sub"), queueItemDTO)
   }

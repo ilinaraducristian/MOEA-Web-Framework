@@ -1,11 +1,11 @@
 package org.moeawebframework.moeawebframework.configs
 
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
 
-@Configuration
+@EnableWebFluxSecurity
 class SecurityConfig {
 
   /**
@@ -18,7 +18,7 @@ class SecurityConfig {
     return http
         .csrf().disable()
         .authorizeExchange()
-        .pathMatchers("public/**").permitAll()
+        .pathMatchers("/public/**").permitAll()
         .pathMatchers("user/**").authenticated()
         .anyExchange().denyAll()
         .and()

@@ -2,7 +2,6 @@ package org.moeawebframework.moeawebframework.exceptions
 
 import org.springframework.boot.autoconfigure.web.ResourceProperties
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler
-import org.springframework.boot.web.error.ErrorAttributeOptions
 import org.springframework.boot.web.reactive.error.ErrorAttributes
 import org.springframework.context.ApplicationContext
 import org.springframework.core.annotation.Order
@@ -29,14 +28,7 @@ class GlobalErrorWebExceptionHandler(
 
   override fun getRoutingFunction(errorAttributes: ErrorAttributes?): RouterFunction<ServerResponse> {
     return RouterFunctions.route(RequestPredicates.all(), HandlerFunction { request ->
-      println(request.attributes())
-      val errorPropertiesMap = getErrorAttributes(request, ErrorAttributeOptions.defaults())
-      println(errorPropertiesMap)
-//      for(property in errorPropertiesMap) {
-//        println("1")
-//        println("key: " + property.key)
-//        println(property.value)
-//      }
+//      val errorPropertiesMap = getErrorAttributes(request, ErrorAttributeOptions.defaults())
       return@HandlerFunction ServerResponse.ok().bodyValue("On error response message")
     })
   }

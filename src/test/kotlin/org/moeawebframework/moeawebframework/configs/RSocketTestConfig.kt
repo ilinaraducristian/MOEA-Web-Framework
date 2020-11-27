@@ -7,7 +7,6 @@ import org.springframework.core.ParameterizedTypeReference
 import org.springframework.messaging.rsocket.RSocketRequester
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.lang.RuntimeException
 import java.util.function.Consumer
 
 @TestConfiguration

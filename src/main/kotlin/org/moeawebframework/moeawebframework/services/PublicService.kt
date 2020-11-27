@@ -5,18 +5,13 @@ import kotlinx.coroutines.reactive.awaitSingle
 import org.moeawebframework.moeawebframework.configs.default_algorithms
 import org.moeawebframework.moeawebframework.configs.default_problems
 import org.moeawebframework.moeawebframework.configs.redisType
-import org.moeawebframework.moeawebframework.dao.UserDAO
 import org.moeawebframework.moeawebframework.dto.QueueItemDTO
 import org.moeawebframework.moeawebframework.entities.QueueItem
-import org.moeawebframework.moeawebframework.exceptions.AlreadyProcessedException
-import org.moeawebframework.moeawebframework.exceptions.AlreadyProcessingException
-import org.moeawebframework.moeawebframework.exceptions.ProcessNotFoundException
 import org.moeawebframework.moeawebframework.exceptions.QueueItemNotFoundException
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.messaging.rsocket.RSocketRequester
 import org.springframework.messaging.rsocket.retrieveAndAwaitOrNull
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
 import java.util.*
 
 @Service
@@ -32,16 +27,16 @@ class PublicService(
   }
 
   suspend fun addQueueItem(queueItemDTO: QueueItemDTO): String {
-    val newProcess = QueueItem()
-    newProcess.name = queueItemDTO.name
-    newProcess.numberOfEvaluations = queueItemDTO.numberOfEvaluations
-    newProcess.numberOfSeeds = queueItemDTO.numberOfSeeds
-    newProcess.problemMD5 = queueItemDTO.problemMD5
-    newProcess.algorithmMD5 = queueItemDTO.algorithmMD5
-    newProcess.referenceSetMD5 = queueItemDTO.referenceSetMD5
-    newProcess.rabbitId = UUID.randomUUID().toString()
-    return redisTemplate.opsForValue().set(newProcess.rabbitId, newProcess)
-        .map { newProcess.rabbitId }.awaitSingle()
+    val newQueueItem = QueueItem()
+    newQueueItem.name = queueItemDTO.name
+    newQueueItem.numberOfEvaluations = queueItemDTO.numberOfEvaluations
+    newQueueItem.numberOfSeeds = queueItemDTO.numberOfSeeds
+    newQueueItem.problemMD5 = queueItemDTO.problemMD5
+    newQueueItem.algorithmMD5 = queueItemDTO.algorithmMD5
+    newQueueItem.referenceSetMD5 = queueItemDTO.referenceSetMD5
+    newQueueItem.rabbitId = UUID.randomUUID().toString()
+    return redisTemplate.opsForValue().set(newQueueItem.rabbitId, newQueueItem)
+        .map { newQueueItem.rabbitId }.awaitSingle()
   }
 
   suspend fun getQueueItem(rabbitId: String): QueueItem? {

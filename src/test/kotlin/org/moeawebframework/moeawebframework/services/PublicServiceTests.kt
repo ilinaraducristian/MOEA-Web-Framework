@@ -3,7 +3,6 @@ package org.moeawebframework.moeawebframework.services
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.moeawebframework.moeawebframework.dto.QueueItemDTO
-import org.moeawebframework.moeawebframework.services.PublicService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 

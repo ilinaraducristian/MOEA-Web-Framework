@@ -13,7 +13,7 @@ class PublicQueueController(
 ) {
 
   @PostMapping
-  suspend fun addQueueItem(queueItemDTO: QueueItemDTO): String {
+  suspend fun addQueueItem(@RequestBody queueItemDTO: QueueItemDTO): String {
     return publicService.addQueueItem(queueItemDTO)
   }
 
