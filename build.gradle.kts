@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "org.moeawebframework"
-version = "2.0"
+version = "3.0"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
