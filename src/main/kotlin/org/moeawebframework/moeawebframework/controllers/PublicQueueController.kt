@@ -5,6 +5,7 @@ import org.moeawebframework.moeawebframework.dto.QueueItemResponseDTO
 import org.moeawebframework.moeawebframework.exceptions.QueueItemNotFoundException
 import org.moeawebframework.moeawebframework.services.PublicService
 import org.springframework.web.bind.annotation.*
+import javax.validation.Valid
 
 @RestController
 @RequestMapping("public/queue")
@@ -13,7 +14,7 @@ class PublicQueueController(
 ) {
 
   @PostMapping
-  suspend fun addQueueItem(@RequestBody queueItemDTO: QueueItemDTO): String {
+  suspend fun addQueueItem(@Valid @RequestBody queueItemDTO: QueueItemDTO): String {
     return publicService.addQueueItem(queueItemDTO)
   }
 

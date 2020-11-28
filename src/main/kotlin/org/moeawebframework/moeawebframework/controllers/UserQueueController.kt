@@ -7,6 +7,7 @@ import org.moeawebframework.moeawebframework.services.UserService
 import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
+import javax.validation.Valid
 
 @RestController
 @RequestMapping("user/queue")
@@ -15,7 +16,7 @@ class UserQueueController(
 ) {
 
   @PostMapping
-  suspend fun addQueueItem(authentication: Authentication, @RequestBody queueItemDTO: QueueItemDTO): String {
+  suspend fun addQueueItem(authentication: Authentication, @Valid @RequestBody queueItemDTO: QueueItemDTO): String {
     val principal = authentication.principal as Jwt
     return userService.addQueueItem(principal.getClaim("sub"), queueItemDTO)
   }

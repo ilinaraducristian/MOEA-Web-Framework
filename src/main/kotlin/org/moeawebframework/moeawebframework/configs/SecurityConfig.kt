@@ -19,7 +19,7 @@ class SecurityConfig {
         .csrf().disable()
         .authorizeExchange()
         .pathMatchers("/public/**").permitAll()
-        .pathMatchers("user/**").authenticated()
+        .pathMatchers("/user/**").authenticated()
         .anyExchange().denyAll()
         .and()
         .oauth2ResourceServer().jwt().and()

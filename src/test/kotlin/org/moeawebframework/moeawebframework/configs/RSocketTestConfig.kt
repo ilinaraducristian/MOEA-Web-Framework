@@ -13,6 +13,11 @@ import java.util.function.Consumer
 class RSocketTestConfig {
 
   @Bean
+  fun rSocketRequester(): RSocketRequester {
+    return getSuccessRSocketRequester()
+  }
+
+  @Bean
   fun getSuccessRSocketRequester(): RSocketRequester {
     val rSocketRequester = Mockito.mock(RSocketRequester::class.java)
     Mockito.`when`(rSocketRequester.route(Mockito.anyString(), Mockito.any()))
