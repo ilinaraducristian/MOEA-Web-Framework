@@ -44,6 +44,10 @@ class UserService(
     return uuid
   }
 
+  suspend fun getQueue(userEntityId: String): List<QueueItem> {
+    return queueItemDAO.getAllByUserEntityId(userEntityId)
+  }
+
   suspend fun getQueueItem(userEntityId: String, rabbitId: String): QueueItem? {
     return queueItemDAO.getByUserEntityIdAndRabbitId(userEntityId, rabbitId)
   }

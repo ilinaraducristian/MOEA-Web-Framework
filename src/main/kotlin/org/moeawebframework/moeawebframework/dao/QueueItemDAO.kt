@@ -10,6 +10,10 @@ class QueueItemDAO(
     private val queueItemRepository: QueueItemRepository
 ) : DAO<QueueItem, Long>(queueItemRepository) {
 
+  suspend fun getAllByUserEntityId(userEntityId: String): List<QueueItem> {
+    return queueItemRepository.findAllByUserEntityId(userEntityId).collectList().awaitSingle()
+  }
+
   suspend fun getByUserEntityId(userEntityId: String): List<QueueItem> {
     return queueItemRepository.findByUserEntityId(userEntityId).collectList().awaitSingle()
   }

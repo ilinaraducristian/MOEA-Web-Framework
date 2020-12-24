@@ -21,6 +21,12 @@ class UserQueueController(
     return userService.addQueueItem(principal.getClaim("sub"), queueItemDTO)
   }
 
+  @GetMapping
+  suspend fun getQueue(authentication: Authentication): List<QueueItemResponseDTO> {
+    val principal = authentication.principal as Jwt
+    return userService.getQueue(principal.getClaim("sub")).map { QueueItemResponseDTO(it) }
+  }
+
   @GetMapping("{rabbitId}")
   suspend fun getQueueItem(authentication: Authentication, @PathVariable rabbitId: String): QueueItemResponseDTO {
     val principal = authentication.principal as Jwt

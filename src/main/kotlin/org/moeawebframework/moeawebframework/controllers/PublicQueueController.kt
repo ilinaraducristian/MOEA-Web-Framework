@@ -25,6 +25,16 @@ class PublicQueueController(
     return QueueItemResponseDTO(queueItem)
   }
 
+  @PostMapping("getQueueItems")
+  suspend fun getQueueItems(@RequestBody rabbitIds: Array<String>): ArrayList<QueueItemResponseDTO> {
+    val queue = ArrayList<QueueItemResponseDTO>()
+    rabbitIds.forEach {
+      val queueItem = publicService.getQueueItem(it) ?: return@forEach
+      queue.add(QueueItemResponseDTO(queueItem))
+    }
+    return queue
+  }
+
   @PostMapping("{rabbitId}")
   suspend fun startQueueItemProcessing(@PathVariable rabbitId: String) {
     publicService.startProcessing(rabbitId)
