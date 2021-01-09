@@ -9,32 +9,38 @@ import javax.validation.Valid
 
 @RestController
 @RequestMapping("public/queue")
-@CrossOrigin
 class PublicQueueController(
-  private val publicService: PublicService
+    private val publicService: PublicService
 ) {
 
   @PostMapping
-  suspend fun addQueueItem(@Valid @RequestBody queueItemDTO: QueueItemDTO): Map<String, String> {
-    return mapOf(Pair("rabbitId", publicService.addQueueItem(queueItemDTO)))
+  suspend fun addQueueItem(@Valid @RequestBody queueItemDTO: QueueItemDTO): String {
+    return publicService.addQueueItem(queueItemDTO)
   }
 
-  @GetMapping("{rabbitIds}")
-  suspend fun getQueueItem(@PathVariable rabbitIds: Array<String>): ArrayList<QueueItemResponseDTO> {
-    val queueItemResponseDTOs = ArrayList<QueueItemResponseDTO>()
+  @GetMapping("{rabbitId}")
+  suspend fun getQueueItem(@PathVariable rabbitId: Array<String>): QueueItemResponseDTO {
+    val queueItem = publicService.getQueueItem(rabbitId)
+        ?: throw RuntimeException(QueueItemNotFoundException)
+    return QueueItemResponseDTO(queueItem)
+  }
+
+  @PostMapping("getQueueItems")
+  suspend fun getQueueItems(@RequestBody rabbitIds: Array<String>): ArrayList<QueueItemResponseDTO> {
+    val queue = ArrayList<QueueItemResponseDTO>()
     rabbitIds.forEach {
       val queueItem = publicService.getQueueItem(it) ?: return@forEach
-      queueItemResponseDTOs.add(QueueItemResponseDTO(queueItem))
+      queue.add(QueueItemResponseDTO(queueItem))
     }
-    return queueItemResponseDTOs
+    return queue
   }
 
-  @PutMapping("{rabbitId}")
+  @PostMapping("{rabbitId}")
   suspend fun startQueueItemProcessing(@PathVariable rabbitId: String) {
     publicService.startProcessing(rabbitId)
   }
 
-  @PutMapping("cancel/{rabbitId}")
+  @PostMapping("cancel/{rabbitId}")
   suspend fun cancelQueueItemProcessing(@PathVariable rabbitId: String) {
     publicService.cancelProcessing(rabbitId)
   }

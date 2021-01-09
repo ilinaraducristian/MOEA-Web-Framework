@@ -1,0 +1,33 @@
+spring:
+  profiles:
+    active: dev
+  main:
+    lazy-initialization: true
+
+---
+
+spring:
+  r2dbc:
+    url: "r2dbc:postgresql://localhost/moeawebframework"
+    username: "postgres"
+    password: "postgres"
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: "http://localhost:8180/auth/realms/MOEA-Web-Framework"
+  config:
+    activate:
+      on-profile: dev
+
+logging.level.org.springframework.data.r2dbc: DEBUG
+
+rsocket_url: "localhost:7000"
+
+---
+
+rsocket_url: ${RSOCKET_URL}
+spring:
+  config:
+    activate:
+      on-profile: prod

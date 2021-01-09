@@ -13,13 +13,13 @@ import org.springframework.web.reactive.function.server.*
 @Component
 @Order(-2)
 class GlobalErrorWebExceptionHandler(
-  errorAttributes: ErrorAttributes,
-  applicationContext: ApplicationContext,
-  serverCodecConfigurer: ServerCodecConfigurer
+    errorAttributes: ErrorAttributes,
+    applicationContext: ApplicationContext,
+    serverCodecConfigurer: ServerCodecConfigurer
 ) : AbstractErrorWebExceptionHandler(
-  errorAttributes,
-  ResourceProperties(),
-  applicationContext
+    errorAttributes,
+    ResourceProperties(),
+    applicationContext
 ) {
 
   init {
@@ -32,7 +32,7 @@ class GlobalErrorWebExceptionHandler(
       println(request.attributes())
       val errorPropertiesMap = getErrorAttributes(request, ErrorAttributeOptions.defaults())
       println(errorPropertiesMap)
-      return@HandlerFunction ServerResponse.badRequest().bodyValue("On error response message")
+      return@HandlerFunction ServerResponse.ok().bodyValue("On error response message")
     })
   }
 
