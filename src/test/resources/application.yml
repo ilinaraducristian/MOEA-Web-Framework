@@ -4,6 +4,6 @@ spring:
   main:
     lazy-initialization: true
   redis:
-    port: 6370
+    port: 6379
 
 rsocket_url: "localhost:7000"

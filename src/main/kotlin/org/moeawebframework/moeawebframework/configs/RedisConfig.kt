@@ -16,7 +16,6 @@ typealias redisType = QueueItem
 class RedisConfig {
 
   @Bean
-  @Profile("!test")
   fun reactiveRedisTemplate(factory: ReactiveRedisConnectionFactory): ReactiveRedisTemplate<String, redisType> {
     val keySerializer = StringRedisSerializer()
     val valueSerializer: Jackson2JsonRedisSerializer<redisType> = Jackson2JsonRedisSerializer<redisType>(redisType::class.java)

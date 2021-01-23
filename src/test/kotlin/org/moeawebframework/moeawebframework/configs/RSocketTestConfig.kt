@@ -21,9 +21,9 @@ class RSocketTestConfig {
   fun getSuccessRSocketRequester(): RSocketRequester {
     val rSocketRequester = Mockito.mock(RSocketRequester::class.java)
     Mockito.`when`(rSocketRequester.route(Mockito.anyString(), Mockito.any()))
-        .then {
-          SuccessfullTestRequestSpec(it.arguments[0] as String)
-        }
+      .then {
+        SuccessfullTestRequestSpec(it.arguments[0] as String)
+      }
     return rSocketRequester
   }
 
@@ -31,9 +31,9 @@ class RSocketTestConfig {
   fun getFailedRSocketRequester(): RSocketRequester {
     val rSocketRequester = Mockito.mock(RSocketRequester::class.java)
     Mockito.`when`(rSocketRequester.route(Mockito.anyString(), Mockito.any()))
-        .then {
-          FailedTestRequestSpec(it.arguments[0] as String)
-        }
+      .then {
+        FailedTestRequestSpec(it.arguments[0] as String)
+      }
     return rSocketRequester
   }
 
@@ -62,6 +62,10 @@ class SuccessfullTestRequestSpec(private val route: String) : RSocketRequester.R
 
   override fun <T : Any?> retrieveFlux(p0: ParameterizedTypeReference<T>): Flux<T> {
     return Flux.empty()
+  }
+
+  override fun sendMetadata(): Mono<Void> {
+    return Mono.empty()
   }
 
   override fun data(p0: Any): RSocketRequester.RetrieveSpec {
@@ -105,6 +109,10 @@ class FailedTestRequestSpec(private val route: String) : RSocketRequester.Reques
 
   override fun <T : Any?> retrieveFlux(p0: ParameterizedTypeReference<T>): Flux<T> {
     return Flux.empty()
+  }
+
+  override fun sendMetadata(): Mono<Void> {
+    return Mono.empty()
   }
 
   override fun data(p0: Any): RSocketRequester.RetrieveSpec {

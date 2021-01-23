@@ -7,7 +7,4 @@ import org.springframework.stereotype.Repository
 @Repository
 class UserDAO(
     private val userRepository: UserRepository
-) : DAO<User, String>(userRepository) {
-
-
-}
+) : DAO<User, String>(userRepository)
