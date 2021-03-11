@@ -1,0 +1,14 @@
+get:
+  tags:
+    - Algorithms
+  summary: Download one algorithm file
+  operationId: downloadAlgorithm
+  security:
+    - bearerAuth: [user]
+  parameters:
+    - $ref: "../parameters/ID.yml"
+  responses:
+    "200":
+      description: returns the algorithm file ( .class )
+      content:
+        $ref: "../contents/FileResponse.yml"

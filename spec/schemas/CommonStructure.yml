@@ -1,0 +1,12 @@
+type: object
+properties:
+  id:
+    type: integer
+  user_id:
+    type: string
+    format: uuid
+  name:
+    type: string
+  md5:
+    type: string
+    format: md5

@@ -1,0 +1,27 @@
+get:
+  tags:
+    - Evaluations
+  summary: Get all evaluations that belong to this user
+  operationId: getEvaluations
+  security:
+    - bearerAuth: [user]
+  responses:
+    "200":
+      description: returns the evaluations
+      content:
+        $ref: "../contents/ArrayEvaluation.yml"
+post:
+  tags:
+    - Evaluations
+  summary: Add a new evaluation to this user
+  operationId: addEvaluation
+  security:
+    - bearerAuth: [user]
+  requestBody:
+    content:
+      $ref: "../contents/NewEvaluation.yml"
+  responses:
+    "200":
+      description: returns the evaluation id
+      content:
+        $ref: "../contents/ID.yml"

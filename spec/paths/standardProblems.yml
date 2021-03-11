@@ -1,0 +1,12 @@
+get:
+  tags:
+    - Problems
+    - Standards
+  summary: Get all standard problems
+  description: All standard problems that come with the MOEA Framework or are added by this platform maintainer
+  operationId: getStandardProblems
+  responses:
+    "200":
+      description: returns the problems
+      content:
+        $ref: "../contents/ArrayStandardCommonStructure.yml"

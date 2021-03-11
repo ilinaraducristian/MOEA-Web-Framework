@@ -1,0 +1,18 @@
+version: "3.9"
+services:
+  percona:
+    image: percona:8
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=moeawebframework
+    volumes:
+      - tmpfs:/var/lib/mysql
+      - ./my.cnf:/etc/my.cnf
+    ports:
+      - 3306:3306
+
+volumes:
+  tmpfs:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs

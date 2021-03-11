@@ -1,0 +1,20 @@
+type: object
+properties:
+  id:
+    type: integer
+  name:
+    type: string
+  nfe:
+    type: integer
+  seeds:
+    type: integer
+  algorithm_id:
+    type: integer
+  problem_id:
+    type: integer
+  reference_set_id:
+    type: integer
+  status:
+    type: string
+  results:
+    $ref: "./QualityIndicators.yml"

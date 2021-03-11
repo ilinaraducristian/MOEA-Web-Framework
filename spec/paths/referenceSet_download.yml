@@ -1,0 +1,14 @@
+get:
+  tags:
+    - Reference sets
+  summary: Download one reference set file
+  operationId: downloadReferenceSet
+  security:
+    - bearerAuth: [user]
+  parameters:
+    - $ref: "../parameters/ID.yml"
+  responses:
+    "200":
+      description: returns the reference set file ( .pf )
+      content:
+        $ref: "../contents/FileResponse.yml"

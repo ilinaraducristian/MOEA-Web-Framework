@@ -1,0 +1,27 @@
+get:
+  tags:
+    - Problems
+  summary: Get all problems that belong to this user without downloading the files
+  operationId: getProblems
+  security:
+    - bearerAuth: [user]
+  responses:
+    "200":
+      description: returns the problems
+      content:
+        $ref: "../contents/ArrayCommonStructure.yml"
+post:
+  tags:
+    - Problems
+  summary: Add a new problem to this user
+  operationId: addProblem
+  security:
+    - bearerAuth: [user]
+  requestBody:
+    content:
+      $ref: "../contents/NewCommonStructure.yml"
+  responses:
+    "200":
+      description: returns the problem id
+      content:
+        $ref: "../contents/ID.yml"

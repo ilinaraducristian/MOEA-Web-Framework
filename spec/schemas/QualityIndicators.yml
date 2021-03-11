@@ -1,0 +1,10 @@
+type: object
+properties:
+  r1Indicator:
+    $ref: "./CommonIndicator.yml"
+  r2Indicator:
+    $ref: "./CommonIndicator.yml"
+  r3Indicator:
+    $ref: "./CommonIndicator.yml"
+  igd:
+    $ref: "./CommonIndicator.yml"

@@ -1,0 +1,10 @@
+type: object
+properties:
+  name:
+    type: string
+  file:
+    type: string
+    format: binary
+required:
+  - name
+  - file

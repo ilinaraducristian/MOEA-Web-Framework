@@ -1,0 +1,3 @@
+multipart/form-data:
+  schema:
+    $ref: "../schemas/NewCommonStructure.yml"

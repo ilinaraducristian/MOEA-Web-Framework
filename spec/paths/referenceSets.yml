@@ -1,0 +1,27 @@
+get:
+  tags:
+    - Reference sets
+  summary: Get all reference sets that belong to this user without downloading the files
+  operationId: getReferenceSets
+  security:
+    - bearerAuth: [user]
+  responses:
+    "200":
+      description: returns the reference sets
+      content:
+        $ref: "../contents/ArrayCommonStructure.yml"
+post:
+  tags:
+    - Reference sets
+  summary: Add a new reference set to this user
+  operationId: addReferenceSet
+  security:
+    - bearerAuth: [user]
+  requestBody:
+    content:
+      $ref: "../contents/NewCommonStructure.yml"
+  responses:
+    "200":
+      description: returns the reference set id
+      content:
+        $ref: "../contents/ID.yml"

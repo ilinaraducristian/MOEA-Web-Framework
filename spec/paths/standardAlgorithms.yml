@@ -1,0 +1,12 @@
+get:
+  tags:
+    - Algorithms
+    - Standards
+  summary: Get all standard algorithms
+  description: All standard algorithms that come with the MOEA Framework or are added by this platform maintainer
+  operationId: getStandardAlgorithms
+  responses:
+    "200":
+      description: returns the algorithms
+      content:
+        $ref: "../contents/ArrayStandardCommonStructure.yml"

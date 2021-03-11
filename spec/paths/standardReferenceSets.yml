@@ -1,0 +1,12 @@
+get:
+  tags:
+    - Reference sets
+    - Standards
+  summary: Get all standard reference sets
+  description: All standard reference sets that come with the MOEA Framework or are added by this platform maintainer
+  operationId: getStandardReferenceSets
+  responses:
+    "200":
+      description: returns the reference sets
+      content:
+        $ref: "../contents/ArrayStandardCommonStructure.yml"

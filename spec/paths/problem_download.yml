@@ -1,0 +1,14 @@
+get:
+  tags:
+    - Problems
+  summary: Download one problem file
+  operationId: downloadProblem
+  security:
+    - bearerAuth: [user]
+  parameters:
+    - $ref: "../parameters/ID.yml"
+  responses:
+    "200":
+      description: returns the problem file ( .class )
+      content:
+        $ref: "../contents/FileResponse.yml"

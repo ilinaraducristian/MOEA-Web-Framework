@@ -1,0 +1,5 @@
+application/json:
+  schema:
+    type: array
+    items:
+      $ref: "../schemas/Evaluation.yml"

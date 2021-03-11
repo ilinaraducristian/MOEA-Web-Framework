@@ -1,0 +1,26 @@
+get:
+  tags:
+    - Problems
+  summary: Get one problem
+  operationId: getProblem
+  security:
+    - bearerAuth: [user]
+  parameters:
+    - $ref: "../parameters/ID.yml"
+  responses:
+    "200":
+      description: returns the problem
+      content:
+        $ref: "../contents/CommonStructure.yml"
+delete:
+  tags:
+    - Problems
+  summary: Remove a problem
+  operationId: removeProblem
+  security:
+    - bearerAuth: [user]
+  parameters:
+    - $ref: "../parameters/ID.yml"
+  responses:
+    "200":
+      description: problem removed
