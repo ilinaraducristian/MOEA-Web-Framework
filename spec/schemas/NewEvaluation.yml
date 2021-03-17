@@ -12,3 +12,10 @@ properties:
     type: integer
   reference_set_id:
     type: integer
+required:
+  - name
+  - nfe
+  - seeds
+  - algorithm_id
+  - problem_id
+  - reference_set_id

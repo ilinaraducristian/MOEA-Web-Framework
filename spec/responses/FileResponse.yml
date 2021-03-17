@@ -1,0 +1,6 @@
+description: returns the file ( .class or .pf )
+content:
+  application/octet-stream:
+    schema:
+      type: string
+      format: binary

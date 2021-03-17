@@ -1,0 +1,7 @@
+description: returns the objects
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: "../schemas/ArrayCommonStructure.yml"

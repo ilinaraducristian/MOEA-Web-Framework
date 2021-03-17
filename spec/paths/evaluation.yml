@@ -9,9 +9,7 @@ get:
     - $ref: "../parameters/ID.yml"
   responses:
     "200":
-      description: returns the evaluation
-      content:
-        $ref: "../contents/Evaluation.yml"
+      $ref: "../responses/Evaluation.yml"
 delete:
   tags:
     - Evaluations

@@ -10,3 +10,8 @@ properties:
   md5:
     type: string
     format: md5
+required:
+  - id
+  - user_id
+  - name
+  - md5

@@ -7,6 +7,4 @@ get:
   operationId: getStandardProblems
   responses:
     "200":
-      description: returns the problems
-      content:
-        $ref: "../contents/ArrayStandardCommonStructure.yml"
+      $ref: "../responses/ArrayStandardCommonStructure.yml"

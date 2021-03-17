@@ -7,6 +7,4 @@ get:
   operationId: getStandardAlgorithms
   responses:
     "200":
-      description: returns the algorithms
-      content:
-        $ref: "../contents/ArrayStandardCommonStructure.yml"
+      $ref: "../responses/ArrayStandardCommonStructure.yml"

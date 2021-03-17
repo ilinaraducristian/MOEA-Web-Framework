@@ -9,9 +9,7 @@ get:
     - $ref: "../parameters/ID.yml"
   responses:
     "200":
-      description: returns the reference set
-      content:
-        $ref: "../contents/CommonStructure.yml"
+      $ref: "../responses/CommonStructure.yml"
 delete:
   tags:
     - Reference sets

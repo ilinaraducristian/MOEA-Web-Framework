@@ -7,9 +7,7 @@ get:
     - bearerAuth: [user]
   responses:
     "200":
-      description: returns the problems
-      content:
-        $ref: "../contents/ArrayCommonStructure.yml"
+      $ref: "../responses/ArrayCommonStructure.yml"
 post:
   tags:
     - Problems
@@ -18,10 +16,7 @@ post:
   security:
     - bearerAuth: [user]
   requestBody:
-    content:
-      $ref: "../contents/NewCommonStructure.yml"
+    $ref: "../requestBodies/NewCommonStructure.yml"
   responses:
     "200":
-      description: returns the problem id
-      content:
-        $ref: "../contents/ID.yml"
+      $ref: "../responses/ID.yml"

@@ -9,6 +9,4 @@ get:
     - $ref: "../parameters/ID.yml"
   responses:
     "200":
-      description: returns the problem file ( .class )
-      content:
-        $ref: "../contents/FileResponse.yml"
+      $ref: "../responses/FileResponse.yml"

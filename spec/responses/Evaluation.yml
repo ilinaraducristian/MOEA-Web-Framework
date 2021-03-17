@@ -1,0 +1,5 @@
+description: returns the evaluation
+content:
+  application/json:
+    schema:
+      $ref: "../schemas/Evaluation.yml"

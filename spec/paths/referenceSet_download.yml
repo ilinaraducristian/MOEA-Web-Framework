@@ -9,6 +9,4 @@ get:
     - $ref: "../parameters/ID.yml"
   responses:
     "200":
-      description: returns the reference set file ( .pf )
-      content:
-        $ref: "../contents/FileResponse.yml"
+      $ref: "../responses/FileResponse.yml"

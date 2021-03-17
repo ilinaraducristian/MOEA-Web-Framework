@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: MOEA Web Framework
   description: A web platform for the MOEA Framework
-  version: 3.0.1
+  version: 3.0.2
 tags:
   - name: Algorithms
     description: Operations for algorithms

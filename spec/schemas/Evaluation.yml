@@ -18,3 +18,13 @@ properties:
     type: string
   results:
     $ref: "./QualityIndicators.yml"
+required:
+  - id
+  - name
+  - nfe
+  - seeds
+  - algorithm_id
+  - problem_id
+  - reference_set_id
+  - status
+  - results

@@ -73,6 +73,7 @@ tasks.openApiGenerate {
     apiPackage.set("${packageName.get()}.controllers")
     additionalProperties.put("basePackage", packageName.get())
     modelPackage.set("${packageName.get()}.models")
+    additionalProperties.put("apiSuffix", "Controller")
     additionalProperties.put("artifactId", "MOEAWebFramework")
     additionalProperties.put("gradleBuildFile", "false")
     additionalProperties.put("reactive", "true")
@@ -81,7 +82,7 @@ tasks.openApiGenerate {
 }
 
 tasks.register<Exec>("compileSpec") {
-    commandLine("swagger-cli", "bundle", "-r", "-o", "${buildDir}/api-spec.yml", "-t", "yaml", "${rootDir}/spec/api.yml")
+    commandLine("python3", "$rootDir/openapi-bundler/main.py", "$rootDir/spec/api.yml", "$buildDir/api-spec.yml")
 }
 
 afterEvaluate {

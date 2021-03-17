@@ -8,3 +8,8 @@ properties:
     $ref: "./CommonIndicator.yml"
   igd:
     $ref: "./CommonIndicator.yml"
+required:
+  - r1Indicator
+  - r2Indicator
+  - r3Indicator
+  - igd

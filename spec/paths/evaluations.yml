@@ -7,9 +7,7 @@ get:
     - bearerAuth: [user]
   responses:
     "200":
-      description: returns the evaluations
-      content:
-        $ref: "../contents/ArrayEvaluation.yml"
+      $ref: "../responses/ArrayEvaluation.yml"
 post:
   tags:
     - Evaluations
@@ -18,10 +16,7 @@ post:
   security:
     - bearerAuth: [user]
   requestBody:
-    content:
-      $ref: "../contents/NewEvaluation.yml"
+    $ref: "../requestBodies/NewEvaluation.yml"
   responses:
     "200":
-      description: returns the evaluation id
-      content:
-        $ref: "../contents/ID.yml"
+      $ref: "../responses/ID.yml"

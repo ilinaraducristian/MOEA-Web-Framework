@@ -7,6 +7,4 @@ get:
   operationId: getStandardReferenceSets
   responses:
     "200":
-      description: returns the reference sets
-      content:
-        $ref: "../contents/ArrayStandardCommonStructure.yml"
+      $ref: "../responses/ArrayStandardCommonStructure.yml"

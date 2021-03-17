@@ -1,0 +1,5 @@
+description: returns the object
+content:
+  application/json:
+    schema:
+      $ref: "../schemas/CommonStructure.yml"

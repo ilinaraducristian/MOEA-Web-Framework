@@ -1,0 +1,5 @@
+description: returns the new object id
+content:
+  application/json:
+    schema:
+      $ref: "../schemas/ID.yml"
