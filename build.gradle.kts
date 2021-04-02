@@ -10,12 +10,14 @@ plugins {
 }
 
 group = "org.moeawebframework"
-version = "3.0"
+version = "4.0"
 java.sourceCompatibility = JavaVersion.VERSION_15
 
 repositories {
     mavenCentral()
 }
+
+extra["testcontainersVersion"] = "1.15.2"
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
@@ -25,7 +27,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-rsocket")
 
     implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
-    implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
+    implementation("io.minio:minio:8.1.0")
 
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -37,20 +39,23 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 
-    runtimeOnly("com.h2database:h2")
-    runtimeOnly("org.postgresql:postgresql")
+    implementation("dev.miku:r2dbc-mysql")
+    runtimeOnly("mysql:mysql-connector-java")
     implementation("io.r2dbc:r2dbc-h2")
-    implementation("io.r2dbc:r2dbc-postgresql")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
-    testImplementation("org.springframework.boot:spring-boot-starter-test") {
-        exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
-    }
-    testImplementation("com.github.kstyrc:embedded-redis:0.6")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.springframework.amqp:spring-rabbit-test")
-    testImplementation("org.springframework.security:spring-security-test")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.testcontainers:testcontainers-bom:${property("testcontainersVersion")}")
+    }
 }
 
 tasks.withType<Test> {
@@ -68,11 +73,12 @@ tasks.openApiGenerate {
     validateSpec.set(false)
     generatorName.set("kotlin-spring")
     outputDir.set("$buildDir/openapi")
-    inputSpec.set("$buildDir/api-spec.yml")
+    inputSpec.set("$rootDir/spec/spec.yml")
     packageName.set("org.moeawebframework")
     apiPackage.set("${packageName.get()}.controllers")
-    additionalProperties.put("basePackage", packageName.get())
     modelPackage.set("${packageName.get()}.models")
+    templateDir.set("$rootDir/templates")
+    additionalProperties.put("basePackage", packageName.get())
     additionalProperties.put("apiSuffix", "Controller")
     additionalProperties.put("artifactId", "MOEAWebFramework")
     additionalProperties.put("gradleBuildFile", "false")
@@ -82,7 +88,7 @@ tasks.openApiGenerate {
 }
 
 tasks.register<Exec>("compileSpec") {
-    commandLine("python3", "$rootDir/openapi-bundler/main.py", "$rootDir/spec/api.yml", "$buildDir/api-spec.yml")
+    commandLine("python3", "$rootDir/openapi-bundler/main.py", "$rootDir/spec/api.yml", "$rootDir/spec/spec.yml")
 }
 
 afterEvaluate {

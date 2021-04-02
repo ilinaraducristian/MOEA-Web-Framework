@@ -1,0 +1,6 @@
+in: path
+name: commonStructure
+required: true
+schema:
+  type: string
+  enum: [ algorithms, problems, referencesets ]

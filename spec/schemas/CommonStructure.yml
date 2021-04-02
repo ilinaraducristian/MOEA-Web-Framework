@@ -5,6 +5,8 @@ properties:
   user_id:
     type: string
     format: uuid
+  type:
+    type: integer
   name:
     type: string
   md5:

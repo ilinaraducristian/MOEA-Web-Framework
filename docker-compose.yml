@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  openapi:
+    image: swaggerapi/swagger-ui:v3.45.0
+    environment:
+      - SWAGGER_JSON=/api.yml
+    volumes:
+      - ./spec/spec.yml:/api.yml
+    ports:
+      - 8081:8080

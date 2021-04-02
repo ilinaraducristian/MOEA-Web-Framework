@@ -1,0 +1,13 @@
+get:
+  tags:
+    - Common structures
+  summary: Download one common structure file
+  operationId: downloadCommonStructure
+  security:
+    - bearerAuth: [ user ]
+  parameters:
+    - $ref: "../parameters/ID.yml"
+    - $ref: "../parameters/commonStructure.yml"
+  responses:
+    "200":
+      $ref: "../responses/FileResponse.yml"

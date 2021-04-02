@@ -4,12 +4,8 @@ info:
   description: A web platform for the MOEA Framework
   version: 3.0.2
 tags:
-  - name: Algorithms
-    description: Operations for algorithms
-  - name: Problems
-    description: Operations for problems
-  - name: Reference sets
-    description: Operations for reference sets
+  - name: Common structures
+    description: Operations for common structures
   - name: Evaluations
     description: Operations for evaluations
   - name: Standards
@@ -17,45 +13,31 @@ tags:
 servers:
   - url: "http://localhost:8080"
 paths:
-  /algorithms:
-    $ref: "./paths/algorithms.yml"
-  /algorithms/{id}/download:
-    $ref: "./paths/algorithm_download.yml"
-  /algorithms/{id}:
-    $ref: "./paths/algorithm.yml"
-
-  /problems:
-    $ref: "./paths/problems.yml"
-  /problems/{id}/download:
-    $ref: "./paths/problem_download.yml"
-  /problems/{id}:
-    $ref: "./paths/problem.yml"
-
-  /referenceSets:
-    $ref: "./paths/referenceSets.yml"
-  /referenceSets/{id}/download:
-    $ref: "./paths/referenceSet_download.yml"
-  /referenceSets/{id}:
-    $ref: "./paths/referenceSet.yml"
+  /commonctructures:
+    $ref: "./paths/commonStructures.yml"
+  /commonstructures/{commonStructure}/{id}:
+    $ref: "./paths/commonStructure.yml"
+  /commonctructures/{commonStructure}/{id}/download:
+    $ref: "./paths/commonStructure_download.yml"
 
   /evaluations:
     $ref: "./paths/evaluations.yml"
   /evaluations/{id}:
     $ref: "./paths/evaluation.yml"
 
-  /standards/algorithms:
-    $ref: "./paths/standardAlgorithms.yml"
-  /standards/problems:
-    $ref: "./paths/standardProblems.yml"
-  /standards/referenceSets:
-    $ref: "./paths/standardReferenceSets.yml"
+  /standards/{commonStructure}:
+    $ref: "./paths/standardCommonStructures.yml"
 
 components:
   schemas:
+    ID:
+      $ref: "./schemas/ID.yml"
     NewCommonStructure:
       $ref: "./schemas/NewCommonStructure.yml"
     CommonStructure:
       $ref: "./schemas/CommonStructure.yml"
+    ArrayCommonStructure:
+      $ref: "./schemas/ArrayCommonStructure.yml"
     NewEvaluation:
       $ref: "./schemas/NewEvaluation.yml"
     Evaluation:

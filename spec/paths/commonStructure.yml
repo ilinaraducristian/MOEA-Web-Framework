@@ -1,0 +1,26 @@
+get:
+  tags:
+    - Common structures
+  summary: Get one common structure
+  operationId: getCommonStructure
+  security:
+    - bearerAuth: [ user ]
+  parameters:
+    - $ref: "../parameters/ID.yml"
+    - $ref: "../parameters/commonStructure.yml"
+  responses:
+    "200":
+      $ref: "../responses/CommonStructure.yml"
+delete:
+  tags:
+    - Common structures
+  summary: Remove a common structure
+  operationId: removeCommonStructure
+  security:
+    - bearerAuth: [ user ]
+  parameters:
+    - $ref: "../parameters/ID.yml"
+    - $ref: "../parameters/commonStructure.yml"
+  responses:
+    "200":
+      description: common structure removed

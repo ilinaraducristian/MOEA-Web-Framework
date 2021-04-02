@@ -1,0 +1,39 @@
+version: "3.3"
+services:
+  percona:
+    image: percona:8
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=moeawebframework
+    volumes:
+      - tmpfs:/var/lib/mysql
+      - ./my.cnf:/etc/my.cnf
+  keycloak:
+    image: quay.io/keycloak/keycloak:12.0.4
+    ports:
+      - "8180:8080"
+    environment:
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+      - KEYCLOAK_IMPORT=/tmp/moeawebframework.json
+      - DB_VENDOR=mysql
+      - DB_ADDR=percona
+      - DB_PORT=3306
+      - DB_DATABASE=moeawebframework
+      - DB_USER=root
+      - DB_PASSWORD=root
+    volumes:
+      - "./moeawebframework.json:/tmp/moeawebframework.json"
+    depends_on:
+      - "percona"
+  minio:
+    image: minio/minio:RELEASE.2021-03-26T00-00-41Z
+    command: "server /data"
+
+volumes:
+  tmpfs:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs

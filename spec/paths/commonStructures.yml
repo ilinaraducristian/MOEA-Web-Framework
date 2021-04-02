@@ -1,0 +1,22 @@
+get:
+  tags:
+    - Common structures
+  summary: Get all common structures that belong to this user without downloading the files
+  operationId: getCommonStructures
+  security:
+    - bearerAuth: [ user ]
+  responses:
+    "200":
+      $ref: "../responses/ArrayCommonStructure.yml"
+post:
+  tags:
+    - Common structures
+  summary: Add a new common structure to this user
+  operationId: addCommonStructure
+  security:
+    - bearerAuth: [ user ]
+  requestBody:
+    $ref: "../requestBodies/NewCommonStructure.yml"
+  responses:
+    "200":
+      $ref: "../responses/ID.yml"

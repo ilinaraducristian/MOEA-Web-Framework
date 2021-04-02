@@ -1,0 +1,11 @@
+get:
+  tags:
+    - Standards
+  summary: Get all standard common structures
+  description: All standard common structures that come with the MOEA Framework or are added by this platform maintainer
+  operationId: getStandardCommonStructures
+  parameters:
+    - $ref: "../parameters/commonStructure.yml"
+  responses:
+    "200":
+      $ref: "../responses/ArrayStandardCommonStructure.yml"

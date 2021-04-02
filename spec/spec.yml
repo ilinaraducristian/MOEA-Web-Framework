@@ -1,0 +1,361 @@
+openapi: 3.0.3
+info:
+  title: MOEA Web Framework
+  description: A web platform for the MOEA Framework
+  version: 3.0.2
+tags:
+  - name: Common structures
+    description: Operations for common structures
+  - name: Evaluations
+    description: Operations for evaluations
+  - name: Standards
+    description: Operations for standard algorithms, problems and reference sets
+servers:
+  - url: http://localhost:8080
+paths:
+  /commonctructures:
+    get:
+      tags:
+        - Common structures
+      summary: Get all common structures that belong to this user without downloading
+        the files
+      operationId: getCommonStructures
+      security:
+        - bearerAuth:
+            - user
+      responses:
+        '200':
+          $ref: '#/components/responses/ArrayCommonStructure'
+    post:
+      tags:
+        - Common structures
+      summary: Add a new common structure to this user
+      operationId: addCommonStructure
+      security:
+        - bearerAuth:
+            - user
+      requestBody:
+        $ref: '#/components/requestBodies/NewCommonStructure'
+      responses:
+        '200':
+          $ref: '#/components/responses/ID'
+  /commonstructures/{commonStructure}/{id}:
+    get:
+      tags:
+        - Common structures
+      summary: Get one common structure
+      operationId: getCommonStructure
+      security:
+        - bearerAuth:
+            - user
+      parameters:
+        - $ref: '#/components/parameters/ID'
+        - $ref: '#/components/parameters/commonStructure'
+      responses:
+        '200':
+          $ref: '#/components/responses/CommonStructure'
+    delete:
+      tags:
+        - Common structures
+      summary: Remove a common structure
+      operationId: removeCommonStructure
+      security:
+        - bearerAuth:
+            - user
+      parameters:
+        - $ref: '#/components/parameters/ID'
+        - $ref: '#/components/parameters/commonStructure'
+      responses:
+        '200':
+          description: common structure removed
+  /commonctructures/{commonStructure}/{id}/download:
+    get:
+      tags:
+        - Common structures
+      summary: Download one common structure file
+      operationId: downloadCommonStructure
+      security:
+        - bearerAuth:
+            - user
+      parameters:
+        - $ref: '#/components/parameters/ID'
+        - $ref: '#/components/parameters/commonStructure'
+      responses:
+        '200':
+          $ref: '#/components/responses/FileResponse'
+  /evaluations:
+    get:
+      tags:
+        - Evaluations
+      summary: Get all evaluations that belong to this user
+      operationId: getEvaluations
+      security:
+        - bearerAuth:
+            - user
+      responses:
+        '200':
+          $ref: '#/components/responses/ArrayEvaluation'
+    post:
+      tags:
+        - Evaluations
+      summary: Add a new evaluation to this user
+      operationId: addEvaluation
+      security:
+        - bearerAuth:
+            - user
+      requestBody:
+        $ref: '#/components/requestBodies/NewEvaluation'
+      responses:
+        '200':
+          $ref: '#/components/responses/ID'
+  /evaluations/{id}:
+    get:
+      tags:
+        - Evaluations
+      summary: Get one evaluation
+      operationId: getEvaluation
+      security:
+        - bearerAuth:
+            - user
+      parameters:
+        - $ref: '#/components/parameters/ID'
+      responses:
+        '200':
+          $ref: '#/components/responses/Evaluation'
+    delete:
+      tags:
+        - Evaluations
+      summary: Remove an evaluations
+      operationId: removeEvaluation
+      security:
+        - bearerAuth:
+            - user
+      parameters:
+        - $ref: '#/components/parameters/ID'
+      responses:
+        '200':
+          description: evaluation removed
+  /standards/{commonStructure}:
+    get:
+      tags:
+        - Standards
+      summary: Get all standard common structures
+      description: All standard common structures that come with the MOEA Framework
+        or are added by this platform maintainer
+      operationId: getStandardCommonStructures
+      parameters:
+        - $ref: '#/components/parameters/commonStructure'
+      responses:
+        '200':
+          $ref: '#/components/responses/ArrayStandardCommonStructure'
+components:
+  schemas:
+    ID:
+      type: object
+      properties:
+        id:
+          type: integer
+      required:
+        - id
+    NewCommonStructure:
+      type: object
+      properties:
+        name:
+          type: string
+        file:
+          type: string
+          format: binary
+      required:
+        - name
+        - file
+    CommonStructure:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        md5:
+          type: string
+          format: md5
+      required:
+        - id
+        - user_id
+        - name
+        - md5
+    ArrayCommonStructure:
+      type: array
+      items:
+        $ref: '#/components/schemas/CommonStructure'
+    NewEvaluation:
+      type: object
+      properties:
+        name:
+          type: string
+        nfe:
+          type: integer
+        seeds:
+          type: integer
+        algorithm_id:
+          type: integer
+        problem_id:
+          type: integer
+        reference_set_id:
+          type: integer
+      required:
+        - name
+        - nfe
+        - seeds
+        - algorithm_id
+        - problem_id
+        - reference_set_id
+    Evaluation:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        nfe:
+          type: integer
+        seeds:
+          type: integer
+        algorithm_id:
+          type: integer
+        problem_id:
+          type: integer
+        reference_set_id:
+          type: integer
+        status:
+          type: string
+        results:
+          $ref: '#/components/schemas/QualityIndicators'
+      required:
+        - id
+        - name
+        - nfe
+        - seeds
+        - algorithm_id
+        - problem_id
+        - reference_set_id
+        - status
+        - results
+    CommonIndicator:
+      type: array
+      items:
+        type: array
+        items:
+          type: number
+          format: float
+    QualityIndicators:
+      type: object
+      properties:
+        r1Indicator:
+          $ref: '#/components/schemas/CommonIndicator'
+        r2Indicator:
+          $ref: '#/components/schemas/CommonIndicator'
+        r3Indicator:
+          $ref: '#/components/schemas/CommonIndicator'
+        igd:
+          $ref: '#/components/schemas/CommonIndicator'
+      required:
+        - r1Indicator
+        - r2Indicator
+        - r3Indicator
+        - igd
+    StandardCommonStructure:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+        - id
+        - name
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    commonStructure:
+      in: path
+      name: commonStructure
+      required: true
+      schema:
+        type: string
+        enum:
+          - algorithms
+          - problems
+          - referencesets
+    ID:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+  requestBodies:
+    NewCommonStructure:
+      content:
+        multipart/form-data:
+          schema:
+            $ref: '#/components/schemas/NewCommonStructure'
+    NewEvaluation:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NewEvaluation'
+  responses:
+    ArrayStandardCommonStructure:
+      description: returns the objects
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/StandardCommonStructure'
+    FileResponse:
+      description: returns the file ( .class or .pf )
+      content:
+        application/octet-stream:
+          schema:
+            type: string
+            format: binary
+    ArrayCommonStructure:
+      description: returns the objects
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/ArrayCommonStructure'
+    CommonStructure:
+      description: returns the object
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CommonStructure'
+    Evaluation:
+      description: returns the evaluation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Evaluation'
+    ArrayEvaluation:
+      description: returns the evaluations
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Evaluation'
+    ID:
+      description: returns the new object id
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ID'

@@ -3,7 +3,14 @@ spring:
     active: test
   main:
     lazy-initialization: true
-  redis:
-    port: 6370
+  r2dbc:
+    url: "r2dbc:mysql://localhost/moeawebframework"
+    username: "root"
+    password: "root"
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: "http://localhost:8180/auth/realms/MOEA-Web-Framework"
 
-rsocket_url: "localhost:7000"
+# rsocket_url: "localhost:7000"
