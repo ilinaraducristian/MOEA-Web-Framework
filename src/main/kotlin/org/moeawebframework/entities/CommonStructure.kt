@@ -1,8 +1,13 @@
 package org.moeawebframework.entities
 
-data class CommonStructureEntity(
+import org.springframework.data.annotation.Id
+import org.springframework.data.relational.core.mapping.Table
+
+@Table("common_structures")
+data class CommonStructure(
+    @Id
     var id: Long? = null,
-    var userId: String,
+    var userId: String? = null,
     var type: Int,
     var name: String,
     var md5: String
@@ -10,9 +15,9 @@ data class CommonStructureEntity(
 
 fun commonStructureToInt(commonStructure: String): Int {
     return when (commonStructure) {
-        "algorithms" -> 0
-        "problems" -> 1
-        "referencesets" -> 2
+        "algorithms" -> 1
+        "problems" -> 2
+        "referencesets" -> 3
         else -> 0
     }
 }

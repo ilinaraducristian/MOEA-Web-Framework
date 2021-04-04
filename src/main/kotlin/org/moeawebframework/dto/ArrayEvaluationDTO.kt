@@ -1,5 +1,5 @@
 package org.moeawebframework.dto
 
 data class ArrayEvaluationDTO(
-    val evaluations: List<EvaluationModelDTO>
+    val evaluations: List<EvaluationDTO>
 )

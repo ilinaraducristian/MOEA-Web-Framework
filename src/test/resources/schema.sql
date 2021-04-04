@@ -1,9 +1,3 @@
-CREATE TABLE `USER_ENTITY`
-
-(
-    `id` char(36) PRIMARY KEY
-);
-
 CREATE TABLE `common_structures`
 (
     `id`      int PRIMARY KEY AUTO_INCREMENT,
@@ -11,7 +5,7 @@ CREATE TABLE `common_structures`
     `type`    int          NOT NULL,
     `name`    varchar(255) NOT NULL,
     `md5`     char(32)     NOT NULL
-);
+) $$
 
 CREATE TABLE `evaluations`
 (
@@ -25,23 +19,22 @@ CREATE TABLE `evaluations`
     `reference_set_id` int                                 NOT NULL,
     `status`           ENUM ('created', 'running', 'done') NOT NULL,
     `results`          json
-);
+) $$
 
 ALTER TABLE `common_structures`
-    ADD FOREIGN KEY (`user_id`) REFERENCES `USER_ENTITY` (`id`);
+    ADD FOREIGN KEY (`user_id`) REFERENCES `USER_ENTITY` (`id`) $$
 
 ALTER TABLE `evaluations`
-    ADD FOREIGN KEY (`user_id`) REFERENCES `USER_ENTITY` (`id`);
+    ADD FOREIGN KEY (`user_id`) REFERENCES `USER_ENTITY` (`id`) $$
 
 ALTER TABLE `evaluations`
-    ADD FOREIGN KEY (`algorithm_id`) REFERENCES `common_structures` (`id`);
+    ADD FOREIGN KEY (`algorithm_id`) REFERENCES `common_structures` (`id`) $$
 
 ALTER TABLE `evaluations`
-    ADD FOREIGN KEY (`problem_id`) REFERENCES `common_structures` (`id`);
+    ADD FOREIGN KEY (`problem_id`) REFERENCES `common_structures` (`id`) $$
 
 ALTER TABLE `evaluations`
-    ADD FOREIGN KEY (`reference_set_id`) REFERENCES `common_structures` (`id`);
-
+    ADD FOREIGN KEY (`reference_set_id`) REFERENCES `common_structures` (`id`) $$
 
 CREATE TRIGGER `type_constraint`
     BEFORE INSERT
@@ -65,22 +58,9 @@ BEGIN
     FROM `common_structures`
     WHERE `id` = `NEW`.`reference_set_id`;
 
-    IF @algorithm_type <> 0 OR @problem_type <> 1 OR @reference_set_type <> 2 THEN
+    IF @algorithm_type <> 1 OR @problem_type <> 2 OR @reference_set_type <> 3 THEN
         SIGNAL SQLSTATE '10000'
             SET MESSAGE_TEXT = 'Common structure type violation';
     END IF;
 
-END;
-
-INSERT INTO `USER_ENTITY` (`id`)
-VALUES ('cdd36e48-f1c5-474e-abc3-ac7a17909878');
-
-INSERT INTO `common_structures`
-VALUES (1, NULL, 0, 'CMA-ES', 'md5');
-INSERT INTO `common_structures`
-VALUES (2, NULL, 1, 'Belegundu', 'md5');
-INSERT INTO `common_structures`
-VALUES (3, NULL, 2, 'Belegundu', 'md5');
-
-INSERT INTO `evaluations`
-VALUES (1, null, 'Test evaluation', 10000, 10, 1, 2, 3, 'created', NULL);
+END $$

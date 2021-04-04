@@ -19,3 +19,4 @@ const val AlgorithmExistsAccessDenied = "Algorithm exists but you don't have acc
 
 const val EvaluationCouldNotBeCreated = "Evaluation could not be created"
 const val CommonStructureCouldNotBeCreated = "Common structure could not be created"
+const val EvaluationNotFoundException = "Evaluation not found"

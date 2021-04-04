@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
     id("org.springframework.boot") version "2.4.3"
@@ -10,7 +11,7 @@ plugins {
 }
 
 group = "org.moeawebframework"
-version = "4.0"
+version = "4.0.1"
 java.sourceCompatibility = JavaVersion.VERSION_15
 
 repositories {
@@ -60,6 +61,8 @@ dependencyManagement {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    jvmArgs =
+        listOf("--add-opens", "java.base/jdk.internal.misc=ALL-UNNAMED", "-Dio.netty.tryReflectionSetAccessible=true")
 }
 
 tasks.withType<KotlinCompile> {
@@ -67,6 +70,11 @@ tasks.withType<KotlinCompile> {
         freeCompilerArgs = listOf("-Xjsr305=strict")
         jvmTarget = "15"
     }
+}
+
+tasks.withType<BootRun> {
+    jvmArgs =
+        listOf("--add-opens", "java.base/jdk.internal.misc=ALL-UNNAMED", "-Dio.netty.tryReflectionSetAccessible=true")
 }
 
 tasks.openApiGenerate {

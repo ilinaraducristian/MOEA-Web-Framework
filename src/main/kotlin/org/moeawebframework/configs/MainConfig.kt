@@ -11,6 +11,7 @@ import org.springframework.messaging.rsocket.RSocketRequester
 import org.springframework.messaging.rsocket.RSocketStrategies
 import org.springframework.util.MimeTypeUtils
 
+// TODO should be removed
 val standardAlgorithms = listOf(
     "CMA-ES",
     "NSGAII",

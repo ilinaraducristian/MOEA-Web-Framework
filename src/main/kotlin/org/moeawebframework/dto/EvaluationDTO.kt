@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.moeawebframework.entities.Evaluation
 import javax.validation.Valid
 
-data class EvaluationModelDTO(
+data class EvaluationDTO(
 
     @JsonProperty("id", required = true)
     val id: Long,
@@ -47,6 +47,15 @@ data class EvaluationModelDTO(
         evaluation.status,
         evaluation.results
     )
+
+    fun compareTo(newEvaluationDTO: NewEvaluationDTO): Boolean {
+        return newEvaluationDTO.name == this.name &&
+                newEvaluationDTO.nfe == this.nfe &&
+                newEvaluationDTO.seeds == this.seeds &&
+                newEvaluationDTO.algorithmId == this.algorithmId &&
+                newEvaluationDTO.problemId == this.problemId &&
+                newEvaluationDTO.referenceSetId == this.referenceSetId
+    }
 
 }
 
