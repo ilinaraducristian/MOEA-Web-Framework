@@ -9,7 +9,7 @@ interface CommonStructureRepository : CoroutineCrudRepository<CommonStructure, L
     @Query("SELECT `id`, `name`, `md5` FROM `common_structures` WHERE `user_id` = :userId AND `type` = :type")
     suspend fun findAllByUserIdAndType(userId: String, type: Int): List<CommonStructure>
 
-    @Query("SELECT `id`, `user_id` AS `userId`, `type`, `name`, `md5` FROM `common_structures` c WHERE c.`type` = :type")
+    @Query("SELECT `id`, `name` FROM `common_structures` WHERE `type` = :type")
     suspend fun findAllStandardsByType(type: Int): List<CommonStructure>
 
     @Query("SELECT `id`, `user_id`, `name` FROM `common_structures` WHERE `md5` = :md5 AND `type` = :type")

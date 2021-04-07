@@ -1,6 +1,3 @@
-INSERT INTO `USER_ENTITY` (`id`)
-VALUES ('cdd36e48-f1c5-474e-abc3-ac7a17909878');
-
 #algorithms
 INSERT INTO `common_structures` (`user_id`, `type`, `name`, `md5`)
 VALUES (NULL, 1, 'CMA-ES', 'CMA-ES');
@@ -40,7 +37,6 @@ INSERT INTO `common_structures` (`user_id`, `type`, `name`, `md5`)
 VALUES (NULL, 1, 'RVEA', 'RVEA');
 INSERT INTO `common_structures` (`user_id`, `type`, `name`, `md5`)
 VALUES (NULL, 1, 'RSO', 'RSO');
-# 18
 
 # problems
 INSERT INTO `common_structures` (`user_id`, `type`, `name`, `md5`)
@@ -398,7 +394,3 @@ INSERT INTO `common_structures` (`user_id`, `type`, `name`, `md5`)
 VALUES (NULL, 3, 'Viennet3', 'Viennet3');
 INSERT INTO `common_structures` (`user_id`, `type`, `name`, `md5`)
 VALUES (NULL, 3, 'Viennet4', 'Viennet4');
-
-# INSERT INTO `evaluations` (`user_id`, `name`, `nfe`, `seeds`, `algorithm_id`, `problem_id`, `reference_set_id`,
-#                            `status`, `results`)
-# VALUES (null, 'Test evaluation', 10000, 10, 1, 19, 107, 'created', NULL);

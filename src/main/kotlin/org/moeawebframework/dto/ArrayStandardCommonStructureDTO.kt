@@ -1,5 +1,10 @@
 package org.moeawebframework.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 data class ArrayStandardCommonStructureDTO(
-    val commonStructures: List<StandardCommonStructureDTO>
+
+    @JsonProperty("common_structures", required = true)
+    var commonStructures: List<StandardCommonStructureDTO>
+
 )

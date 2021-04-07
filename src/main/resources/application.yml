@@ -7,14 +7,15 @@ spring:
     multipart:
       max-file-size: 128KB
       max-request-size: 128KB
+      file-size-threshold: 500KB
 
 ---
 
 spring:
   r2dbc:
     url: "r2dbc:mysql://localhost/moeawebframework"
-    username: "postgres"
-    password: "postgres"
+    username: "root"
+    password: "root"
   security:
     oauth2:
       resourceserver:
@@ -31,6 +32,6 @@ rsocket_url: "localhost:7000"
 ---
 
 spring:
-  profiles: prod
-
-rsocket_url: ${RSOCKET_URL}
+  config:
+    activate:
+      on-profile: prod

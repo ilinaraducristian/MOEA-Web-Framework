@@ -29,6 +29,8 @@ class EvaluationsController(
 
     @PostMapping
     suspend fun addEvaluation(authentication: Authentication?, @RequestBody newEvaluation: NewEvaluationDTO): IDDTO {
+        println("AUTHENTICATION:")
+        println(authentication)
         val evaluation = Evaluation(newEvaluation)
         evaluation.user_id = if (authentication != null) (authentication.principal as Jwt).subject else null
         val savedEvaluation = evaluationRepository.save(evaluation)
@@ -41,11 +43,19 @@ class EvaluationsController(
     }
 
     @DeleteMapping("{id}")
-    suspend fun deleteEvaluation(authentication: Authentication?, @PathVariable("id") id: Long): EvaluationDTO {
-        val evaluation = commonEvaluationCheck(authentication, id)
+    suspend fun deleteEvaluation(authentication: Authentication, @PathVariable("id") id: Long) {
+        val evaluation = evaluationRepository.findById(id)
+        if ((evaluation == null) || (evaluation.user_id == null) || (authentication.principal as Jwt).subject != evaluation.user_id)
+            throw RuntimeException(EvaluationNotFoundException)
         evaluationRepository.delete(evaluation)
-        return EvaluationDTO(evaluation)
     }
+
+//    TODO guests can delete any other guests evaluations
+//    @DeleteMapping("{id}")
+//    suspend fun deleteEvaluation(authentication: Authentication?, @PathVariable("id") id: Long) {
+//        val evaluation = commonEvaluationCheck(authentication, id)
+//        evaluationRepository.delete(evaluation)
+//    }
 
     private suspend fun commonEvaluationCheck(authentication: Authentication?, id: Long): Evaluation {
         val evaluation = evaluationRepository.findById(id)

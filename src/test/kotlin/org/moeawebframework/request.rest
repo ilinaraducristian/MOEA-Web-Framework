@@ -1,0 +1,14 @@
+# curl 
+#  -d "client_id=myclient" 
+#  -d "client_secret=40cc097b-2a57-4c17-b36a-8fdf3fc2d578" 
+#  -d "username=user" 
+#  -d "password=password" 
+#  -d "grant_type=password" 
+#  "http://localhost:8080/auth/realms/master/protocol/openid-connect/token"
+POST http://localhost:8180/auth/realms/MOEA-Web-Framework/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+client_id=test-client&client_secret=50613e26-1739-4dc1-85cb-d7d7bff901a6&username=foo&password=foo.bar&grant_type=password
+
+###
+
